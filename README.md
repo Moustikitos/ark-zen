@@ -24,7 +24,7 @@ nodes and `True Block Weight` utilities for pool management.
     * [X] `ecdsa`
     * [X] `base58`
 
-`sudo pip -L install https://github.com/Moustikitos/zen/archive/master.zip`
+`sudo pip --user install https://github.com/Moustikitos/zen/archive/master.zip`
 
 or
 
