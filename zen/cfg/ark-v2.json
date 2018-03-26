@@ -1,0 +1,69 @@
+{
+    "blocktime": 8,
+    "delegates": 51, 
+
+    "rebuild": [
+        "echo no rebuild necessary !"
+    ],
+
+    "restart": [
+        "forever stopall --plain",
+        "forever cleanlogs --plain",
+        "forever start --plain %(homedir)s/%(blockchain)s-node/app.js -c %(homedir)s/%(blockchain)s-node/config.%(network)s.json -g %(homedir)s/%(blockchain)s-node/genesisBlock.%(network)s.json"    
+    ],
+
+    "nodeheight":[
+        "psql -d %(database)s -t -c 'SELECT height FROM blocks ORDER BY HEIGHT DESC LIMIT 1;'"
+    ],
+
+    "networks": {
+        "mainnet": {
+            "begin": [2017, 3, 21, 13],
+            "database": "ark_mainnet", 
+            "snapshots": [
+                "http://ark.delegate-goose.biz/snapshot/current", 
+                "http://arkdel.net/current", 
+                "http://s.arkmoon.com/current", 
+                "http://s.arkx.io/current", 
+                "https://dafty.net/snapshot1/current", 
+                "https://dafty.net/snapshot2/current", 
+                "https://dafty.net/snapshot3/current", 
+                "https://dafty.net/snapshot4/current", 
+                "https://dafty.net/snapshot5/current", 
+                "https://dafty.net/snapshot6/current", 
+                "https://s.arkno.de/current", 
+                "https://snapshot.arkcoin.net/current", 
+                "https://snapshots.ark.io/current", 
+                "https://www.arkdelegate.com/current"
+            ], 
+            "seeds": [
+                "http://5.39.9.250:4001", 
+                "http://5.39.9.251:4001", 
+                "http://5.39.9.252:4001", 
+                "http://5.39.9.253:4001", 
+                "http://5.39.9.254:4001"
+            ], 
+            "peer": "http://localhost:4001",
+            "explorer": "https://explorer.ark.io"
+        },
+
+        "devnet":{
+            "begin": [2017, 3, 21, 13],
+            "database": "ark_devnet", 
+            "snapshots": [
+                "https://dsnapshots.ark.io/current", 
+                "https://dsnapshot.arkno.de/current", 
+                "http://dexplorer.ark.land/snapshots/current"
+            ], 
+            "seeds": [
+                "http://167.114.29.51:4002", 
+                "http://167.114.29.52:4002", 
+                "http://167.114.29.53:4002", 
+                "http://167.114.29.54:4002", 
+                "http://167.114.29.55:4002"
+            ], 
+            "peer": "http://localhost:4002",
+            "explorer": "https://dexplorer.ark.io"
+        }
+    }
+}

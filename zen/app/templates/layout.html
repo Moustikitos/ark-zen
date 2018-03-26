@@ -1,0 +1,40 @@
+<!doctype html>
+<head>
+    <title>{{ username }} TBW live</title>    
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+{% block body %}
+    <center>
+    <h1>{{ username }} :: True Block Weight</h1>
+        <p>
+        Forged&nbsp;: {{ "%f" % tokens }}&nbsp;&#1126;&nbsp;-
+        Applied share&nbsp;: {{ "%.1f" % (share*100) }}&nbsp;%&nbsp;-
+        Threshold&nbsp;: {{ "%f" % threshold }}&nbsp;&#1126;&nbsp;-
+        Next block&nbsp;: {{ next_block }}&nbsp;
+        </p>
+        <table cellspacing="5" class="database">
+            <tr>
+                <th>#</th>
+                <th>Address</th>
+                <th>Weight</th>
+                <th>Share</th>
+                <th></th>
+            </tr>
+    {% for pair in items %}
+            <tr>
+                <td class="data">{{ items.index(pair)+1 }}</td>
+                <td class="data" style="font-family:'Courier New'"><a href="/history/address/{{ pair[0] }}/0/10">{{ pair[0] }}</a></td>
+                <td class="data">{{ "%.6f %%" % pair[-1] }}</td>
+                {% if pair[-1]/100*tokens*share > threshold %}
+                    <td class="data" style="text-align:right;color:blue">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;&#1126;</td>
+                {% else %}
+                    <td class="data" style="text-align:right;color:darkred">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;&#1126;</td>
+                {% endif %}
+                <td><a class="button" style="padding:2px;" href="{{ explorer }}/wallets/{{ pair[0] }}" target="_blank">&#128506;</a></td>
+            </tr>
+    {% endfor %}
+        </table>
+    </center>
+{% endblock %}
+</body>
