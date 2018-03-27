@@ -125,11 +125,11 @@ Launch `spread` every 5 minutes and log messages into `/home/<username>/tbw.log`
 
 Launch `extract` every sunday 19h00 and log messages into `/home/username/tbw.log`
 
-` 0 19 0 * * * /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log &2>1`
+` 0 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log &2>1`
 
 Launch `pay` every sunday 19h05 and log messages into `/home/username/tbw.log`
 
-` 5 19 0 * * * /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log &2>1`
+` 5 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log &2>1`
 
 Start web user interface on server boot and log messages into `/home/username/flask.log`
 
