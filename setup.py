@@ -6,7 +6,7 @@ except ImportError:
 	from distutils.core import setup
 
 
-with open("VERSION") as f1, open("README.rst") as f2:
+with open("VERSION") as f1, open("README.md") as f2:
 	VERSION = f1.read().strip()
 	LONG_DESCRIPTION = f2.read()
 
