@@ -42,7 +42,7 @@ def dumpParam(param):
 
 
 def get():
-	param = loadJson(os.path.join(ROOT, NAME+".json"))
+	param = loadParam()
 	config = loadConfig()
 	forge = loadForge()
 	seed = config["peer"]
@@ -58,7 +58,7 @@ def get():
 
 		if reward > 0.:
 			voters = requests.get(seed+"/api/delegates/voters?publicKey="+config["publicKey"]).json().get("accounts", [])
-			voters = dict([v["address"], float(v["balance"])] for v in voters)
+			voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in param.get("excludes", []))
 			total_balance = sum(voters.values())
 			pairs = [[a,b/total_balance*reward] for a,b in voters.items() if a not in param.get("excludes", []) and b > param.get("minvote", 0)]
 			return OrderedDict(sorted(pairs, key=lambda e:e[-1], reverse=True))
@@ -86,7 +86,7 @@ def spread():
 
 
 def extract():
-	param = loadJson(os.path.join(ROOT, NAME+".json"))
+	param = loadParam()
 	data = OrderedDict(sorted([[a,w] for a,w in loadTBW().items()], key=lambda e:e[-1], reverse=True))
 	
 	threshold = param.get("threshold", 0.)
