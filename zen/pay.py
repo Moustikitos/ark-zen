@@ -46,7 +46,6 @@ def waitFor(**config):
 	blocktime = config["blocktime"]
 	delegates = config["delegates"]
 	rank = delegates
-
 	while rank > 0:
 		time.sleep(2*blocktime if rank > 3 else 1)
 		forging_queue = requests.get(config["peer"]+"/api/delegates/getNextForgers?limit=%d" % delegates).json().get("delegates", [])
@@ -55,7 +54,7 @@ def waitFor(**config):
 
 def pay():
 	for filename in [os.path.splitext(name)[0] for name in os.listdir(ROOT) if name.endswith(".tbw")]:
-		dumpregistry(filename)
+		dumpRegistry(filename)
 		broadcast(filename, targeting=True)
 
 
@@ -131,7 +130,9 @@ def broadcast(date, targeting=False, tx_per_block=50, tx_per_req=10):
 	sliced = [transactions[i:i+tx_per_block] for i in range(0,len(transactions),tx_per_block)]
 	while len(registry):
 		for slc in sliced:
-			if targeting: waitFor(**config)
+			if targeting:
+				sys.stdout.write("Waiting for delegate...\n")
+				waitFor(**config)
 			for txs in [slc[i:i+tx_per_req] for i in range(0,len(slc), tx_per_req)]:
 				str_txs = ["transaction(type=%(type)d, amount=%(amount)d address=%(recipientId)s)"%tx for tx in txs]
 				result = requests.post(

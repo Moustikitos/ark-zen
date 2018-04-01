@@ -6,8 +6,7 @@ body {
 
 .button {
 	text-decoration: none;
-	text-shadow: 0 1px 1px rgba(0,0,0,.3);
-	box-shadow: 0 1px 2px rgba(0,0,0,.2);
+	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.24), 0 6px 12px 0 rgba(0,0,0,0.19);
 	border: 1px solid lightblue;
 	color: #000126;
 	border-radius: 5px;
