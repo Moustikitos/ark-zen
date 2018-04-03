@@ -165,6 +165,8 @@ def check():
 		status["block speed issue round"] = status.get("block speed issue round", 0)+1
 		logMsg("Block speed issue : %.2f blk/min instead of %.2f (round %d)" % \
 		                (block_speed, 60.0/config["blocktime"], status["block speed issue round"]))
+		if status["block speed issue round"] > 20:
+			restart()
 	else:
 		status.pop("block speed issue round", False)
 
