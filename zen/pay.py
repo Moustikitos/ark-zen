@@ -55,7 +55,7 @@ def waitFor(**config):
 def pay():
 	for filename in [os.path.splitext(name)[0] for name in os.listdir(ROOT) if name.endswith(".tbw")]:
 		dumpRegistry(filename)
-		broadcast(filename, targeting=True)
+		broadcast(filename, targeting=False)
 
 
 def dumpRegistry(date):
