@@ -10,6 +10,9 @@ from zen.tbw import spread, extract, forgery
 from zen.pay import build, pay
 
 
+sys.path.append(os.path.expanduser("~/zen"))
+
+
 def launch():
 	print(os.path.join(os.path.join(zen.__path__[0], "app")))
 	os.environ["FLASK_APP"] = os.path.join(zen.__path__[0], "app", "app.py")
@@ -42,7 +45,8 @@ if __name__ == "__main__":
 
 	# set the default command
 	if not len(args):
-		raise Exception("No command to be performed")
+		args = ["configure"]
+		# raise Exception("No command to be performed")
 	elif len(args) > 1:
 		parser.print_help()
 		raise Exception("Only one command can be performed")
