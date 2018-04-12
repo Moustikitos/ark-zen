@@ -2,6 +2,7 @@
 import os
 import flask
 import sqlite3
+from flask_bootstrap import Bootstrap
 
 # from flask import Flask, flask.render_template, flash, url_for
 from zen.cmn import loadConfig, loadJson
@@ -12,7 +13,7 @@ from zen.tbw import loadTBW, spread, loadParam
 # create the application instance 
 app = flask.Flask(__name__) 
 CONFIG = loadConfig()
-
+Bootstrap(app)
 
 # show index
 @app.route("/")
@@ -26,7 +27,7 @@ def render():
 	items = [[k,v/max(1.0, c)*100] for k,v in weight.items()]
 
 	return flask.render_template(
-		"layout.html",
+		"bs-layout.html",
 		next_block=getNextForgeRound(CONFIG["peer"], **CONFIG),
 		items=sorted(items, key=lambda e:e[-1], reverse=True),
 		tokens=tokens,
@@ -46,7 +47,7 @@ def render_history(field, value, start, number):
 				flask.g.search_field = field
 
 		return flask.render_template(
-			"history.html",
+			"bs-history.html",
 			field=field,
 			value=value,
 			start=start,
@@ -91,3 +92,4 @@ def dated_url_for(endpoint, **values):
 			values['q'] = int(os.stat(file_path).st_mtime)
 	return _url_for(endpoint, **values)
 flask.url_for = url_for
+
