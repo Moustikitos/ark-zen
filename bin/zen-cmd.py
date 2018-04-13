@@ -35,11 +35,12 @@ if __name__ == "__main__":
 
 	# catch command line
 	parser = optparse.OptionParser()
-	parser.add_option("-s", "--share",        dest="share",       type="float",  help="pool sharing",                  metavar="RATE")
-	parser.add_option("-t", "--threshold",    dest="threshold",   type="float",  help="threshold to initiate payment", metavar="THRESHOLD")
-	parser.add_option("-f", "--fund",         dest="funds",       type="string", help="address where you keep funds",  metavar="ADDRESS")
-	parser.add_option("-v", "--vendor-field", dest="vendorField", type="string", help="Message you want to associate", metavar="64-CHAR MESSAGE")
-	parser.add_option("-e", "--excludes",     dest="excludes",    type="string", help="Addresses to exclude",          metavar="COMA-SEPARATED-ADDRESS LIST")
+	parser.add_option("-s", "--share", dest="share", type="float", metavar="RATE", help="Pool sharing rate. Float number >=0. and <= 1.0")
+	parser.add_option("-t", "--threshold", dest="threshold", type="float", metavar="THRESHOLD", help="Threshold to initiate payment, transaction fees included.")
+	parser.add_option("-f", "--fund", dest="funds", type="string", metavar="ADDRESS", help="Address where you keep funds, the part not distributed to voters.")
+	parser.add_option("-v", "--vendor-field", dest="vendorField", metavar="MESSAGE", type="string", help="Message you want to associate.")
+	parser.add_option("-e", "--excludes", dest="excludes", type="string", metavar="ADDRESS001,ADDRESS002,...ADDRESSNNN", help="Coma-separated list of addresses to exclude.")
+	parser.add_option("-k", "--keep-fees",    dest="targeting",   action="store_true")
 
 	(zen.cmn.OPTIONS, args) = parser.parse_args()
 
