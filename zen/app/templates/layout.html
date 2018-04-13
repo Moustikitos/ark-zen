@@ -5,7 +5,8 @@
 </head>
 <body>
 {% block body %}
-    <center>
+<div class="container"> 
+   <center>
     <h1>{{ username }} :: True Block Weight</h1>
         <p>
         Forged&nbsp;: {{ "%f" % tokens }}&nbsp;&#1126;&nbsp;-
@@ -13,7 +14,7 @@
         Threshold&nbsp;: {{ "%f" % threshold }}&nbsp;&#1126;&nbsp;-
         Next block&nbsp;: {{ next_block }}&nbsp;
         </p>
-        <table cellspacing="5" class="database">
+        <table cellspacing="5" class="table">
             <tr>
                 <th>#</th>
                 <th>Address</th>
@@ -37,4 +38,5 @@
         </table>
     </center>
 {% endblock %}
+</div>
 </body>
