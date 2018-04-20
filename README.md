@@ -137,7 +137,7 @@ Start web user interface on server boot and log messages into `/home/username/fl
 
 Close and apply `crontab` tasks (`Ctrl+X`-`Y`-`Enter`)
 
-The magic here is if your server restart, it will launch `check` every minute
+The magic here is if your server restarts, it will launch `check` every minute
 and the node will start automatically when zen identify a to heavy blockchain
 height difference.
 
