@@ -164,9 +164,7 @@ def check():
 	if block_speed < 0.8*60.0/config["blocktime"]: # 60/blocktime => blockchain speed in block per minute
 		status["block speed issue round"] = status.get("block speed issue round", 0)+1
 		logMsg("Block speed issue : %.2f blk/min instead of %.2f (round %d)" % \
-		                (block_speed, 60.0/config["blocktime"], status["block speed issue round"]))
-		if status["block speed issue round"] > 20:
-			restart()
+		                           (block_speed, 60.0/config["blocktime"], status["block speed issue round"]))
 	else:
 		status.pop("block speed issue round", False)
 
@@ -198,7 +196,7 @@ def check():
 		# node is going solo --> fork !
 		elif height_diff < -config["blocktime"]/0.8:
 			logMsg("Node is going solo with %d blocks forward ! It is forking..." % (-height_diff))
-		# node is not stuck neither too far from net height but can't reach it
-		elif status.get("block speed issue round", 0) >= 0.8*config["delegates"]*config["blocktime"]//60:
-			restart()
 		pprint.pprint(status, indent=4)
+
+	if status.get("block speed issue round", 0) > 0.8*config["delegates"]*config["blocktime"]//60:
+		restart()
