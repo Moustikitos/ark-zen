@@ -1,5 +1,7 @@
 # -*- encoding:utf-8 -*-
 
+from ecdsa import BadSignatureError
+from ecdsa.der import UnexpectedDER
 from ecdsa.keys import SigningKey, VerifyingKey
 from ecdsa.util import sigencode_der_canonize, sigdecode_der
 from ecdsa.curves import SECP256k1

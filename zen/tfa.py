@@ -2,6 +2,7 @@
 
 from zen import crypto
 
+import os
 import sys
 import time
 import json
@@ -22,11 +23,11 @@ class TCPHandler(socketserver.BaseRequestHandler):
 	check = False
 
 	def handle(self):
-		signature = crypto.hexlify(self.request.recv(1024).strip())
+		data = self.request.recv(1024).strip()
 		
 		if TCPHandler.publicKey:
 			try:
-				TCPHandler.check = check(TCPHandler.publicKey, signature)
+				TCPHandler.check = check(TCPHandler.publicKey, data)
 			except:
 				pass
 		else:
@@ -43,12 +44,35 @@ def seed():
 	return h.encode("utf-8") if not isinstance(h, bytes) else h
 
 
+def pack(*elements):
+	data = bytearray()
+	for elem in filter(lambda e: isinstance(e, (bytes, str)) and len(e) < 256, elements):
+		if not isinstance(elem, bytes):
+			elem = elem.encode("utf-8")
+		data.append(len(elem))
+		data.extend(elem)
+	return data
+
+
+def unpack(data):
+	idx = 0
+	elements = []
+	while idx < len(data):
+		size = crypto.basint(data[idx])
+		idx += 1
+		elements.append(bytes(data[idx:idx+size]))
+		idx += size
+	return elements
+
+
 def get(privateKey):
-	return crypto.getSignatureFromBytes(seed(), privateKey)
+	rand = os.urandom(128)
+	return pack(crypto.unhexlify(crypto.getSignatureFromBytes(seed()+rand, privateKey)), rand)
 
 
-def check(publicKey, signature):
-	return crypto.verifySignatureFromBytes(seed(), publicKey, signature)
+def check(publicKey, data):
+	signature, rand = unpack(data)
+	return crypto.verifySignatureFromBytes(seed()+rand, publicKey, crypto.hexlify(signature))
 
 
 def post(privateKey, url):
@@ -61,8 +85,8 @@ def send(privateKey, host="localhost", port=9999):
 	try:
 		sign = get(privateKey)
 	except:
-		sign = crypto.hexlify(b"none")
-	sock.sendall(crypto.unhexlify(sign))
+		sign = b"none"
+	sock.sendall(sign)
 	result = sock.recv(1024)
 	sock.close()
 	return json.loads(result.decode() if __PY3__ else result)["granted"]
@@ -84,3 +108,4 @@ def wait(publicKey, host="localhost", port=9999):
 	server.socket.close()
 	# return the result
 	return TCPHandler.check
+
