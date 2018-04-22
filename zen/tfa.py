@@ -83,10 +83,10 @@ def send(privateKey, host="localhost", port=9999):
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	sock.connect((host, port))
 	try:
-		sign = get(privateKey)
+		data = get(privateKey)
 	except:
-		sign = b"none"
-	sock.sendall(sign)
+		data = b"none"
+	sock.sendall(data)
 	result = sock.recv(1024)
 	sock.close()
 	return json.loads(result.decode() if __PY3__ else result)["granted"]
