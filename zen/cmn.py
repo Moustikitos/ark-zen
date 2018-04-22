@@ -138,11 +138,8 @@ def configure():
 		tbw_config["vendorField"] = OPTIONS.vendorField[0:min(64, len(OPTIONS.vendorField))]
 	if OPTIONS.excludes:
 		tbw_config["excludes"] = OPTIONS.excludes.split(",")
-		
 	if OPTIONS.targeting:
-		tbw_config["targeting"] = OPTIONS.targeting
-	else:
-		tbw_config.pop("targeting", False)
+		tbw_config["targeting"] = not tbw_config.pop("targeting", False)
 
 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
 
