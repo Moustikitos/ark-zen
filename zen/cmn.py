@@ -70,35 +70,40 @@ def chooseItem(msg, *elem):
 
 def setup():
 	config = loadConfig()
-
+	tbw_config = loadJson(os.path.join(ROOT, "tbw.json"))
+	
+	# select available network
 	items = findBlockchains()
 	blockchain = chooseItem("%d blockchain found:"%len(items), *items)
+	config["blockchain"] = blockchain
 	blockchain_json = loadJson(os.path.join(ROOT, "cfg", blockchain+".json"))
-	network = chooseItem("%d network found:"%len(items), *blockchain_json["networks"].keys())
 	config["cmd"] = {
 		"rebuild": blockchain_json.pop("rebuild", []),
 		"restart": blockchain_json.pop("restart", []),
 		"nodeheight": blockchain_json.pop("nodeheight", [])
 	}
-	config["network"] = network
-	config["blockchain"] = blockchain
-	config.update(**blockchain_json.pop("networks")[network])
-	config.update(**blockchain_json)
 
-	tbw_config = loadJson(os.path.join(ROOT, "tbw.json"))
-	node = os.path.dirname(tbw_config.get("node", os.path.expanduser("~/%s-node"%blockchain)))
-	while not os.path.exists(os.path.join(node, "config.%s.json" % network)):
-		node = input("> enter node path: ")
-	tbw_config["node"] = os.path.join(node, "config.%s.json" % network)
+	# ask network config file
+	node = tbw_config.get("node", "_._")
+	while not os.path.exists(node):
+		node = input("> enter config file path: ")
+	tbw_config["node"] = os.path.normpath(os.path.abspath(node))
+
 	_cnf = loadJson(tbw_config["node"])
+	config["network"] = _cnf.get("network", None)
+	config["nethash"] = _cnf.get("nethash", None)
+	config["version"] = _cnf.get("version", None)
+	config["port"] = _cnf.get("port", None)
+	config["database"] = _cnf["db"]["database"]
+	config["seeds"] = ["http://%(ip)s:%(port)s" % item for item in _cnf["peers"]["list"]]
+	config["peer"] = "http://localhost:%d" % _cnf["port"]
+
+	config.update(**blockchain_json.pop("networks")[config["network"]])
+
 	secret = _cnf["forging"]["secret"][0]
 	keys = crypto.getKeys(secret)
 	config["publicKey"] = keys["publicKey"]
-	# config["network"] = _cnf["network"]
-	config["nethash"] = _cnf["nethash"]
-	config["version"] = _cnf["version"]
-	config["port"] = _cnf["port"]
-
+	
 	seed = getBestSeed(*config["seeds"])
 	account = requests.get(seed+"/api/delegates/get?publicKey=%s" % keys["publicKey"], verify=True, timeout=5).json().get("delegate", {})
 	tbw_config["username"] = account["username"]
@@ -120,6 +125,60 @@ def setup():
 	config["user"] = os.environ.get("USER", None)
 	config["homedir"] = os.environ.get("HOME", None)
 	dumpConfig(config)
+
+
+# def xsetup():
+# 	config = loadConfig()
+
+# 	items = findBlockchains()
+# 	blockchain = chooseItem("%d blockchain found:"%len(items), *items)
+# 	blockchain_json = loadJson(os.path.join(ROOT, "cfg", blockchain+".json"))
+# 	network = chooseItem("%d network found:"%len(items), *blockchain_json["networks"].keys())
+# 	config["cmd"] = {
+# 		"rebuild": blockchain_json.pop("rebuild", []),
+# 		"restart": blockchain_json.pop("restart", []),
+# 		"nodeheight": blockchain_json.pop("nodeheight", [])
+# 	}
+# 	config["network"] = network
+# 	config["blockchain"] = blockchain
+# 	config.update(**blockchain_json.pop("networks")[network])
+# 	config.update(**blockchain_json)
+
+# 	tbw_config = loadJson(os.path.join(ROOT, "tbw.json"))
+# 	node = os.path.dirname(tbw_config.get("node", os.path.expanduser("~/%s-node"%blockchain)))
+# 	while not os.path.exists(os.path.join(node, "config.%s.json" % network)):
+# 		node = input("> enter node path: ")
+# 	tbw_config["node"] = os.path.join(node, "config.%s.json" % network)
+# 	_cnf = loadJson(tbw_config["node"])
+# 	secret = _cnf["forging"]["secret"][0]
+# 	keys = crypto.getKeys(secret)
+# 	config["publicKey"] = keys["publicKey"]
+# 	# config["network"] = _cnf["network"]
+# 	config["nethash"] = _cnf["nethash"]
+# 	config["version"] = _cnf["version"]
+# 	config["port"] = _cnf["port"]
+
+# 	seed = getBestSeed(*config["seeds"])
+# 	account = requests.get(seed+"/api/delegates/get?publicKey=%s" % keys["publicKey"], verify=True, timeout=5).json().get("delegate", {})
+# 	tbw_config["username"] = account["username"]
+# 	tbw_config["excludes"] = [account["address"]]
+# 	account = requests.get(seed+"/api/accounts?address=%s" % account["address"], verify=True, timeout=5).json().get("account", {})
+
+# 	if account.get("secondPublicKey", False):
+# 		seed = tbw_config.get("#2", "00")
+# 		secondPublicKey = crypto.getKeys(seed=seed)["publicKey"]
+# 		while secondPublicKey != account["secondPublicKey"]:
+# 			secret = getpass.getpass("> enter your second secret: ")
+# 			seed = crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
+# 			secondPublicKey = crypto.getKeys(seed=seed)
+# 		tbw_config["#2"] = hexlify(seed)
+# 	else:
+# 		tbw_config["#2"] = None
+
+# 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
+# 	config["user"] = os.environ.get("USER", None)
+# 	config["homedir"] = os.environ.get("HOME", None)
+# 	dumpConfig(config)
 
 
 def configure():

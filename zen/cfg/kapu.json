@@ -34,21 +34,9 @@
     "networks": {
         "mainnet": {
             "begin": [2017, 3, 21, 13],
-            "database": "kapu_mainnet",
             "snapshots": [
                 "https://snapshot.kapunode.net/current"
             ],
-            "seeds": [
-                "http://51.15.221.100:4600", 
-                "http://51.15.198.173:4600", 
-                "http://51.15.194.207:4600", 
-                "http://51.15.215.113:4600", 
-                "http://80.241.218.21:4600", 
-                "http://94.176.233.210:4600", 
-                "http://51.15.201.243:4600", 
-                "http://51.15.201.56:4600"
-            ], 
-            "peer": "http://localhost:9700",
             "explorer": "https://explorer.kapu.one"
         }
     }

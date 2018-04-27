@@ -125,26 +125,30 @@ def check():
 	config = loadConfig()
 	status = loadStatus()
 
-	# load best seed
-	# seed = getBestSeed(*config.get("seeds", []))
-	# exit if no seed is available	
-	# if not seed:
-	# 	logMsg("No seed available...")
-
-	# better use peer to get BC infos
-	seed = config["peer"]
-
-	# estimate time remaining for next block forge
-	status["next forge round"] = getNextForgeRound(seed, **config)
-
 	# exit if node is rebuilding
 	if status.get("rebuilding", False):
 		logMsg("Node is rebuilding...")
 		dumpStatus(status)
 		return
 
+	# load best seed
+	seed = getBestSeed(*config.get("seeds", []))
 	# get values to check node health
-	net_height = getNetHeight(seed)
+	if not seed:
+		# better use peer if no seeds available
+		logMsg("No seed available...")
+		seed = config["peer"]
+		net_height = getNetHeight(seed)
+	else:
+		try:
+			net_height = max(getNetHeight(seed), getNetHeight(config["peer"]))
+		except requests.exceptions.ConnectionError:
+			restart()
+			return 
+
+	# estimate time remaining for next block forge
+	status["next forge round"] = getNextForgeRound(seed, **config)
+
 	node_height = getNodeHeight()
 	timestamp = time.time()
 	height_diff = net_height - node_height
