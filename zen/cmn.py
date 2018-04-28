@@ -94,13 +94,12 @@ def setup():
 	config["network"] = _cnf.get("network", None)
 	config["nethash"] = _cnf.get("nethash", None)
 	config["version"] = _cnf.get("version", None)
-	config["delegates"] = _cnf.get("delegates", None)
-	config["blocktime"] = _cnf.get("blocktime", None)
 	config["database"] = _cnf.get("db", {}).get("database", None)
 	config["seeds"] = ["http://%(ip)s:%(port)s" % item for item in _cnf.get("peers", {}).get("list", [])]
 	config["peer"] = "http://localhost:%r" % _cnf.get("port", None)
 
 	config.update(**blockchain_json.pop("networks")[config["network"]])
+	config.update(**blockchain_json)
 
 	secret = _cnf.get("forging", {}).get("secret", [None])[0]
 	keys = crypto.getKeys(secret)
