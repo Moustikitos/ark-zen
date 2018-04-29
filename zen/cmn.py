@@ -52,15 +52,19 @@ def chooseItem(msg, *elem):
 	if n > 1:
 		sys.stdout.write(msg + "\n")
 		for i in range(n):
-			sys.stdout.write("    %d - %s\n" % (i+1, elem[i]))
-		i = 0
-		while i < 1 or i > n:
+			sys.stdout.write("    %d - %s\n" % (i + 1, elem[i]))
+		sys.stdout.write("    0 - quit\n")
+		i = -1
+		while i < 0 or i > n:
 			try:
 				i = input("Choose an item: [1-%d]> " % n)
 				i = int(i)
 			except:
-				i = 0
-		return elem[i-1]
+				i = -1
+		if i == 0:
+			# Quit without making a selection
+			return False
+		return elem[i - 1]
 	elif n == 1:
 		return elem[0]
 	else:
@@ -75,6 +79,8 @@ def setup():
 	# select available network
 	items = findBlockchains()
 	blockchain = chooseItem("%d blockchain found:"%len(items), *items)
+	if not blockchain:
+		raise Exception("No blockchain selected")
 	config["blockchain"] = blockchain
 	blockchain_json = loadJson(os.path.join(ROOT, "cfg", blockchain+".json"))
 	config["cmd"] = {
