@@ -2,8 +2,8 @@ body {
 	font-family: calibri;
 	background-color: #456;
 	color: white;
+	padding-top: 70px; 
 }
-
 .button {
 	text-decoration: none;
 	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.24), 0 6px 12px 0 rgba(0,0,0,0.19);

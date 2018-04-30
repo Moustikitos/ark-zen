@@ -157,6 +157,7 @@ $RECYCLE.BIN/
 *.sublime-project
 *.db
 archive/
+./zen-cmd.py
 sitecustomize.py
 cmn.json
 tbw.json
