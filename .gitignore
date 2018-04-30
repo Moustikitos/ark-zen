@@ -156,5 +156,8 @@ $RECYCLE.BIN/
 *.sublime-workspace
 *.sublime-project
 *.db
+archive/
+sitecustomize.py
 cmn.json
 tbw.json
+chk.status
