@@ -9,11 +9,12 @@
             <p class="navbar-text navbar-right">
         {% if session.logged %}
                 <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a>&nbsp;
-                <a href="{{ url_for('manage') }}" class="navbar-link">Manage</a>
+                <a href="{{ url_for('manage') }}" class="navbar-link">Manage</a>&nbsp;
         {% else %}
-                <a href="{{ url_for('login') }}" class="navbar-link">Login</a>
+                <a href="{{ url_for('login') }}" class="navbar-link">Login</a>&nbsp;
         {% endif %}
-            </p>
+                <a href="{{ url_for('render') }}" class="navbar-link">Home</a>
+           </p>
         </div>
     </nav>
     {% endblock login %}
