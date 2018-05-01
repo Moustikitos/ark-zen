@@ -3,19 +3,8 @@ body {
 	padding-top: 70px; 
 }
 
-.data {
-	border: 2px solid grey;
-	border-radius: 5px;
-	background-color: darkgrey;
-	padding: 0px 12px;
-}
-
-.database {
-	background-color: lightgrey;
-	border-radius: 5px;
-}
-
 .navbar-brand>img {
-  padding: 0px;
+  	height: 30px;
+	padding: 0px;
 }
 
