@@ -3,6 +3,21 @@
 <html{% block html_attribs %}{% endblock html_attribs %}>
 {%- block html %}
   <head>
+    {% block login %}
+    <nav class="navbar navbar-inverse navbar-fixed-bottom">
+        <div class="container">
+            <p class="navbar-text navbar-right">
+        {% if session.logged %}
+                <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a>&nbsp;
+                <a href="{{ url_for('manage') }}" class="navbar-link">Manage</a>
+        {% else %}
+                <a href="{{ url_for('login') }}" class="navbar-link">Login</a>
+        {% endif %}
+            </p>
+        </div>
+    </nav>
+    {% endblock login %}
+      
     {%- block head %}
     <title>{% block title %}{{title|default}}{% endblock title %}</title>
 
@@ -18,6 +33,7 @@
   </head>
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
+    
     {% block navbar %}
     {%- endblock navbar %}
     {% block content -%}
