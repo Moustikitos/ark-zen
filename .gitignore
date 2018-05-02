@@ -146,10 +146,10 @@ $RECYCLE.BIN/
 *.lnk
 
 # misceleanous
-*.bat
-*.7z
 .vscode/
 zen/.sign
+*.bat
+*.7z
 *.forge
 *.weight
 *.payroll
