@@ -119,7 +119,9 @@ def login():
 	if flask.request.method == "POST":
 		flask.session.pop("logged", None)
 		# check signature match (signature must be sent as hexadecimal string)
-		if tfa.check(CONFIG["publicKey"], crypto.unhexlify(flask.request.form["signature"])):
+		try: check = tfa.check(CONFIG["publicKey"], crypto.unhexlify(flask.request.form["signature"]))
+		except: check = False
+		if check:
 			# store the logged state
 			flask.session["logged"] = True
 			# go to manage page
@@ -136,8 +138,6 @@ def login():
 
 @app.route("/logout")
 def logout():
-	# # disable session lifetime, all cookies should be removed
-	# flask.session.permanent = False
 	# store the logged state
 	flask.session["logged"] = False
 	# return to index

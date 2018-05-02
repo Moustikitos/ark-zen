@@ -75,8 +75,9 @@ def check(publicKey, data):
 	return crypto.verifySignatureFromBytes(seed()+rand, publicKey, crypto.hexlify(signature))
 
 
-def post(privateKey, url):
-	pass
+def compute(secret):
+	keys = crypto.getKeys(secret)
+	return crypto.hexlify(get(keys["privateKey"]))
 
 
 def send(privateKey, host="localhost", port=9999):

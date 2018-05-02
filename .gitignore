@@ -149,6 +149,7 @@ $RECYCLE.BIN/
 *.bat
 *.7z
 .vscode/
+zen/.sign
 *.forge
 *.weight
 *.payroll
