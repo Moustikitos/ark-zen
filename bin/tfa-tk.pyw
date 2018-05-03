@@ -158,7 +158,6 @@ def get_signature():
 	try:
 		base = crypto.createBase(app.getvar("pin_code"))
 		keys = crypto.loadAccount(base, combo.get())
-		print(keys)
 		data = crypto.hexlify(tfa.get(keys["privateKey"]))
 	except Exception as e:
 		app.clipboard_append("Error occur: %r"%e)
