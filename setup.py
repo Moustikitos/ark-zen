@@ -27,6 +27,7 @@ kw = {
 	"install_requires": ["requests", "ecdsa", "pytz", "base58"],
 	"scripts": [
 		"bin/zen-cmd.py",
+		"bin/tfa-tk.py"
 	],
 	"license": "Copyright 2016-2017 Toons, Copyright 2017 ARK, MIT licence",
 	"classifiers": [

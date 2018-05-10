@@ -6,9 +6,9 @@
     {% block content %}
 <div class="container"> 
     <h1 class="jumbotron">{{ username }} :: True Block Weight</h1>
-        <p class="text-center">Forged&nbsp;: {{ "%f" % tokens }}&nbsp;&#1126;&nbsp;-
+        <p class="text-center">Forged&nbsp;: {{ "%f" % tokens }}&nbsp;{{ symbol|safe }}&nbsp;-
         Applied share&nbsp;: {{ "%.1f" % (share*100) }}&nbsp;%&nbsp;-
-        Threshold&nbsp;: {{ "%f" % threshold }}&nbsp;&#1126;&nbsp;-
+        Threshold&nbsp;: {{ "%f" % threshold }}&nbsp;{{ symbol|safe }}&nbsp;-
         Next block&nbsp;: {{ next_block }}&nbsp;
 	</p>        
 <section class="col-lg-12 table-responsive">
@@ -31,9 +31,9 @@
 	<td class="text-center"><samp><a href="/history/address/{{ pair[0] }}/0/10">{{ pair[0] }}</a></samp></td>
                 <td class="text-center">{{ "%.6f %%" % pair[-1] }}</td>
                 {% if pair[-1]/100*tokens*share > threshold %}
-                    <td class="text-center" style="color:blue">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;&#1126;</td>
+                    <td class="text-center" style="color:blue">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
                 {% else %}
-                    <td class="text-center" style="color:darkred">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;&#1126;</td>
+                    <td class="text-center" style="color:darkred">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
                 {% endif %}
                 <td><a class="btn" style="padding:2px;" href="{{ explorer }}/wallets/{{ pair[0] }}" target="_blank">&#128506;</a></td>
             </tr>

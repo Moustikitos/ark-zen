@@ -152,6 +152,8 @@ def configure():
 		tbw_config["excludes"] = OPTIONS.excludes.split(",")
 	if OPTIONS.targeting:
 		tbw_config["targeting"] = not tbw_config.pop("targeting", False)
+	if OPTIONS.symbol:
+		tbw_config["symbol"] = OPTIONS.symbol
 
 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
 
@@ -170,7 +172,7 @@ def getBestSeed(*seeds):
 				height = h
 				url = seed
 		except Exception as error:
-			sys.stdout.write("    Error occured with %s : %s\n" % (seed, error))
+			pass #sys.stdout.write("    Error occured with %s : %s\n" % (seed, error))
 	return url
 
 

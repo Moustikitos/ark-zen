@@ -10,8 +10,6 @@ from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
 from zen.tbw import loadTBW, spread, loadParam
 
-CONFIG = loadConfig()
-
 # create the application instance 
 app = flask.Flask(__name__) 
 Bootstrap(app)
@@ -30,11 +28,13 @@ app.config.update(
 	SESSION_REFRESH_EACH_REQUEST = True
 )
 
+CONFIG = loadConfig()
+PARAM = loadParam()
 
 # show index
 @app.route("/")
 def render():
-	param = loadParam()
+	global CONFIG, PARAM
 	spread()
 
 	weight = loadTBW()
@@ -47,16 +47,17 @@ def render():
 		next_block=getNextForgeRound(CONFIG["peer"], **CONFIG),
 		items=sorted(items, key=lambda e:e[-1], reverse=True),
 		tokens=tokens,
-		username=param.get("username", "_"),
-		share=param.get("share", 1.),
-		threshold=param.get("threshold", 0.),
-		symbol="\u466",
+		username=PARAM.get("username", "_"),
+		share=PARAM.get("share", 1.),
+		threshold=PARAM.get("threshold", 0.),
+		symbol=PARAM.get("symbol", "token"),
 		explorer=CONFIG["explorer"]
 	)
 
 
 @app.route("/history/<string:field>/<string:value>/<int:start>/<int:number>")
 def render_history(field, value, start, number):
+	global CONFIG, PARAM
 	if value:
 		if getattr(flask.g, "search_field", None) != field:
 				flask.g.rows = search(**{field:value, "table":"transactions"})
@@ -68,7 +69,8 @@ def render_history(field, value, start, number):
 			value=value,
 			start=start,
 			number=number,
-			explorer=CONFIG["explorer"]
+			explorer=CONFIG["explorer"],
+			symbol=PARAM.get("symbol", "token"),
 		)
 
 
@@ -113,6 +115,7 @@ def dated_url_for(endpoint, **values):
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+	global CONFIG, PARAM
 	# enable session lifetime to 10 min
 	flask.session["permanent"] = True
 	# if POST method send from login page or any POST containing a signature field

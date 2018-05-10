@@ -11,7 +11,8 @@ import time
 import tkinter
 import threading
 
-# ROOT = os.path.abspath(os.path.dirname(__file__))
+TRIES = {}
+
 
 # create and configure main frame
 main = ttk.Frame()
@@ -114,8 +115,14 @@ ok.state(("disabled",))
 ###############
 
 signature_check = lambda a=app,p=passphrase: a.getvar("signature_name") != "" and p.get("1.0", "1.end") != "" and a.getvar("pin_code") != ""
-
 update_ok = lambda e,obk=ok: ok.state(("!disabled",) if signature_check() else ("disabled",))
+
+
+def error():
+	old_text = copy["text"]
+	old_command = copy["command"]
+	copy["text"] = "Pin code error"
+	copy["command"] = lambda b=copy,t=old_text,c=old_command: b.configure(text=t, command=c)
 
 def update_signatures():
 	folder = os.path.join(HOME, ".sign")
@@ -154,15 +161,24 @@ def update_progress():
 		app.setvar("progress_value", value * 100)
 
 def get_signature():
+	global TRIES
+
 	app.clipboard_clear()
+	name = combo.get()
 	try:
 		base = crypto.createBase(app.getvar("pin_code"))
-		keys = crypto.loadAccount(base, combo.get())
+		keys = crypto.loadAccount(base, name)
 		data = crypto.hexlify(tfa.get(keys["privateKey"]))
 	except Exception as e:
 		app.clipboard_append("Error occur: %r"%e)
+		TRIES[name] = TRIES.get(name, 0) +1
+		error()
 	else:
 		app.clipboard_append(data)
+	finally:
+		if TRIES[name] >= 3:
+			remove_signature()
+			copy.invoke()
 
 #################
 ## LINKS/BINDS ##

@@ -32,6 +32,7 @@ def relaunch():
 
 
 if __name__ == "__main__":
+
 	from zen.tbw import loadParam
 
 	tbw = loadParam()
@@ -43,6 +44,7 @@ if __name__ == "__main__":
 	parser.add_option("-f", "--fund", dest="funds", type="string", default=tbw.get("funds", None), metavar="ADDRESS", help="Address where you keep funds, the part not distributed to voters [curent: %default]")
 	parser.add_option("-v", "--vendor-field", dest="vendorField", default=tbw.get("vendorField", None), metavar="MESSAGE", type="string", help="Message you want to associate [curent: %default]")
 	parser.add_option("-e", "--excludes", dest="excludes", type="string", metavar="ADDRESS001,ADDRESS002,...ADDRESSNNN", help="Coma-separated list of addresses to exclude [curent: %s]" % ",".join(tbw.get("excludes", [])))
+	parser.add_option("-c", "--crypto-symbol", dest="symbol", default=tbw.get("symbol", "token"), type="string", help='Define the curency symbol [curent: "%default"]')
 	parser.add_option("-k", "--keep-fees", dest="targeting", default=tbw.get("targeting", None), action="store_true", help="Use only your delegate to send payroll [curent: %default]")
 
 	(zen.cmn.OPTIONS, args) = parser.parse_args()
