@@ -33,7 +33,7 @@
 
     "networks": {
         "mainnet": {
-            "begin": [2017, 3, 21, 13],
+            "begin": [2018, 2, 1, 0],
             "snapshots": [
             ], 
             "explorer": "http://mainnet.explorer.persona.im"
