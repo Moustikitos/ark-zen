@@ -3,7 +3,7 @@ import os
 import sys
 import optparse
 
-sys.path.append(os.path.expanduser("~/zen"))
+sys.path.append(os.path.abspath(".."))
 
 import zen.chk
 from zen.cmn import setup, configure
