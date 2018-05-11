@@ -2,15 +2,14 @@
 import os
 import sys
 import optparse
-import zen.chk
 
+sys.path.append(os.path.expanduser("~/zen"))
+
+import zen.chk
 from zen.cmn import setup, configure
 from zen.chk import check, rebuild, restart
 from zen.tbw import spread, extract, forgery
 from zen.pay import build, pay
-
-
-sys.path.append(os.path.expanduser("~/zen"))
 
 
 def launch():
