@@ -24,7 +24,7 @@ kw = {
 	"description": "Failover tool for ARK delegate",
 	"long_description": LONG_DESCRIPTION,
 	"packages": ["zen", "zen.app"],
-	"install_requires": ["requests", "ecdsa", "pytz", "base58"],
+	"install_requires": ["requests", "ecdsa", "pytz", "base58", "flask", "flask_bootstrap"],
 	"scripts": [
 		"bin/zen-cmd.py",
 		"bin/tfa-tk.py"

@@ -20,10 +20,11 @@ nodes and `True Block Weight` utilities for pool management.
 
   - Python related (automatically managed by `pip`)
     * [X] `pytz`
-    * [X] `Flask`
     * [X] `ecdsa`
     * [X] `base58`
     * [X] `requests`
+    * [X] `flask`
+    * [X] `flask_bootstrap`
 
 `sudo pip install https://github.com/Moustikitos/zen/archive/master.zip`
 
