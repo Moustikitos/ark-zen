@@ -23,6 +23,7 @@ nodes and `True Block Weight` utilities for pool management.
     * [X] `Flask`
     * [X] `ecdsa`
     * [X] `base58`
+    * [X] `requests`
 
 `sudo pip install https://github.com/Moustikitos/zen/archive/master.zip`
 
