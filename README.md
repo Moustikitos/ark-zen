@@ -113,27 +113,27 @@ Then create your tasks (here is just a proposition) :
 
 Tell crontab where to find `forever` (type `whitch forever` and copy-paste)
 
-`PATH=PATH:/full/path/to/forever`
+`PATH=$PATH:/full/path/to/forever`
 
 Launch `check` every minute and log messages into `/home/username/chk.log`
 
-` */1 * * * * * /usr/bin/python /full/path/to/zen-cmd.py check >> /home/username/chk.log &2>1`
+` */1 * * * * * /usr/bin/python /full/path/to/zen-cmd.py check >> /home/username/chk.log 2>&1`
 
 Launch `spread` every 5 minutes and log messages into `/home/<username>/tbw.log`
 
-` */5 * * * * * /usr/bin/python /full/path/to/zen-cmd.py spread >> /home/username/tbw.log &2>1`
+` */5 * * * * * /usr/bin/python /full/path/to/zen-cmd.py spread >> /home/username/tbw.log 2>&1`
 
 Launch `extract` every sunday 19h00 and log messages into `/home/username/tbw.log`
 
-` 0 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log &2>1`
+` 0 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log 2>&1`
 
 Launch `pay` every sunday 19h05 and log messages into `/home/username/tbw.log`
 
-` 5 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log &2>1`
+` 5 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log 2>&1`
 
 Start web user interface on server boot and log messages into `/home/username/flask.log`
 
-`@reboot /usr/bin/python /full/path/to/zen-cmd.py start >> /home/username/flask.log &2>1`
+`@reboot /usr/bin/python /full/path/to/zen-cmd.py start >> /home/username/flask.log 2>&1`
 
 Close and apply `crontab` tasks (`Ctrl+X`-`Y`-`Enter`)
 
@@ -143,7 +143,7 @@ height difference.
 
 You can also start your node on server boot adding this line :
 
-`@reboot /usr/bin/python /full/path/to/zen-cmd.py restart >> /home/username/chk.log &2>1`
+`@reboot /usr/bin/python /full/path/to/zen-cmd.py restart >> /home/username/chk.log 2>&1`
 
 ## Security
 
