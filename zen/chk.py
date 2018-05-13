@@ -31,7 +31,7 @@ def dumpStatus(data):
 
 def getBestSnapshot():
 	config = loadConfig()
-	size, snapshot= 0, None
+	size, snapshot = 0, None
 	for snapshot in config.get("snapshots", []):
 		try:
 			req = requests.get(snapshot, stream=True)
@@ -89,7 +89,7 @@ def rebuild():
 	status["rebuilding"] = True
 	dumpStatus(status)
 
-	snapshot_folder = "%(homedir)s/snapshots"  %config
+	snapshot_folder = "%(homedir)s/snapshots"  % config
 	snapshots = [os.stat(os.path.join(snapshot_folder, f)) for f in os.listdir(snapshot_folder)]
 	if len(snapshots):
 		snapshot_size = max(snp.st_size for snp in snapshots)
@@ -99,13 +99,26 @@ def rebuild():
 	sys.stdout.write("    Checking for best snapshots\n")
 	sys.stdout.write("    > size:%so - url:%s (previous snapshot size %so)\n" % (size, url, snapshot_size))
 
-	if size > snapshot_size:
-		execute("wget -nv %(best_snapshot)s -O %(homedir)s/snapshots/%(database)s",
-			best_snapshot=url,
-			homedir=config["homedir"],
-			database=config["database"]
-		)
-			
+	try:
+		if size > snapshot_size:
+			execute("wget -nv %(best_snapshot)s -O %(homedir)s/snapshots/%(database)s",
+				best_snapshot=url,
+				homedir=config["homedir"],
+				database=config["database"]
+			)
+	except Exception as error:
+		sys.stdout.write("    Error occured : %s\n" % error)
+		status["rebuilding"] = False
+		dumpStatus(status)
+		return
+	else:
+		new_snapshot_size = os.stat("%(homedir)s/snapshots/%(database)s" % config).st_size
+		if new_snapshot_size < snapshot_size:
+			sys.stdout.write("    > new size:%so\n    > it seems download did not finish properly...\n" % new_snapshot_size)
+			status["rebuilding"] = False
+			dumpStatus(status)
+			return
+
 	try:
 		out, err = execute(*config["cmd"]["rebuild"], **config)
 		with io.open("rebuild.log", "wb") as log:
@@ -115,9 +128,8 @@ def rebuild():
 		status["rebuilding"] = False
 	else:
 		status.pop("rebuilding", False)
-	dumpStatus(status)
 
-	# restart()
+	dumpStatus(status)
 
 
 def check():
@@ -128,7 +140,7 @@ def check():
 	# exit if node is rebuilding
 	if status.get("rebuilding", False):
 		logMsg("Node is rebuilding...")
-		dumpStatus(status)
+		# dumpStatus(status)
 		return
 
 	# load best seed

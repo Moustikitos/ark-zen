@@ -12,6 +12,7 @@ import json
 import socket
 import hashlib
 import datetime
+
 try:
 	import socketserver
 except ImportError:
@@ -126,6 +127,7 @@ if SOCKETSERVER:
 		return TCPHandler.check
 
 else:
+	
 	class TCPHandler():
 		def __init__(self, *args, **kwargs):
 			raise NotImplementedError("socketserver is not available on this python Version")

@@ -56,6 +56,7 @@ def pay():
 	param = loadParam()
 	for filename in [os.path.splitext(name)[0] for name in os.listdir(ROOT) if name.endswith(".tbw")]:
 		dumpRegistry(filename)
+	for filename in [os.path.splitext(name)[0] for name in os.listdir(ROOT) if name.endswith(".registry")]:
 		broadcast(filename, targeting=param.get("targeting", False))
 
 

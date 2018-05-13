@@ -158,9 +158,10 @@ def configure():
 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
 
 
-def logMsg(msg):
-	sys.stdout.write(">>> [%s] %s\n" % (datetime.datetime.now().strftime("%x %X"), msg))
-	sys.stdout.flush()
+def logMsg(msg, stdout=None):
+	stdout = sys.stdout if not stdout else stdout
+	stdout.write(">>> [%s] %s\n" % (datetime.datetime.now().strftime("%x %X"), msg))
+	stdout.flush()
 
 
 def getBestSeed(*seeds):
