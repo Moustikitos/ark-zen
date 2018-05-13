@@ -21,6 +21,7 @@ nodes and `True Block Weight` utilities for pool management.
   - Python related (automatically managed by `pip`)
     * [X] `pytz`
     * [X] `Flask`
+    * [X] `Flask-bootstrap`
     * [X] `ecdsa`
     * [X] `base58`
 
