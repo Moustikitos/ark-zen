@@ -1,0 +1,41 @@
+﻿{% extends "bs-layout.html" %}
+{% block content %}
+<div class="container">
+	<h1 class="jumbotron">Transaction history :: {{ value }}</h1>
+	{%- set nb_record = g.rows.__len__() %}
+	{%- set curent_page = start//number %}
+	{%- set total_page = nb_record//number %}
+	{%- set prev = curent_page - 1 %}
+	{%- set next = curent_page + 1 %}
+	{%- set last = total_page %}
+		<a class="btn btn-primary center-block" href="/">True Block Weight live</a>
+	<div class="container text-center"><ul class="pagination">
+		<li class="previous"> <a href="/history/{{ field }}/{{ value }}/{{ (prev if prev >= 0 else 0)*number }}/{{ number }}"><span class="glyphicon glyphicon-backward"></span></a></li>
+		{% for page in range(0,total_page+1) %}
+		{% if page == curent_page %}
+		<li><a href="/history/{{ field }}/{{ value }}/{{ (page)*number }}/{{ number }}" r    ole="button" class="btn active">{{ page+1 }}</a></li>
+		{% else %}
+		<li><a href="/history/{{ field }}/{{ value }}/{{ (page)*number }}/{{ number }}" role="button">{{ page+1 }}</a></li>
+		{% endif %}
+		{% endfor %}
+<li class="next"> <a href="/history/{{ field }}/{{ value }}/{{ (next if next <= last else last)*number }}/{{ number }}"><span class="glyphicon glyphicon-forward"></span></a></li>
+	</ul></div>
+	<p class="text-center"> Page {{ curent_page+1 }} over {{ total_page+1 }} :: {{ nb_record }} transactions :: {{ g.rows|sum(attribute="amount") }}&nbsp;{{ symbol|safe }}</p>
+	<table class="table table-striped table-hover">
+		<tr>
+			<th>Date</th>
+			<th>Amount</th>
+			<th>Transaction id</th>
+			<th></th>
+		</tr>
+	{%- for row in g.rows[start:start+number] %}
+		<tr>
+			<td class="data">{{ row["date"] }}</td>
+			<td class="data">{{ row["amount"] }}&nbsp;{{ symbol|safe }}</td>
+			<td class="data">{{ row["id"] }}</td>
+			<td><a class="btn" style="padding:2px;" href="{{ explorer }}/transaction/{{ row["id"] }}" target="_blank">&#128506;</a></td>
+		</tr>
+	{%- endfor %}
+	</table>
+</div>
+{% endblock %}

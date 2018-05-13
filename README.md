@@ -20,12 +20,13 @@ nodes and `True Block Weight` utilities for pool management.
 
   - Python related (automatically managed by `pip`)
     * [X] `pytz`
-    * [X] `Flask`
-    * [X] `Flask-bootstrap`
     * [X] `ecdsa`
     * [X] `base58`
+    * [X] `requests`
+    * [X] `flask`
+    * [X] `flask_bootstrap`
 
-`sudo pip --user install https://github.com/Moustikitos/zen/archive/master.zip`
+`sudo pip install https://github.com/Moustikitos/zen/archive/master.zip`
 
 or
 
@@ -34,7 +35,7 @@ your home directory.
 
 ## Use
 
-`python -m zen-cmd [command] [options]`
+`python /usr/local/bin/zen-cmd.py [command] [options]`
 
 or
 
@@ -138,7 +139,7 @@ Start web user interface on server boot and log messages into `/home/username/fl
 
 Close and apply `crontab` tasks (`Ctrl+X`-`Y`-`Enter`)
 
-The magic here is if your server restart, it will launch `check` every minute
+The magic here is if your server restarts, it will launch `check` every minute
 and the node will start automatically when zen identify a to heavy blockchain
 height difference.
 

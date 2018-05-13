@@ -1,0 +1,51 @@
+{% block doc -%}
+<!DOCTYPE html>
+<html{% block html_attribs %}{% endblock html_attribs %}>
+{%- block html %}
+  <head>
+    {%- block head %}
+    <title>{% block title %}{{title|default}}{% endblock title %}</title>
+
+    {%- block metas %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {%- endblock metas %}
+
+    {%- block styles %}
+    <!-- Bootstrap -->
+    <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
+    {%- endblock styles %}
+    {%- endblock head %}
+  </head>
+  <body{% block body_attribs %}{% endblock body_attribs %}>
+    {% block body -%}
+    
+    {% block login %}
+    <nav class="navbar navbar-inverse navbar-fixed-bottom">
+        <div class="container">
+            <p class="navbar-text navbar-right">
+        {% if session.logged %}
+                <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a>&nbsp;
+                <a href="{{ url_for('manage') }}" class="navbar-link">Manage</a>&nbsp;
+        {% else %}
+                <a href="{{ url_for('login') }}" class="navbar-link">Login</a>&nbsp;
+        {% endif %}
+                <a href="{{ url_for('render') }}" class="navbar-link">Home</a>
+           </p>
+        </div>
+    </nav>
+    {% endblock login %}
+      
+    {% block navbar %}
+    {%- endblock navbar %}
+    {% block content -%}
+    {%- endblock content %}
+
+    {% block scripts %}
+    <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+    <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+    {%- endblock scripts %}
+    {%- endblock body %}
+  </body>
+{%- endblock html %}
+</html>
+{% endblock doc -%}

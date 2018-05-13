@@ -125,26 +125,30 @@ def check():
 	config = loadConfig()
 	status = loadStatus()
 
-	# load best seed
-	# seed = getBestSeed(*config.get("seeds", []))
-	# exit if no seed is available	
-	# if not seed:
-	# 	logMsg("No seed available...")
-
-	# better use peer to get BC infos
-	seed = config["peer"]
-
-	# estimate time remaining for next block forge
-	status["next forge round"] = getNextForgeRound(seed, **config)
-
 	# exit if node is rebuilding
 	if status.get("rebuilding", False):
 		logMsg("Node is rebuilding...")
 		dumpStatus(status)
 		return
 
+	# load best seed
+	seed = getBestSeed(*config.get("seeds", []))
 	# get values to check node health
-	net_height = getNetHeight(seed)
+	if not seed:
+		# better use peer if no seeds available
+		logMsg("No seed available...")
+		seed = config["peer"]
+		net_height = getNetHeight(seed)
+	else:
+		try:
+			net_height = max(getNetHeight(seed), getNetHeight(config["peer"]))
+		except requests.exceptions.ConnectionError:
+			restart()
+			return 
+
+	# estimate time remaining for next block forge
+	status["next forge round"] = getNextForgeRound(seed, **config)
+
 	node_height = getNodeHeight()
 	timestamp = time.time()
 	height_diff = net_height - node_height
@@ -164,9 +168,7 @@ def check():
 	if block_speed < 0.8*60.0/config["blocktime"]: # 60/blocktime => blockchain speed in block per minute
 		status["block speed issue round"] = status.get("block speed issue round", 0)+1
 		logMsg("Block speed issue : %.2f blk/min instead of %.2f (round %d)" % \
-		                (block_speed, 60.0/config["blocktime"], status["block speed issue round"]))
-		if status["block speed issue round"] > 20:
-			restart()
+		                           (block_speed, 60.0/config["blocktime"], status["block speed issue round"]))
 	else:
 		status.pop("block speed issue round", False)
 
@@ -198,7 +200,7 @@ def check():
 		# node is going solo --> fork !
 		elif height_diff < -config["blocktime"]/0.8:
 			logMsg("Node is going solo with %d blocks forward ! It is forking..." % (-height_diff))
-		# node is not stuck neither too far from net height but can't reach it
-		elif status.get("block speed issue round", 0) >= 0.8*config["delegates"]*config["blocktime"]//60:
-			restart()
 		pprint.pprint(status, indent=4)
+
+	if status.get("block speed issue round", 0) > 0.8*config["delegates"]*config["blocktime"]//60:
+		restart()
