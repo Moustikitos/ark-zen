@@ -115,7 +115,7 @@ Then create your tasks (here is just a proposition) :
 
 Tell crontab where to find `forever` (type `whitch forever` and copy-paste)
 
-`PATH=$PATH:/full/path/to/forever`
+`PATH=/usr/bin:/bin:/usr/bin/env:/full/path/to/forever`
 
 Launch `check` every minute and log messages into `/home/username/chk.log`
 
