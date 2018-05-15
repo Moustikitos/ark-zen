@@ -99,6 +99,20 @@ or
   in blockchain. `{year-month-day}.tbw` is stored in `zen/archive` folder once
   registry file succesfully created.
 
+### Configure `sudo`
+
+`sudo` command have to be in `nopasswd` mode. In a terminal, type :
+
+`sudo visudo`
+
+At the end of the file add this line :
+
+`<username> ALL=(ALL) NOPASSWD:ALL`
+
+And save configuration :
+
+`Ctrl+x` and `Y`
+
 ### Configure `crontab`
 
 `zen` is designed to be run by `crontab`, a resourceless-linux-core service
