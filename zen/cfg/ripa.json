@@ -24,7 +24,7 @@
     "restart": [
         "forever stopall --plain",
         "forever cleanlogs --plain",
-        "forever start --plain %(homedir)s/%(blockchain)s-node/app.js -c %(homedir)s/%(blockchain)s-node/config.%(network)s.json -g %(homedir)s/%(blockchain)s-node/genesisBlock.%(network)s.json"    
+        "forever start --plain %(homedir)s/%(blockchain)s-node/app.js -c %(homedir)s/%(blockchain)s-node/config.json -g %(homedir)s/%(blockchain)s-node/genesisBlock.json"    
     ],
 
     "nodeheight":[

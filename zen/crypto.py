@@ -189,7 +189,8 @@ def getBytes(tx):
 		pack_bytes(buf, unhexlify(tx["requesterPublicKey"]))
 	# if there is a recipientId
 	if tx.get("recipientId", False):
-		recipientId = base58.b58decode_check(tx["recipientId"])
+		recipientId = tx["recipientId"]
+		recipientId = base58.b58decode_check(str(recipientId) if not isinstance(recipientId , bytes) else recipientId)
 	else:
 		recipientId = b"\x00"*21
 	pack_bytes(buf, recipientId)
