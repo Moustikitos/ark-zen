@@ -79,7 +79,14 @@ def get_stats():
 		"bs-stats.html",
 		username=PARAM.get("username", "_")
 	)
-	
+
+@app.route("/dashboard")
+def dashboard():
+	return flask.render_template(
+		"bs-dashboard.html",
+		username=PARAM.get("username", "_")
+	)
+
 	
 @app.teardown_appcontext
 def close(*args, **kw):
