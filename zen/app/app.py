@@ -73,9 +73,12 @@ def render_history(field, value, start, number):
 			symbol=PARAM.get("symbol", "token"),
 		)
 
-#@app.route("/stats")
-#def get_stats():
-#	pass
+@app.route("/stats")
+def get_stats():
+	return flask.render_template(
+		"bs-stats.html",
+		username=PARAM.get("username", "_")
+	)
 	
 	
 @app.teardown_appcontext
