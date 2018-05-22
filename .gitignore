@@ -157,5 +157,9 @@ zen/.sign
 *.sublime-workspace
 *.sublime-project
 *.db
+archive/
+./zen-cmd.py
+sitecustomize.py
 cmn.json
 tbw.json
+chk.status

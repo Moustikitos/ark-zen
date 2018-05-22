@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "pagination.html" import render_pagination %}
+{% block title %}
+	{{ username }} dashboard
+{% endblock title%}  
+   
+    {% block content %}
+		<div class="container"> 
+			<h1 class="jumbotron">{{ username }} :: dashboard</h1>
+		</div>
+{% endblock %}
+

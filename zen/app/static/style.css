@@ -1,34 +1,10 @@
 body {
-	font-family: calibri;
-	background-color: #456;
-	color: white;
+	padding-top: 50px; 
+	font-family: 'Ubuntu', sans-serif;
 }
 
-.button {
-	text-decoration: none;
-	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.24), 0 6px 12px 0 rgba(0,0,0,0.19);
-	border: 1px solid lightblue;
-	color: #000126;
-	border-radius: 5px;
-	background-color: #478dad;
-	padding: 0px 15px;
-}
-.button:hover {
-	background: #f47c20;
-}
-.button:active {
-	position: relative;
-	top: 1px;
+.navbar-brand>img {
+  	height: 30px;
+	padding: 0px;
 }
 
-.data {
-	border: 2px solid grey;
-	border-radius: 5px;
-	background-color: darkgrey;
-	padding: 0px 12px;
-}
-
-.database {
-	background-color: lightgrey;
-	border-radius: 5px;
-}
