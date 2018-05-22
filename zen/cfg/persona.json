@@ -33,11 +33,17 @@
 
     "networks": {
         "mainnet": {
+            "begin": [2018, 2, 1, 0],
+            "snapshots": [
+            ], 
+            "explorer": "http://mainnet.explorer.persona.im"
+        },
+
+        "testnet":{
             "begin": [2017, 3, 21, 13],
             "snapshots": [
-                "https://snapshot.kapunode.net/current"
-            ],
-            "explorer": "https://explorer.kapu.one"
+            ], 
+            "explorer": "http://testnet.explorer.persona.im"
         }
     }
 }
