@@ -19,23 +19,7 @@
   </head>
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
-    
-    {% block login %}
-    <nav class="navbar navbar-inverse navbar-fixed-bottom">
-        <div class="container">
-            <p class="navbar-text navbar-right">
-        {% if session.logged %}
-                <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a>&nbsp;
-                <a href="{{ url_for('manage') }}" class="navbar-link">Manage</a>&nbsp;
-        {% else %}
-                <a href="{{ url_for('login') }}" class="navbar-link">Login</a>&nbsp;
-        {% endif %}
-                <a href="{{ url_for('render') }}" class="navbar-link">Home</a>
-           </p>
-        </div>
-    </nav>
-    {% endblock login %}
-      
+          
     {% block navbar %}
 <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container-fluid">
@@ -77,14 +61,22 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="#">Link</a></li>
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-          </ul>
+	{% block login %}
+        {% if session.logged %}
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+			  <ul class="dropdown-menu">
+			    <li><a href="{{ url_for('logout') }}">Logout</a></li>
+			    <li role="separator" class="divider"></li>
+			    <li><a href="{{ url_for('manage') }}">Manage...</a></li>
+			  </ul>
+        {% else %}
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+			  <ul class="dropdown-menu">
+			    <li><a href="{{ url_for('login') }}">Login...</a></li>
+			  </ul>
+        {% endif %}
+    {% endblock login %}
+          
         </li>
       </ul>
     </div><!-- /.navbar-collapse -->
