@@ -1,42 +1,45 @@
 {% extends "base.html" %}
+{% block title %}Login authentication{% endblock title%}  
 {% block content %}
-<div class="container"> 
-
-<h1 class="jumbotron">Login</h1>
-<form action="{{ url_for('login') }}" method="post" name="login">
-<dl>
-<dd/><textarea
-	name="signature"
-	onfocus="focusIn();"
-	onfocusout="focusOut();"
-	style="width:600px;height:130px;margin:2px 0px;">
-</textarea>
-<dd/><input style="margin:2px 0px;" type="submit" value="Send TFA" name="sender"/>
-</dl>
-</form>
-
-</div>
-<script type="text/javascript">
-var INIT = "Paste TFA here...";
-function focusIn(){
-	var form = document.getElementsByTagName("form").login;
-	var textarea = login.signature;
-	var submit = login.sender;
-	if (textarea.value == "" || textarea.value == INIT) {
-		textarea.style.color = "black";
-		textarea.value = "";
-	}
-}
-function focusOut(){
-	var form = document.getElementsByTagName("form").login;
-	var textarea = login.signature;
-	var submit = login.sender;
-	if (textarea.value == "" || textarea.value == INIT) {
-		textarea.style.color = "grey";
-		textarea.value = INIT;
-	}
-	submit.disabled = (!/^[0-9A-F]*$/i.test(textarea.value) || textarea.value.length%2);
-}
-focusOut();
-</script>
+	<div class="container"> 
+		<h1 class="jumbotron">Login</h1>
+		
+			
+			<form action="{{ url_for('login') }}" method="post" name="login">
+				<div class='form-group'>
+					<label for="exampleInputEmail1">Your TFA code</label>
+					<textarea
+						class="form-control" rows="4"
+						name="signature"
+						onfocus="focusIn();"
+						onfocusout="focusOut();"
+						placeholder="Paste TFA here"
+						></textarea>
+				</div>
+				<button type="submit" class="btn btn-primary"  disabled="disabled" name="sender">Send TFA</button>
+			</form>
+	</div>
 {% endblock content %}
+{% block scripts %}
+	<script type="text/javascript">
+	function focusIn(){
+			var form = document.getElementsByTagName("form").login;
+			var textarea = login.signature;
+			var submit = login.sender;
+			if (textarea.value == "") {
+				textarea.style.color = "black";
+				textarea.value = "";
+			}
+		}
+		function focusOut(){
+			var form = document.getElementsByTagName("form").login;
+			var textarea = login.signature;
+			var submit = login.sender;
+
+			submit.disabled = (!/^[0-9A-F]*$/i.test(textarea.value) || textarea.value.length%2 || !textarea.value);
+		}
+		focusOut();
+	</script>
+{% endblock scripts %}
+
+

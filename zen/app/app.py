@@ -73,7 +73,11 @@ def render_history(field, value, start, number):
 			symbol=PARAM.get("symbol", "token"),
 		)
 
-
+#@app.route("/stats")
+#def get_stats():
+#	pass
+	
+	
 @app.teardown_appcontext
 def close(*args, **kw):
 	if hasattr(flask.g, "database"):

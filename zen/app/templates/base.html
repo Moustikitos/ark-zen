@@ -1,98 +1,98 @@
 {% block doc -%}
-<!DOCTYPE html>
-<html{% block html_attribs %}{% endblock html_attribs %}>
-{%- block html %}
-  <head>
-    {%- block head %}
-<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet'  type='text/css'>
-    <title>{% block title %}{{title|default}}{% endblock title %}</title>
+	<!DOCTYPE html>
+	<html{% block html_attribs %}{% endblock html_attribs %}>
+	{%- block html %}
+	  <head>
+		{%- block head %}
+			
+			<title>{% block title %}{{title|default}}{% endblock title %}</title>
 
-    {%- block metas %}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {%- endblock metas %}
+			{%- block metas %}
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			{%- endblock metas %}
 
-    {%- block styles %}
-<!-- Bootstrap -->
-<link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-{%- endblock styles %}
-{%- endblock head %}
-  </head>
-  <body{% block body_attribs %}{% endblock body_attribs %}>
-    {% block body -%}
-          
-    {% block navbar %}
-<nav class="navbar navbar-default navbar-fixed-top">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-<a class="navbar-brand" href={{url_for("render")}}><img alt="ravelou TBW" src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Ark_Ecosystem_Logo.svg"></a>
-    </div>
+			{%- block styles %}
+				<!-- Bootstrap -->
+				<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet'  type='text/css'>
+				<link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
+				<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+			{%- endblock styles %}
+		{%- endblock head %}
+	  </head>
+	  <body{% block body_attribs %}{% endblock body_attribs %}>
+		{% block body -%}
+			{% block navbar %}
+				<nav class="navbar navbar-default navbar-fixed-top">
+				  <div class="container-fluid">
+					<!-- Brand and toggle get grouped for better mobile display -->
+					<div class="navbar-header">
+					  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					  </button>
+				<a class="navbar-brand" href={{url_for("render")}}><img alt="ravelou TBW" src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Ark_Ecosystem_Logo.svg"></a>
+					</div>
 
-    <!-- Collect the nav links, forms, and other content for toggling -->
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav">
-        <li class="active"><a href={{url_for("render")}}>Home<span class="sr-only">(current)</span></a></li>
-        <li><a href="#">Stats</a></li>
-        <!--<li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="#">One more separated link</a></li>
-          </ul>
-        </li>-->
-      </ul>
-      <!--<form class="navbar-form navbar-left">
-        <div class="form-group">
-          <input type="text" class="form-control" placeholder="Search">
-        </div>
-        <button type="submit" class="btn btn-default">Submit</button>
-      </form>-->
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Link</a></li>
-        <li class="dropdown">
-	{% block login %}
-        {% if session.logged %}
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
-			  <ul class="dropdown-menu">
-			    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-			    <li role="separator" class="divider"></li>
-			    <li><a href="{{ url_for('manage') }}">Manage...</a></li>
-			  </ul>
-        {% else %}
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
-			  <ul class="dropdown-menu">
-			    <li><a href="{{ url_for('login') }}">Login...</a></li>
-			  </ul>
-        {% endif %}
-    {% endblock login %}
-          
-        </li>
-      </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
-    {%- endblock navbar %}
-    {% block content -%}
-    {%- endblock content %}
+					<!-- Collect the nav links, forms, and other content for toggling -->
+					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					  <ul class="nav navbar-nav">
+						<li class="active"><a href={{url_for("render")}}>Home<span class="sr-only">(current)</span></a></li>
+						<li><a href="#">Stats</a></li>
+						<!--<li class="dropdown">
+						  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+						  <ul class="dropdown-menu">
+							<li><a href="#">Action</a></li>
+							<li><a href="#">Another action</a></li>
+							<li><a href="#">Something else here</a></li>
+							<li role="separator" class="divider"></li>
+							<li><a href="#">Separated link</a></li>
+							<li role="separator" class="divider"></li>
+							<li><a href="#">One more separated link</a></li>
+						  </ul>
+						</li>-->
+					  </ul>
+					  <!--<form class="navbar-form navbar-left">
+						<div class="form-group">
+						  <input type="text" class="form-control" placeholder="Search">
+						</div>
+						<button type="submit" class="btn btn-default">Submit</button>
+					  </form>-->
+					  <ul class="nav navbar-nav navbar-right">
+						<li><a href="#">Link</a></li>
+						<li class="dropdown">
+							{% block login %}
+								{% if session.logged %}
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+									  <ul class="dropdown-menu">
+										<li><a href="{{ url_for('logout') }}">Logout</a></li>
+										<li role="separator" class="divider"></li>
+										<li><a href="{{ url_for('manage') }}">Manage...</a></li>
+									  </ul>
+								{% else %}
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+									  <ul class="dropdown-menu">
+										<li><a href="{{ url_for('login') }}">Login...</a></li>
+									  </ul>
+								{% endif %}
+							{% endblock login %}
+						  
+						</li>
+					  </ul>
+					</div><!-- /.navbar-collapse -->
+				  </div><!-- /.container-fluid -->
+				</nav>
+			{%- endblock navbar %}
+			{% block content -%}
+			{%- endblock content %}
 
-    {% block scripts %}
-    <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
-    <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
-    {%- endblock scripts %}
-    {%- endblock body %}
-  </body>
-{%- endblock html %}
-</html>
+			{% block scripts %}
+				<script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+				<script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+			{%- endblock scripts %}
+		{%- endblock body %}
+	  </body>
+	{%- endblock html %}
+	</html>
 {% endblock doc -%}
