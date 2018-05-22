@@ -90,6 +90,9 @@ def rebuild():
 	dumpStatus(status)
 
 	snapshot_folder = "%(homedir)s/snapshots"  % config
+	try: os.makedirs(snapshot_folder)
+	except: pass
+
 	snapshots = [os.stat(os.path.join(snapshot_folder, f)) for f in os.listdir(snapshot_folder)]
 	if len(snapshots):
 		snapshot_size = max(snp.st_size for snp in snapshots)

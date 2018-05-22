@@ -107,7 +107,7 @@ or
 
 At the end of the file add this line :
 
-`<username> ALL=(ALL) NOPASSWD:ALL`
+`username ALL=(ALL) NOPASSWD:ALL`
 
 And save configuration :
 
