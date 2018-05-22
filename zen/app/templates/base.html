@@ -64,14 +64,14 @@
 						<li class="dropdown">
 							{% block login %}
 								{% if session.logged %}
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account<span class="caret"></span></a>
 									  <ul class="dropdown-menu">
 										<li><a href="{{ url_for('logout') }}">Logout</a></li>
 										<li role="separator" class="divider"></li>
 										<li><a href="{{ url_for('manage') }}">Manage...</a></li>
 									  </ul>
 								{% else %}
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account<span class="caret"></span></a>
 									  <ul class="dropdown-menu">
 										<li><a href="{{ url_for('login') }}">Login...</a></li>
 									  </ul>

@@ -73,11 +73,24 @@ def render_history(field, value, start, number):
 			symbol=PARAM.get("symbol", "token"),
 		)
 
+
+def get_files_from_archive():
+	payments={}
+	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+	path_to_payment = os.path.join(ROOT, "archive")
+	for root, dirs, files in os.walk(path_to_payment):  
+    		for filename in files:
+			payments[filename]=loadJson(path_to_payment+'/'+filename)
+        		app.logger.info(payments[filename])
+	return payments
+
 @app.route("/stats")
 def get_stats():
+	get_files_from_archive()
 	return flask.render_template(
 		"bs-stats.html",
-		username=PARAM.get("username", "_")
+		username=PARAM.get("username", "_"),
+		payments=get_files_from_archive()
 	)
 
 @app.route("/dashboard")
@@ -170,18 +183,5 @@ def manage():
 	else:
 		# render manage page
 		return flask.render_template_string(
-"""{% extends "base.html" %}
-{% block content %}
-<div class="container"> 
-<h1 class="jumbotron">Node management page in construction</h1>
-<form>
-<dl>
-<dd/><input type="submit" value="Restart"/><br/>
-<dd/><input type="submit" value="Rebuild"/><br/>
-<dd/><input type="submit" value="Update"/><br/>
-</dl>
-</form>
-</div>
-{% endblock %}
-"""
+			"manage.html"
 )

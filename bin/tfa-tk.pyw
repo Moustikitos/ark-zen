@@ -11,6 +11,8 @@ import time
 import tkinter
 import threading
 
+sys.path.append(os.path.abspath(".."))
+
 TRIES = {}
 
 

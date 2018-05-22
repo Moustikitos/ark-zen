@@ -4,12 +4,29 @@
 	{{ username }} TBW live 
 {% endblock title%}  
    
-    {% block content %}
-		<div class="container"> 
-			<h1 class="jumbotron">{{ username }} :: Stats payment</h1>
-				
-			<section class="col-lg-12 table-responsive">
-			</section>
+{% block content %}
+	<div class="container"> 
+		<h1 class="jumbotron">{{ username }} :: stats payment</h1>
+		<div class="row">
+			<div role="tabpanel">
+				<div class="col-sm-3">
+					<ul class="nav nav-pills brand-pills nav-stacked" role="tablist">
+			      	{% for itm in payments %}
+						<li role="presentation" class="brand-nav"><a href="#{{ itm }}" aria-controls="{{ itm }}" role="tab" data-toggle="tab">{{ itm }}</a></li>
+					{% endfor %}      
+					</ul>
+				</div>
+				<div class="col-sm-9">
+					<div class="tab-content">
+						{% for itm in payments %}
+						<div role="tabpanel" class="tab-pane active" id="{{ itm }}">
+							<p>{{ payments[itm] }}</p>
+						</div>
+						{% endfor %}
+			      	</div>
+			  	</div>
+			</div>
 		</div>
-{% endblock %}
+	</div>
+{% endblock content %}
 
