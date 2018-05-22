@@ -2,15 +2,14 @@
 import os
 import sys
 import optparse
-import zen.chk
 
+sys.path.append(os.path.abspath(".."))
+
+import zen.chk
 from zen.cmn import setup, configure
 from zen.chk import check, rebuild, restart
 from zen.tbw import spread, extract, forgery
 from zen.pay import build, pay
-
-
-sys.path.append(os.path.expanduser("~/zen"))
 
 
 def launch():
@@ -33,14 +32,19 @@ def relaunch():
 
 if __name__ == "__main__":
 
+	from zen.tbw import loadParam
+
+	tbw = loadParam()
+
 	# catch command line
 	parser = optparse.OptionParser()
-	parser.add_option("-s", "--share", dest="share", type="float", metavar="RATE", help="Pool sharing rate. Float number >=0. and <= 1.0")
-	parser.add_option("-t", "--threshold", dest="threshold", type="float", metavar="THRESHOLD", help="Threshold to initiate payment, transaction fees included.")
-	parser.add_option("-f", "--fund", dest="funds", type="string", metavar="ADDRESS", help="Address where you keep funds, the part not distributed to voters.")
-	parser.add_option("-v", "--vendor-field", dest="vendorField", metavar="MESSAGE", type="string", help="Message you want to associate.")
-	parser.add_option("-e", "--excludes", dest="excludes", type="string", metavar="ADDRESS001,ADDRESS002,...ADDRESSNNN", help="Coma-separated list of addresses to exclude.")
-	parser.add_option("-k", "--keep-fees",    dest="targeting",   action="store_true")
+	parser.add_option("-s", "--share", dest="share", type="float", default=tbw.get("share", 1.), metavar="RATE", help="Pool sharing rate. Float number >=0. and <= 1.0 [curent : %default]")
+	parser.add_option("-t", "--threshold", dest="threshold", type="float", default=tbw.get("threshold", 0.1), metavar="THRESHOLD", help="Threshold to initiate payment, transaction fees included [curent: %default]")
+	parser.add_option("-f", "--fund", dest="funds", type="string", default=tbw.get("funds", None), metavar="ADDRESS", help="Address where you keep funds, the part not distributed to voters [curent: %default]")
+	parser.add_option("-v", "--vendor-field", dest="vendorField", default=tbw.get("vendorField", None), metavar="MESSAGE", type="string", help="Message you want to associate [curent: %default]")
+	parser.add_option("-e", "--excludes", dest="excludes", type="string", metavar="ADDRESS001,ADDRESS002,...ADDRESSNNN", help="Coma-separated list of addresses to exclude [curent: %s]" % ",".join(tbw.get("excludes", [])))
+	parser.add_option("-c", "--crypto-symbol", dest="symbol", default=tbw.get("symbol", "token"), type="string", help='Define the curency symbol [curent: "%default"]')
+	parser.add_option("-k", "--keep-fees", dest="targeting", default=tbw.get("targeting", None), action="store_true", help="Use only your delegate to send payroll [curent: %default]")
 
 	(zen.cmn.OPTIONS, args) = parser.parse_args()
 

@@ -52,15 +52,19 @@ def chooseItem(msg, *elem):
 	if n > 1:
 		sys.stdout.write(msg + "\n")
 		for i in range(n):
-			sys.stdout.write("    %d - %s\n" % (i+1, elem[i]))
-		i = 0
-		while i < 1 or i > n:
+			sys.stdout.write("    %d - %s\n" % (i + 1, elem[i]))
+		sys.stdout.write("    0 - quit\n")
+		i = -1
+		while i < 0 or i > n:
 			try:
 				i = input("Choose an item: [1-%d]> " % n)
 				i = int(i)
 			except:
-				i = 0
-		return elem[i-1]
+				i = -1
+		if i == 0:
+			# Quit without making a selection
+			return False
+		return elem[i - 1]
 	elif n == 1:
 		return elem[0]
 	else:
@@ -70,35 +74,43 @@ def chooseItem(msg, *elem):
 
 def setup():
 	config = loadConfig()
-
+	tbw_config = loadJson(os.path.join(ROOT, "tbw.json"))
+	
+	# select available network
 	items = findBlockchains()
 	blockchain = chooseItem("%d blockchain found:"%len(items), *items)
+	if not blockchain:
+		raise Exception("No blockchain selected")
+	config["blockchain"] = blockchain
 	blockchain_json = loadJson(os.path.join(ROOT, "cfg", blockchain+".json"))
-	network = chooseItem("%d network found:"%len(items), *blockchain_json["networks"].keys())
 	config["cmd"] = {
 		"rebuild": blockchain_json.pop("rebuild", []),
 		"restart": blockchain_json.pop("restart", []),
 		"nodeheight": blockchain_json.pop("nodeheight", [])
 	}
-	config["network"] = network
-	config["blockchain"] = blockchain
-	config.update(**blockchain_json.pop("networks")[network])
+
+	# ask network config file
+	node = tbw_config.get("node", "_._")
+	while not os.path.exists(node):
+		node = input("> enter config file path: ")
+	tbw_config["node"] = os.path.normpath(os.path.abspath(node))
+
+	_cnf = loadJson(tbw_config["node"])
+	config["port"] = _cnf.get("port", None)
+	config["network"] = _cnf.get("network", None)
+	config["nethash"] = _cnf.get("nethash", None)
+	config["version"] = _cnf.get("version", None)
+	config["database"] = _cnf.get("db", {}).get("database", None)
+	config["seeds"] = ["http://%(ip)s:%(port)s" % item for item in _cnf.get("peers", {}).get("list", [])]
+	config["peer"] = "http://localhost:%r" % _cnf.get("port", None)
+
+	config.update(**blockchain_json.pop("networks")[config["network"]])
 	config.update(**blockchain_json)
 
-	tbw_config = loadJson(os.path.join(ROOT, "tbw.json"))
-	node = os.path.dirname(tbw_config.get("node", os.path.expanduser("~/%s-node"%blockchain)))
-	while not os.path.exists(os.path.join(node, "config.%s.json" % network)):
-		node = input("> enter node path: ")
-	tbw_config["node"] = os.path.join(node, "config.%s.json" % network)
-	_cnf = loadJson(tbw_config["node"])
-	secret = _cnf["forging"]["secret"][0]
+	secret = _cnf.get("forging", {}).get("secret", [None])[0]
 	keys = crypto.getKeys(secret)
 	config["publicKey"] = keys["publicKey"]
-	# config["network"] = _cnf["network"]
-	config["nethash"] = _cnf["nethash"]
-	config["version"] = _cnf["version"]
-	config["port"] = _cnf["port"]
-
+	
 	seed = getBestSeed(*config["seeds"])
 	account = requests.get(seed+"/api/delegates/get?publicKey=%s" % keys["publicKey"], verify=True, timeout=5).json().get("delegate", {})
 	tbw_config["username"] = account["username"]
@@ -140,13 +152,16 @@ def configure():
 		tbw_config["excludes"] = OPTIONS.excludes.split(",")
 	if OPTIONS.targeting:
 		tbw_config["targeting"] = not tbw_config.pop("targeting", False)
+	if OPTIONS.symbol:
+		tbw_config["symbol"] = OPTIONS.symbol
 
 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
 
 
-def logMsg(msg):
-	sys.stdout.write(">>> [%s] %s\n" % (datetime.datetime.now().strftime("%x %X"), msg))
-	sys.stdout.flush()
+def logMsg(msg, stdout=None):
+	stdout = sys.stdout if not stdout else stdout
+	stdout.write(">>> [%s] %s\n" % (datetime.datetime.now().strftime("%x %X"), msg))
+	stdout.flush()
 
 
 def getBestSeed(*seeds):
@@ -158,7 +173,7 @@ def getBestSeed(*seeds):
 				height = h
 				url = seed
 		except Exception as error:
-			sys.stdout.write("    Error occured with %s : %s\n" % (seed, error))
+			pass #sys.stdout.write("    Error occured with %s : %s\n" % (seed, error))
 	return url
 
 

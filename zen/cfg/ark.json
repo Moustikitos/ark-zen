@@ -34,7 +34,6 @@
     "networks": {
         "mainnet": {
             "begin": [2017, 3, 21, 13],
-            "database": "ark_mainnet", 
             "snapshots": [
                 "http://ark.delegate-goose.biz/snapshot/current", 
                 "http://arkdel.net/current", 
@@ -51,33 +50,16 @@
                 "https://snapshots.ark.io/current", 
                 "https://www.arkdelegate.com/current"
             ], 
-            "seeds": [
-                "http://5.39.9.250:4001", 
-                "http://5.39.9.251:4001", 
-                "http://5.39.9.252:4001", 
-                "http://5.39.9.253:4001", 
-                "http://5.39.9.254:4001"
-            ], 
-            "peer": "http://localhost:4001",
             "explorer": "https://explorer.ark.io"
         },
 
         "devnet":{
             "begin": [2017, 3, 21, 13],
-            "database": "ark_devnet", 
             "snapshots": [
                 "https://dsnapshots.ark.io/current", 
                 "https://dsnapshot.arkno.de/current", 
                 "http://dexplorer.ark.land/snapshots/current"
             ], 
-            "seeds": [
-                "http://167.114.29.51:4002", 
-                "http://167.114.29.52:4002", 
-                "http://167.114.29.53:4002", 
-                "http://167.114.29.54:4002", 
-                "http://167.114.29.55:4002"
-            ], 
-            "peer": "http://localhost:4002",
             "explorer": "https://dexplorer.ark.io"
         }
     }

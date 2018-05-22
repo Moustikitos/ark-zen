@@ -2,23 +2,39 @@
 import os
 import flask
 import sqlite3
+import threading
 from flask_bootstrap import Bootstrap
 
-# from flask import Flask, flask.render_template, flash, url_for
+from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
 from zen.tbw import loadTBW, spread, loadParam
 
-
 # create the application instance 
 app = flask.Flask(__name__) 
-CONFIG = loadConfig()
 Bootstrap(app)
+app.config.update(
+	# 300 seconds = 5 minutes lifetime session
+	PERMANENT_SESSION_LIFETIME = 300,
+	# used to encrypt cookies
+	# secret key is generated each time app is restarted
+	SECRET_KEY = os.urandom(24),
+	# JS can't access cookies
+	SESSION_COOKIE_HTTPONLY = True,
+	# bi use of https
+	SESSION_COOKIE_SECURE = False,
+	# update cookies on each request
+	# cookie are outdated after PERMANENT_SESSION_LIFETIME seconds of idle
+	SESSION_REFRESH_EACH_REQUEST = True
+)
+
+CONFIG = loadConfig()
+PARAM = loadParam()
 
 # show index
 @app.route("/")
 def render():
-	param = loadParam()
+	global CONFIG, PARAM
 	spread()
 
 	weight = loadTBW()
@@ -31,16 +47,17 @@ def render():
 		next_block=getNextForgeRound(CONFIG["peer"], **CONFIG),
 		items=sorted(items, key=lambda e:e[-1], reverse=True),
 		tokens=tokens,
-		username=param.get("username", "_"),
-		share=param.get("share", 1.),
-		threshold=param.get("threshold", 0.),
-		symbol="\u466",
+		username=PARAM.get("username", "_"),
+		share=PARAM.get("share", 1.),
+		threshold=PARAM.get("threshold", 0.),
+		symbol=PARAM.get("symbol", "token"),
 		explorer=CONFIG["explorer"]
 	)
 
 
 @app.route("/history/<string:field>/<string:value>/<int:start>/<int:number>")
 def render_history(field, value, start, number):
+	global CONFIG, PARAM
 	if value:
 		if getattr(flask.g, "search_field", None) != field:
 				flask.g.rows = search(**{field:value, "table":"transactions"})
@@ -52,7 +69,8 @@ def render_history(field, value, start, number):
 			value=value,
 			start=start,
 			number=number,
-			explorer=CONFIG["explorer"]
+			explorer=CONFIG["explorer"],
+			symbol=PARAM.get("symbol", "token"),
 		)
 
 
@@ -79,10 +97,10 @@ def search(table="transaction", **kw):
 	return [dict(zip(row.keys(), row)) for row in result]
 
 
-_url_for = flask.url_for
 @app.context_processor
-def url_for():
+def override_url_for():
 	return dict(url_for=dated_url_for)
+
 def dated_url_for(endpoint, **values):
 	if endpoint == 'static':
 		filename = values.get('filename', None)
@@ -90,6 +108,66 @@ def dated_url_for(endpoint, **values):
 			file_path = os.path.join(app.root_path,
 									 endpoint, filename)
 			values['q'] = int(os.stat(file_path).st_mtime)
-	return _url_for(endpoint, **values)
-flask.url_for = url_for
+	return flask.url_for(endpoint, **values)
 
+
+## Identification
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+	global CONFIG, PARAM
+	# enable session lifetime to 10 min
+	flask.session["permanent"] = True
+	# if POST method send from login page or any POST containing a signature field
+	if flask.request.method == "POST":
+		flask.session.pop("logged", None)
+		# check signature match (signature must be sent as hexadecimal string)
+		try: check = tfa.check(CONFIG["publicKey"], crypto.unhexlify(flask.request.form["signature"]))
+		except: check = False
+		if check:
+			# store the logged state
+			flask.session["logged"] = True
+			# go to manage page
+			return flask.redirect(flask.url_for("manage"))
+		else:
+			# store the logged state
+			flask.session["logged"] = False
+			# return to index
+			return flask.redirect(flask.url_for("render"))
+	# if classic access render login page 
+	else:
+		return flask.render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+	# store the logged state
+	flask.session["logged"] = False
+	# return to index
+	return flask.redirect(flask.url_for("render"))
+
+
+@app.route("/manage")
+def manage():
+	# check if logged in from cookies
+	if not flask.session.get("logged", False):
+		# if not logged in return to login page
+		return flask.redirect(flask.url_for("login"))
+	else:
+		# render manage page
+		return flask.render_template_string(
+"""{% extends "base.html" %}
+{% block content %}
+<div class="container"> 
+<h1 class="jumbotron">Node management page in construction</h1>
+<form>
+<dl>
+<dd/><input type="submit" value="Restart"/><br/>
+<dd/><input type="submit" value="Rebuild"/><br/>
+<dd/><input type="submit" value="Update"/><br/>
+</dl>
+</form>
+</div>
+{% endblock %}
+"""
+)
