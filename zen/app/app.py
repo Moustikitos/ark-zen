@@ -192,6 +192,7 @@ def format_datetime(value, format='medium'):
 		format="EEEE, d. MMMM y 'at' HH:mm"
 	elif format == 'medium':
 		format="EE dd.MM.y HH:mm"
+	#the [:-6] permits to delete the +XXYY at the end of the timestamp
 	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
 
 	return babel.dates.format_datetime(datetoparse, format)
