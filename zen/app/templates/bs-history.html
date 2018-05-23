@@ -21,7 +21,8 @@
 <li class="next"> <a href="/history/{{ field }}/{{ value }}/{{ (next if next <= last else last)*number }}/{{ number }}"><span class="glyphicon glyphicon-forward"></span></a></li>
 	</ul></div>
 	<p class="text-center"> Page {{ curent_page+1 }} over {{ total_page+1 }} :: {{ nb_record }} transactions :: {{ g.rows|sum(attribute="amount") }}&nbsp;{{ symbol|safe }}</p>
-	<table class="col-lg-12 table-responsive table table-striped table-hover">
+	<section class=table-responsive>
+	<table class="col-lg-12  table table-striped table-hover">
 		<tr>
 			<th>Date</th>
 			<th>Amount</th>
@@ -37,5 +38,6 @@
 		</tr>
 	{%- endfor %}
 	</table>
+	</section>
 </div>
 {% endblock %}
