@@ -3,6 +3,8 @@ import os
 import flask
 import sqlite3
 import threading
+import babel.dates
+
 from flask_bootstrap import Bootstrap
 
 from zen import tfa, crypto
@@ -79,9 +81,8 @@ def get_files_from_archive():
 	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 	path_to_payment = os.path.join(ROOT, "archive")
 	for root, dirs, files in os.walk(path_to_payment):  
-    		for filename in files:
+		for filename in files:
 			payments[filename]=loadJson(path_to_payment+'/'+filename)
-        		app.logger.info(payments[filename])
 	return payments
 
 @app.route("/stats")
@@ -185,3 +186,14 @@ def manage():
 		return flask.render_template_string(
 			"manage.html"
 )
+
+def format_datetime(value, format='medium'):
+	if format == 'full':
+		format="EEEE, d. MMMM y 'at' HH:mm"
+	elif format == 'medium':
+		format="EE dd.MM.y HH:mm"
+	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
+
+	return babel.dates.format_datetime(datetoparse, format)
+
+app.jinja_env.filters['datetime'] = format_datetime
