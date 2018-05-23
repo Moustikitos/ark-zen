@@ -20,7 +20,20 @@
 					<div class="tab-content">
 						{% for itm in payments %}
 						<div role="tabpanel" class="tab-pane active" id="{{ itm }}">
-							<p>{{ payments[itm] }}</p>
+							<table class="table-responsive"
+								<tr>
+									<td>Payment date</td>
+									<td>{{ payments[itm]['timestamp'] }}</td>
+									<td>Shared amount</td>
+									<td>{{ "%.2f" % (payments[itm]['amount']) }}
+								</tr>
+								{% for address, ratio in payments[itm]['weight'].iteritems() %}
+								<tr>
+									<td>{{ address }}</td>
+									<td>{{ ratio|float * payments[itm]['amount']|float }}</td>
+								</tr>
+								{% endfor %}
+							</table>
 						</div>
 						{% endfor %}
 			      	</div>
