@@ -20,21 +20,35 @@
 					<div class="tab-content">
 						{% for itm in payments|sort %}
 						<div role="tabpanel" class="tab-pane {% if loop.first %}active{% endif %}" id="{{ itm[:-4]|replace('-','') }}">
-							<table class="table table-striped table-responsive">
-								<tr>
-									<td>Payment date</td>
-									<td>{{ payments[itm]['timestamp']|datetime('full') }}</td>
-									<td>Shared amount</td>
-									<td>{{ "%.2f" % (payments[itm]['amount']) }}
-								</tr>
+							<table class="table table-striped table-responsive table-bordered">
+								<thead>
+									<tr>
+										<th>Payment date</th>
+										<th>Shared amount</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>{{ payments[itm]['timestamp']|datetime('full') }}</td>
+										<td>{{ "%.2f" % (payments[itm]['amount']) }}
+									</tr>
+								</tbody>
 							</table>
-							<table class="table table-striped table-responsive">
-								{% for address, ratio in payments[itm]['weight']|dictsort(true,'value',true) %}
-								<tr>
-									<td>{{ address }}</td>
-									<td>{{ ratio|float * payments[itm]['amount']|float }}</td>
-								</tr>
-								{% endfor %}
+							<table class="table table-striped table-responsive table-condensed table-bordered">
+								<thead>
+									<tr>
+										<th>Address</th>
+										<th>Amount</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for address, ratio in payments[itm]['weight']|dictsort(true,'value',true) %}
+									<tr>
+										<td>{{ address }}</td>
+										<td>{{ ratio|float * payments[itm]['amount']|float }}</td>
+									</tr>
+									{% endfor %}
+								</tbody>
 							</table>
 						</div>
 						{% endfor %}
