@@ -8,7 +8,6 @@
 	{%- set prev = curent_page - 1 %}
 	{%- set next = curent_page + 1 %}
 	{%- set last = total_page %}
-		<a class="btn btn-primary center-block" href="/">True Block Weight live</a>
 	<div class="container text-center"><ul class="pagination">
 		<li class="previous"> <a href="/history/{{ field }}/{{ value }}/{{ (prev if prev >= 0 else 0)*number }}/{{ number }}"><span class="glyphicon glyphicon-backward"></span></a></li>
 		{% for page in range(0,total_page+1) %}

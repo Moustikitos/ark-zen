@@ -47,7 +47,7 @@
 								<tbody>
 									{% for address, ratio in payments[itm]['weight']|dictsort(true,'value',true) %}
 									<tr>
-										<td>{{ address }}</td>
+										<td><samp>{{ address }}</samp></td>
 										<td>{{ (ratio|float * payments[itm]['amount']|float) - 0.1 }}</td>
 									</tr>
 									{% endfor %}
