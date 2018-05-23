@@ -4,7 +4,6 @@
 	{%- block html %}
 	  <head>
 		{%- block head %}
-			
 			<title>{% block title %}{{title|default}}{% endblock title %}</title>
 
 			{%- block metas %}
@@ -16,6 +15,7 @@
 				<link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet'  type='text/css'>
 				<link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
 				<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+				
 			{%- endblock styles %}
 		{%- endblock head %}
 	  </head>
@@ -38,8 +38,8 @@
 					<!-- Collect the nav links, forms, and other content for toggling -->
 					<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					  <ul class="nav navbar-nav">
-						<li class="active"><a href={{url_for("render")}}>Home<span class="sr-only">(current)</span></a></li>
-						<li><a href={{ url_for('get_stats') }}>Stats</a></li>
+						<li {% if request.url_rule|string == url_for('render')|string %}class="active"{%endif%}><a href={{url_for("render")}}>Home<span class="sr-only">(current)</span></a></li>
+						<li {% if request.url_rule|string == url_for('get_stats')|string %}class="active"{%endif%}><a href={{ url_for('get_stats') }}>Stats</a></li>
 						<!--<li class="dropdown">
 						  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
 						  <ul class="dropdown-menu">
@@ -60,18 +60,18 @@
 						<button type="submit" class="btn btn-default">Submit</button>
 					  </form>-->
 					  <ul class="nav navbar-nav navbar-right">
-						<li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+						<li {% if request.url_rule|string == url_for('dashboard')|string %}class="active"{%endif%}><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
 						<li class="dropdown">
 							{% block login %}
 								{% if session.logged %}
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account<span class="caret"></span></a>
 									  <ul class="dropdown-menu">
 										<li><a href="{{ url_for('logout') }}">Logout</a></li>
 										<li role="separator" class="divider"></li>
 										<li><a href="{{ url_for('manage') }}">Manage...</a></li>
 									  </ul>
 								{% else %}
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Login <span class="caret"></span></a>
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Account<span class="caret"></span></a>
 									  <ul class="dropdown-menu">
 										<li><a href="{{ url_for('login') }}">Login...</a></li>
 									  </ul>
