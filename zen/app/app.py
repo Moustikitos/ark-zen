@@ -190,6 +190,8 @@ def manage():
 def format_datetime(value, format='medium'):
 	if format == 'full':
 		format="EEEE, d. MMMM y 'at' HH:mm"
+	elif format == 'minimal':
+		format="EE dd.MM.y"
 	elif format == 'medium':
 		format="EE dd.MM.y HH:mm"
 	#the [:-6] permits to delete the +XXYY at the end of the timestamp
