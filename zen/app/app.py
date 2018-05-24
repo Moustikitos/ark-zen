@@ -1,5 +1,6 @@
 # -*- encoding:utf-8 -*-
 import os
+import io
 import flask
 import sqlite3
 import threading
@@ -76,22 +77,34 @@ def render_history(field, value, start, number):
 		)
 
 
-def get_files_from_archive():
+def getJSONfilesFromDirectory(relativeDirname, fileExtension,method=""):
 	payments={}
 	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-	path_to_payment = os.path.join(ROOT, "archive")
-	for root, dirs, files in os.walk(path_to_payment):  
+	path = os.path.join(ROOT, relativeDirname)
+	for root, dirs, files in os.walk(path):  
 		for filename in files:
-			payments[filename]=loadJson(path_to_payment+'/'+filename)
+			if os.path.splitext(filename)[-1].lower() == '.'+fileExtension:
+				if method == 'json':
+					payments[filename]=loadJson(path+'/'+filename)
+				else : 
+					with io.open(path+filename,'r') as in_:
+						payments[filename] = in_.read()
 	return payments
 
 @app.route("/stats")
 def get_stats():
-	get_files_from_archive()
 	return flask.render_template(
 		"bs-stats.html",
 		username=PARAM.get("username", "_"),
-		payments=get_files_from_archive()
+		payments=getJSONfilesFromDirectory("archive",'tbw','json')
+	)
+
+@app.route("/logs")
+def get_logs():
+	return flask.render_template(
+		"bs-logs.html",
+		username=PARAM.get("username", "_"),
+		payments=getJSONfilesFromDirectory("",'json')
 	)
 
 @app.route("/dashboard")
