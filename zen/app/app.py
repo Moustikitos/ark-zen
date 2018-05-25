@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 import os
 import io
+import re
 import flask
 import sqlite3
 import threading
@@ -101,14 +102,14 @@ def get_stats():
 		payments=getFilesFromDirectory("archive",'tbw','json')
 	)
 
-@app.route("/logs")
+"""@app.route("/logs")
 def get_logs():
 	return flask.render_template(
 		"bs-logs.html",
 		username=PARAM.get("username", "_"),
 		payments=getFilesFromDirectory("..",'log')
 	)
-
+"""
 @app.route("/dashboard")
 def dashboard():
 	return flask.render_template(
@@ -213,5 +214,11 @@ def format_datetime(value, format='medium'):
 	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
 
 	return babel.dates.format_datetime(datetoparse, format)
-
 app.jinja_env.filters['datetime'] = format_datetime
+
+def replace_regex(value, pattern, repl):
+	app.logger.info("Valeur : %s, pattern : %s, repl : %s" % (value, pattern, repl))
+	app.logger.info("retour : %s" % re.sub(pattern, repl, value))
+	return re.sub(pattern, repl, value)
+app.jinja_env.filters['replace_regex'] = replace_regex
+
