@@ -5,6 +5,7 @@ import flask
 import sqlite3
 import threading
 import babel.dates
+import logging
 
 from flask_bootstrap import Bootstrap
 
@@ -77,7 +78,7 @@ def render_history(field, value, start, number):
 		)
 
 
-def getJSONfilesFromDirectory(relativeDirname, fileExtension,method=""):
+def getFilesFromDirectory(relativeDirname, fileExtension,method=""):
 	payments={}
 	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 	path = os.path.join(ROOT, relativeDirname)
@@ -85,10 +86,11 @@ def getJSONfilesFromDirectory(relativeDirname, fileExtension,method=""):
 		for filename in files:
 			if os.path.splitext(filename)[-1].lower() == '.'+fileExtension:
 				if method == 'json':
-					payments[filename]=loadJson(path+'/'+filename)
+					payments[root+'/'+filename]=loadJson(root+'/'+filename)
 				else : 
-					with io.open(path+filename,'r') as in_:
-						payments[filename] = in_.read()
+					with io.open(root+'/'+filename,'r') as in_:
+						payments[root+'/'+filename] = in_.read()
+						#app.logger.info('root path : %s\nfilename : %s' % (root, filename))
 	return payments
 
 @app.route("/stats")
@@ -96,7 +98,7 @@ def get_stats():
 	return flask.render_template(
 		"bs-stats.html",
 		username=PARAM.get("username", "_"),
-		payments=getJSONfilesFromDirectory("archive",'tbw','json')
+		payments=getFilesFromDirectory("archive",'tbw','json')
 	)
 
 @app.route("/logs")
@@ -104,7 +106,7 @@ def get_logs():
 	return flask.render_template(
 		"bs-logs.html",
 		username=PARAM.get("username", "_"),
-		payments=getJSONfilesFromDirectory("",'json')
+		payments=getFilesFromDirectory("..",'log')
 	)
 
 @app.route("/dashboard")
