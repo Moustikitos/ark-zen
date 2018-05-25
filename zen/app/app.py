@@ -102,14 +102,14 @@ def get_stats():
 		payments=getFilesFromDirectory("archive",'tbw','json')
 	)
 
-"""@app.route("/logs")
+@app.route("/logs")
 def get_logs():
 	return flask.render_template(
 		"bs-logs.html",
 		username=PARAM.get("username", "_"),
 		payments=getFilesFromDirectory("..",'log')
 	)
-"""
+
 @app.route("/dashboard")
 def dashboard():
 	return flask.render_template(
@@ -199,7 +199,7 @@ def manage():
 		return flask.redirect(flask.url_for("login"))
 	else:
 		# render manage page
-		return flask.render_template_string(
+		return flask.render_template(
 			"manage.html"
 )
 
