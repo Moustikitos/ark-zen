@@ -3,7 +3,7 @@ import os
 import sys
 import optparse
 
-sys.path.append(os.path.abspath(".."))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import zen.chk
 from zen.cmn import setup, configure
@@ -13,11 +13,12 @@ from zen.pay import build, pay
 
 
 def launch():
-	print(os.path.join(os.path.join(zen.__path__[0], "app")))
+	app = os.path.abspath(os.path.join(zen.__path__[0], "app", "app.py"))
+	print(os.path.dirname(app))
 	os.environ["FLASK_APP"] = os.path.join(zen.__path__[0], "app", "app.py")
 	os.system('daemon --name=tbw --output=%s --command="python -m flask run --host=0.0.0.0" --chdir=%s' % (
 		os.path.expanduser("~/flask.log"),
-		os.path.join(os.path.join(zen.__path__[0], "app")),
+		os.path.dirname(app)
 	))
 
 

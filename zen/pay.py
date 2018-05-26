@@ -49,7 +49,10 @@ def waitFor(**config):
 	while rank > 0:
 		time.sleep(2*blocktime if rank > 3 else 1)
 		forging_queue = requests.get(config["peer"]+"/api/delegates/getNextForgers?limit=%d" % delegates).json().get("delegates", [])
-		rank = forging_queue.index(config["publicKey"])
+		try:
+			rank = forging_queue.index(config["publicKey"])
+		except ValueError:
+			break
 
 
 def pay():
