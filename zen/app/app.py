@@ -7,6 +7,7 @@ import sqlite3
 import threading
 import babel.dates
 import logging
+import requests
 
 from flask_bootstrap import Bootstrap
 
@@ -227,4 +228,3 @@ def replace_regex(value, pattern, repl):
 	app.logger.info("retour : %s" % re.sub(pattern, repl, value))
 	return re.sub(pattern, repl, value)
 app.jinja_env.filters['replace_regex'] = replace_regex
-
