@@ -7,14 +7,13 @@ import sqlite3
 import threading
 import babel.dates
 import logging
-import requests
 
 from flask_bootstrap import Bootstrap
 
 from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
-from zen.tbw import loadTBW, spread, loadParam
+from zen.tbw import loadTBW, spread, loadParam, rewardCalculation
 
 # create the application instance 
 app = flask.Flask(__name__) 
@@ -117,11 +116,28 @@ def get_logs():
 			payments=getFilesFromDirectory("..",'log')
 	)
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-	return flask.render_template(
-		"bs-dashboard.html",
-		username=PARAM.get("username", "_")
+	error = ''
+	app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
+	try:
+		if flask.request.method == "POST":
+			address = flask.request.form['walletaddress']
+			app.logger.info('address entered : %s' % address)
+			return flask.render_template(
+				"bs-dashboard.html",
+				username=PARAM.get("username", "_"),
+				arkWalletAddress = address,
+				arkAmount = rewardCalculation(address,PARAM.get("username", "_"))
+		)
+	except Exception as e:
+		flask.flash(e)
+		#app.logger.info(e)
+		return flask.render_template(
+				"bs-dashboard.html",
+				username=PARAM.get("username", "_"),
+				arkWalletAddress = "",
+				arkAmount = 0
 	)
 
 	

@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 
-from zen.cmn import loadJson, dumpJson, logMsg
+from zen.cmn import loadJson, dumpJson, logMsg, getBestSeed
 from zen.chk import loadConfig
 from collections import OrderedDict
 
@@ -39,6 +39,28 @@ def loadParam():
 
 def dumpParam(param):
 	dumpJson(param, os.path.join(ROOT, NAME+".json"))
+
+def readARKWalletAmount(walletAddress):
+	config=loadConfig()
+	return requests.get(getBestSeed(*config['seeds'])+"/api/accounts/getBalance?address=%s" % walletAddress).json().get("balance", {})
+
+def readARKdelegateVote(delegateName):
+	config=loadConfig()
+	delegateInfo=requests.get(getBestSeed(*config['seeds'])+"/api/delegates/search?q=%s" % delegateName).json().get("delegates", {}).pop()
+	return delegateInfo['vote']
+
+
+def rewardCalculation(walletAddress, delegateName, days=7):
+	#get the reward calculation for days
+	config=loadConfig()
+	tbw = loadParam()
+	reward = requests.get(getBestSeed(*config['seeds'])+"/api/blocks/getReward").json().get("reward", {})
+	print(reward)
+	arkForged = (days * 3600 * 24) / (config["blocktime"] * config['delegates']) * reward
+	print(arkForged)
+	walletAddressRatio = float(readARKWalletAmount(walletAddress))/float(readARKdelegateVote(delegateName))
+	print(walletAddressRatio)
+	return (arkForged * walletAddressRatio * tbw['share'])/100000000
 
 
 def get():
