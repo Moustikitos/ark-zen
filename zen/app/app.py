@@ -104,10 +104,16 @@ def get_stats():
 
 @app.route("/logs")
 def get_logs():
-	return flask.render_template(
-		"bs-logs.html",
-		username=PARAM.get("username", "_"),
-		payments=getFilesFromDirectory("..",'log')
+	# check if logged in from cookies
+	if not flask.session.get("logged", False):
+		# if not logged in return to login page
+		return flask.redirect(flask.url_for("login"))
+	else:
+		# render manage page
+		return flask.render_template(
+			"bs-logs.html",
+			username=PARAM.get("username", "_"),
+			payments=getFilesFromDirectory("..",'log')
 	)
 
 @app.route("/dashboard")
