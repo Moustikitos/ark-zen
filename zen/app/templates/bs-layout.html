@@ -5,6 +5,7 @@
 {% endblock title%}  
    
     {% block content %}
+
 		<div class="container"> 
 			<h1 class="jumbotron">{{ username }} :: True Block Weight</h1>
 				<p class="text-center">Forged&nbsp;: {{ "%f" % tokens }}&nbsp;{{ symbol|safe }}&nbsp;-
@@ -28,13 +29,13 @@
 						{% else %}
 							<tr class="warning">
 						{% endif %}#}
-						<td scope="row" class="text-center">{{ items.index(pair)+1 }}</td>
-						<td class="text-center"><samp><a href="/history/address/{{ pair[0] }}/0/10">{{ pair[0] }}</a></samp></td>
-						<td class="text-center">{{ "%.6f %%" % pair[-1] }}</td>
+						<td scope="row">{{ items.index(pair)+1 }}</td>
+						<td><samp><a href="/history/address/{{ pair[0] }}/0/10">{{ pair[0] }}</a></samp></td>
+						<td>{{ "%.6f %%" % pair[-1] }}</td>
 						{% if pair[-1]/100*tokens*share > threshold %}
-							<td class="text-center" style="color:blue">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
+							<td style="color:blue">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
 						{% else %}
-							<td class="text-center" style="color:darkred">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
+							<td style="color:darkred">{{ "%.8f" % (pair[-1]/100*tokens*share) }}&nbsp;{{ symbol|safe }}</td>
 						{% endif %}
 						<td><a class="btn" style="padding:2px;" href="{{ explorer }}/wallets/{{ pair[0] }}" target="_blank">&#128506;</a></td>
 					</tr>

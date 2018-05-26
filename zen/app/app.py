@@ -1,9 +1,12 @@
 # -*- encoding:utf-8 -*-
 import os
+import io
+import re
 import flask
 import sqlite3
 import threading
 import babel.dates
+import logging
 
 from flask_bootstrap import Bootstrap
 
@@ -76,22 +79,35 @@ def render_history(field, value, start, number):
 		)
 
 
-def get_files_from_archive():
+def getFilesFromDirectory(relativeDirname, fileExtension,method=""):
 	payments={}
 	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-	path_to_payment = os.path.join(ROOT, "archive")
-	for root, dirs, files in os.walk(path_to_payment):  
+	path = os.path.join(ROOT, relativeDirname)
+	for root, dirs, files in os.walk(path):  
 		for filename in files:
-			payments[filename]=loadJson(path_to_payment+'/'+filename)
+			if os.path.splitext(filename)[-1].lower() == '.'+fileExtension:
+				if method == 'json':
+					payments[root+'/'+filename]=loadJson(root+'/'+filename)
+				else : 
+					with io.open(root+'/'+filename,'r') as in_:
+						payments[root+'/'+filename] = in_.read()
+						#app.logger.info('root path : %s\nfilename : %s' % (root, filename))
 	return payments
 
 @app.route("/stats")
 def get_stats():
-	get_files_from_archive()
 	return flask.render_template(
 		"bs-stats.html",
 		username=PARAM.get("username", "_"),
-		payments=get_files_from_archive()
+		payments=getFilesFromDirectory("archive",'tbw','json')
+	)
+
+@app.route("/logs")
+def get_logs():
+	return flask.render_template(
+		"bs-logs.html",
+		username=PARAM.get("username", "_"),
+		payments=getFilesFromDirectory("..",'log')
 	)
 
 @app.route("/dashboard")
@@ -183,7 +199,7 @@ def manage():
 		return flask.redirect(flask.url_for("login"))
 	else:
 		# render manage page
-		return flask.render_template_string(
+		return flask.render_template(
 			"manage.html"
 )
 
@@ -198,5 +214,11 @@ def format_datetime(value, format='medium'):
 	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
 
 	return babel.dates.format_datetime(datetoparse, format)
-
 app.jinja_env.filters['datetime'] = format_datetime
+
+def replace_regex(value, pattern, repl):
+	app.logger.info("Valeur : %s, pattern : %s, repl : %s" % (value, pattern, repl))
+	app.logger.info("retour : %s" % re.sub(pattern, repl, value))
+	return re.sub(pattern, repl, value)
+app.jinja_env.filters['replace_regex'] = replace_regex
+

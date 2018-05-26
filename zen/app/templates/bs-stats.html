@@ -12,14 +12,14 @@
 				<div class="col-sm-3">
 					<ul class="nav nav-pills brand-pills nav-stacked" role="tablist">
 			      	{% for itm in payments|sort(reverse=true) %}
-						<li role="presentation" class="brand-nav {% if loop.first %}active{% endif %}"><a href="#{{ itm[:-4]|replace('-','') }}" aria-controls="{{ itm }}" role="tab" data-toggle="tab">{{ itm[:-4] }}</a></li>
+						<li role="presentation" class="brand-nav {% if loop.first %}active{% endif %}"><a href="#{{ itm|replace_regex('[./-]','') }}" aria-controls="{{ itm }}" role="tab" data-toggle="tab">{{ itm|replace_regex('.*(/)','') }}</a></li>
 					{% endfor %}      
 					</ul>
 				</div>
 				<div class="col-sm-9">
 					<div class="tab-content">
 						{% for itm in payments|sort(reverse=true) %}
-						<div role="tabpanel" class="tab-pane {% if loop.first %}active{% endif %}" id="{{ itm[:-4]|replace('-','') }}">
+						<div role="tabpanel" class="tab-pane {% if loop.first %}active{% endif %}" id="{{ itm|replace_regex('[./-]','') }}">
 							<section class=table-responsive>
 							<table class="table table-striped table-bordered">
 								<thead>
