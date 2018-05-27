@@ -7,13 +7,14 @@ import sqlite3
 import threading
 import babel.dates
 import logging
+import requests
 
 from flask_bootstrap import Bootstrap
 
 from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
-from zen.tbw import loadTBW, spread, loadParam, rewardCalculation
+from zen.tbw import loadTBW, spread, loadParam
 
 # create the application instance 
 app = flask.Flask(__name__) 
@@ -35,6 +36,7 @@ app.config.update(
 
 CONFIG = loadConfig()
 PARAM = loadParam()
+LOCAL_API = "http://localhost:%(port)s/api/" % CONFIG
 
 # show index
 @app.route("/")
@@ -116,7 +118,7 @@ def get_logs():
 			payments=getFilesFromDirectory("..",'log')
 	)
 
-@app.route("/dashboard", methods=["GET", "POST"])
+"""@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
 	error = ''
 	#app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
@@ -137,7 +139,35 @@ def dashboard():
 				username=PARAM.get("username", "_"),
 				info=rewardCalculation('',PARAM.get("username", "_"))
 	)
+"""
+@app.route("/dashboard/share/<string:address>/<int:period>")
+def computeShare(address, period):
+	username = PARAM["username"]
 
+	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/10000000
+	balance = float(requests.get(LOCAL_API+"accounts/getBalance?address="+address).json().get("balance", 0))/100000000
+	delegateInfo = requests.get(LOCAL_API+"delegates/search?q="+username).json().get("delegates", {})
+
+	if delegateInfo:
+		vote = float(delegateInfo.pop()['vote'])/10000000
+	else: vote = 1.0
+    #vote = float(requests.get(LOCAL_API+"delegates/search?q="+username).json().get("delegates", {}).pop())/10000000
+
+	forged = (period * 3600 * 24) / (CONFIG['blocktime'] * CONFIG['delegates']) * reward
+	weight = balance/max(1, vote+balance) # avoid ZeroDivisioError :)
+
+	return flask.render_template(
+		"bs-dashboard.html",
+		username=username,
+		info={
+			"walletAddress": address,
+			"walletAmount": balance,
+			"walletAddressRatio": weight,
+			"reward": forged * weight * PARAM["share"],
+			"period": period,
+			"vote" : vote
+		}
+	)
 	
 @app.teardown_appcontext
 def close(*args, **kw):
