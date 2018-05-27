@@ -36,7 +36,7 @@
             "begin": [2018, 2, 1, 0],
             "snapshots": [
             ], 
-            "explorer": "http://mainnet.explorer.persona.im"
+            "explorer": "http://explorer.persona.im/#/"
         },
 
         "testnet":{
