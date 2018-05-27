@@ -119,11 +119,11 @@ def get_logs():
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
 	error = ''
-	app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
+	#app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
 	try:
 		if flask.request.method == "POST":
 			address = flask.request.form['walletaddress']
-			app.logger.info('address entered : %s' % address)
+			#app.logger.info('address entered : %s' % address)
 			return flask.render_template(
 				"bs-dashboard.html",
 				username=PARAM.get("username", "_"),
