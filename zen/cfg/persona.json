@@ -36,14 +36,14 @@
             "begin": [2018, 2, 1, 0],
             "snapshots": [
             ], 
-            "explorer": "http://mainnet.explorer.persona.im"
+            "explorer": "http://explorer.persona.im/#"
         },
 
         "testnet":{
             "begin": [2017, 3, 21, 13],
             "snapshots": [
             ], 
-            "explorer": "http://testnet.explorer.persona.im"
+            "explorer": "http://texplorer.persona.im/#/"
         }
     }
 }
