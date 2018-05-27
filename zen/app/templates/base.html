@@ -67,7 +67,7 @@
 						
 					  </form>
 					  <ul class="nav navbar-nav navbar-right">
-						<li {% if request.url_rule|string == url_for('dashboard')|string %}class="active"{%endif%}><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+						{#<li {% if request.url_rule|string == url_for('dashboard')|string %}class="active"{%endif%}><a href="{{ url_for('dashboard') }}">Dashboard</a></li>#}
 						<li class="dropdown">
 							{% block login %}
 								{% if session.logged %}
