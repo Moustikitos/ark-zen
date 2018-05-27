@@ -42,26 +42,42 @@ def dumpParam(param):
 
 def readARKWalletAmount(walletAddress):
 	config=loadConfig()
-	return requests.get(getBestSeed(*config['seeds'])+"/api/accounts/getBalance?address=%s" % walletAddress).json().get("balance", {})
+	response = requests.get(getBestSeed(*config['seeds'])+"/api/accounts/getBalance?address=%s" % walletAddress)
+	balance = response.json().get("balance", {})
+	if balance:	
+		return float(response.json()["balance"])
+	else: return 0.0
 
 def readARKdelegateVote(delegateName):
 	config=loadConfig()
-	delegateInfo=requests.get(getBestSeed(*config['seeds'])+"/api/delegates/search?q=%s" % delegateName).json().get("delegates", {}).pop()
-	return delegateInfo['vote']
+	delegateInfo=requests.get(getBestSeed(*config['seeds'])+"/api/delegates/search?q=%s" % delegateName).json().get("delegates", {})
+	if delegateInfo:
+		return float(delegateInfo.pop()['vote'])
+	else: return 1.0
 
 
-def rewardCalculation(walletAddress, delegateName, days=7):
-	#get the reward calculation for days
+def rewardCalculation(walletAddress, delegateName, period=7):
+	"""get the reward calculation for period (in days)
+		return a dict info
+		info['walletAddress'] = walletAddress
+		info['walletAmount'] = token amount for wallet address
+		info['walletAddressRatio'] = ratio for the wallet among voters
+		info['reward'] = reward calculation for the walletAddress for the period
+		info['period'] = period in days
+	"""
+	info = {}
 	config=loadConfig()
 	tbw = loadParam()
-	reward = requests.get(getBestSeed(*config['seeds'])+"/api/blocks/getReward").json().get("reward", {})
-	print(reward)
-	arkForged = (days * 3600 * 24) / (config["blocktime"] * config['delegates']) * reward
-	print(arkForged)
-	walletAddressRatio = float(readARKWalletAmount(walletAddress))/float(readARKdelegateVote(delegateName))
-	print(walletAddressRatio)
-	return (arkForged * walletAddressRatio * tbw['share'])/100000000
-
+	reward = requests.get(getBestSeed(*config['seeds'])+'/api/blocks/getReward').json().get("reward", {})
+			
+	arkForged = (period * 3600 * 24) / (config['blocktime'] * config['delegates']) * reward
+	info['walletAddress'] = walletAddress
+	info['walletAmount'] = readARKWalletAmount(walletAddress)
+	info['walletAddressRatio'] = info['walletAmount']/(readARKdelegateVote(delegateName)+info['walletAmount'])
+	info['reward'] = (arkForged * info['walletAddressRatio'] * tbw['share'])/100000000
+	info['walletAmount'] /=100000000
+	info['period'] = period
+	return info
 
 def get():
 	param = loadParam()

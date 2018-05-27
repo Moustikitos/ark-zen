@@ -127,8 +127,7 @@ def dashboard():
 			return flask.render_template(
 				"bs-dashboard.html",
 				username=PARAM.get("username", "_"),
-				arkWalletAddress = address,
-				arkAmount = rewardCalculation(address,PARAM.get("username", "_"))
+				info = rewardCalculation(address,PARAM.get("username", "_"))
 		)
 	except Exception as e:
 		flask.flash(e)
@@ -136,8 +135,7 @@ def dashboard():
 		return flask.render_template(
 				"bs-dashboard.html",
 				username=PARAM.get("username", "_"),
-				arkWalletAddress = "",
-				arkAmount = 0
+				info=rewardCalculation('',PARAM.get("username", "_"))
 	)
 
 	

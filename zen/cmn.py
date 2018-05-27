@@ -46,28 +46,6 @@ def findBlockchains():
 	except:
 		return []
 
-
-def readARKWalletAmount(walletAddress):
-	config=loadConfig()
-	return requests.get(getBestSeed(*config['seeds'])+"/api/accounts/getBalance?address=%s" % walletAddress).json().get("balance", {})
-
-def readARKdelegateVote(delegateName):
-	config=loadConfig()
-	delegateInfo=requests.get(getBestSeed(*config['seeds'])+"/api/delegates/search?q=%s" % delegateName).json().get("delegates", {}).pop()
-	return delegateInfo['vote']
-
-
-def rewardCalculation(walletAddress, delegateName, days=7):
-	#get the reward calculation for days
-	config=loadConfig()
-	reward = requests.get(getBestSeed(*config['seeds'])+"/api/blocks/getReward").json().get("reward", {})
-	print(reward)
-	arkForged = (days * 3600 * 24) / (config["blocktime"] * config['delegates']) * reward
-	print(arkForged)
-	walletAddressRatio = float(readARKWalletAmount(walletAddress))/float(readARKdelegateVote(delegateName))
-	print(walletAddressRatio)
-	return (arkForged * walletAddressRatio)/100000000
-
 def chooseItem(msg, *elem):
 	n = len(elem)
 	if n > 1:
