@@ -212,6 +212,7 @@ def search(table="transaction", **kw):
 	result = cursor.fetchall()
 	return [dict(zip(row.keys(), row)) for row in result]
 
+
 def getFilesFromDirectory(dirname, ext, method=None):
 	files = {}
 	base = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

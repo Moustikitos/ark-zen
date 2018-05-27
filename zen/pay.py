@@ -69,7 +69,7 @@ def dumpRegistry(date):
 	param = loadParam()
 	_cnf = loadJson(param["node"])
 	keys = crypto.getKeys(_cnf["forging"]["secret"][0])
-	if param["#2"]:
+	if param.get("#2", False):
 		keys["secondPrivateKey"] = crypto.getKeys(seed=crypto.unhexlify(param["#2"]))["privateKey"]
 
 	amount = tbw["amount"]
