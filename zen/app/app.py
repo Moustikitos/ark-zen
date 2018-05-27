@@ -13,7 +13,7 @@ from flask_bootstrap import Bootstrap
 from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
-from zen.tbw import loadTBW, spread, loadParam
+from zen.tbw import loadTBW, spread, loadParam, rewardCalculation
 
 # create the application instance 
 app = flask.Flask(__name__) 
@@ -104,17 +104,38 @@ def get_stats():
 
 @app.route("/logs")
 def get_logs():
-	return flask.render_template(
-		"bs-logs.html",
-		username=PARAM.get("username", "_"),
-		payments=getFilesFromDirectory("..",'log')
+	# check if logged in from cookies
+	if not flask.session.get("logged", False):
+		# if not logged in return to login page
+		return flask.redirect(flask.url_for("login"))
+	else:
+		# render manage page
+		return flask.render_template(
+			"bs-logs.html",
+			username=PARAM.get("username", "_"),
+			payments=getFilesFromDirectory("..",'log')
 	)
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
-	return flask.render_template(
-		"bs-dashboard.html",
-		username=PARAM.get("username", "_")
+	error = ''
+	#app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
+	try:
+		if flask.request.method == "POST":
+			address = flask.request.form['walletaddress']
+			#app.logger.info('address entered : %s' % address)
+			return flask.render_template(
+				"bs-dashboard.html",
+				username=PARAM.get("username", "_"),
+				info = rewardCalculation(address,PARAM.get("username", "_"))
+		)
+	except Exception as e:
+		flask.flash(e)
+		#app.logger.info(e)
+		return flask.render_template(
+				"bs-dashboard.html",
+				username=PARAM.get("username", "_"),
+				info=rewardCalculation('',PARAM.get("username", "_"))
 	)
 
 	
@@ -221,4 +242,3 @@ def replace_regex(value, pattern, repl):
 	app.logger.info("retour : %s" % re.sub(pattern, repl, value))
 	return re.sub(pattern, repl, value)
 app.jinja_env.filters['replace_regex'] = replace_regex
-
