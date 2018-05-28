@@ -61,8 +61,7 @@ def getNodeHeight():
 	config = loadConfig()
 	config["quiet"] = True
 	return int(execute(*config["cmd"]["nodeheight"], **config)[0].strip())
-
-
+	
 def restart():
 	logMsg("Restarting node...")
 	config = loadConfig()

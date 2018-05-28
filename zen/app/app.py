@@ -7,6 +7,7 @@ import sqlite3
 import threading
 import babel.dates
 import logging
+import requests
 
 from flask_bootstrap import Bootstrap
 
@@ -91,19 +92,44 @@ def get_stats():
 		payments=getFilesFromDirectory("archive", ".tbw", 'json')
 	)
 
+
 @app.route("/logs")
 def get_logs():
-	return flask.render_template(
-		"bs-logs.html",
-		username=PARAM.get("username", "_"),
-		payments=getFilesFromDirectory("..", ".log")
-	)
+	# check if logged in from cookies
+	if not flask.session.get("logged", False):
+		# if not logged in return to login page
+		return flask.redirect(flask.url_for("login"))
+	else:
+		# render manage page
+		return flask.render_template(
+			"bs-logs.html",
+			username=PARAM.get("username", "_"),
+			payments=getFilesFromDirectory("..", ".log")
+    )
 
-@app.route("/dashboard")
-def dashboard():
+
+@app.route("/dashboard/share/<string:address>/<int:period>")
+def computeShare(address, period):
+	username = PARAM["username"]
+
+	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
+	balance = float(requests.get(LOCAL_API+"accounts/getBalance?address="+address).json().get("balance", 0))/100000000
+	vote = float(requests.get(LOCAL_API+"delegates/get?username="+username).json().get("delegate", {}).get("vote", 0))/100000000
+
+	forged = (period * 3600 * 24) / (CONFIG['blocktime'] * CONFIG['delegates']) * reward
+	weight = balance/max(1, vote+balance) # avoid ZeroDivisioError :)
+
 	return flask.render_template(
 		"bs-dashboard.html",
-		username=PARAM.get("username", "_")
+		username=username,
+		info={
+			"walletAddress": address,
+			"walletAmount": balance,
+			"walletAddressRatio": weight,
+			"reward": forged * weight * PARAM["share"],
+			"period": period,
+			"vote" : vote
+		}
 	)
 
 
@@ -116,6 +142,7 @@ def close(*args, **kw):
 @app.context_processor
 def override_url_for():
 	return dict(url_for=dated_url_for)
+
 
 ## Identification
 @app.route("/login", methods=["GET", "POST"])
@@ -160,9 +187,7 @@ def manage():
 		return flask.redirect(flask.url_for("login"))
 	else:
 		# render manage page
-		return flask.render_template(
-			"manage.html"
-)
+		return flask.render_template("manage.html")
 
 
 def dated_url_for(endpoint, **values):
@@ -224,6 +249,4 @@ def getFilesFromDirectory(dirname, ext, method=None):
 				else: 
 					with io.open(os.path.join(root, filename), 'r') as in_:
 						files[os.path.basename(filename)] = in_.read()
-						#app.logger.info('root path : %s\nfilename : %s' % (root, filename))
 	return files
-

@@ -46,7 +46,6 @@ def findBlockchains():
 	except:
 		return []
 
-
 def chooseItem(msg, *elem):
 	n = len(elem)
 	if n > 1:

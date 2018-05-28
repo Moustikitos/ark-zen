@@ -1,0 +1,9 @@
+requests==2.18.4
+ecdsa==0.13
+setuptools==38.4.1
+base58==0.2.5
+pytz==2017.3
+Flask_Bootstrap==3.3.7.1
+Babel==2.5.3
+Flask==0.12.2
+Flask-Testing==0.7.1

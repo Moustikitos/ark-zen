@@ -1,6 +1,6 @@
 # -*- encoding:utf-8 -*-
 
-from zen.cmn import loadJson, dumpJson, logMsg
+from zen.cmn import loadJson, dumpJson, logMsg, getBestSeed
 from zen.chk import loadConfig
 from collections import OrderedDict
 
@@ -39,7 +39,6 @@ def loadParam():
 
 def dumpParam(param):
 	dumpJson(param, os.path.join(ROOT, NAME+".json"))
-
 
 def get():
 	param = loadParam()
