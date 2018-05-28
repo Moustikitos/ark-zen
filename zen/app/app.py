@@ -34,9 +34,12 @@ app.config.update(
 	SESSION_REFRESH_EACH_REQUEST = True
 )
 
+
+# load all information
 CONFIG = loadConfig()
 PARAM = loadParam()
 LOCAL_API = "http://localhost:%(port)s/api/" % CONFIG
+
 
 # show index
 @app.route("/")
@@ -67,8 +70,8 @@ def render_history(field, value, start, number):
 	global CONFIG, PARAM
 	if value:
 		if getattr(flask.g, "search_field", None) != field:
-				flask.g.rows = search(**{field:value, "table":"transactions"})
-				flask.g.search_field = field
+			flask.g.rows = search(**{field:value, "table":"transactions"})
+			flask.g.search_field = field
 
 		return flask.render_template(
 			"bs-history.html",
@@ -81,28 +84,14 @@ def render_history(field, value, start, number):
 		)
 
 
-def getFilesFromDirectory(relativeDirname, fileExtension,method=""):
-	payments={}
-	ROOT = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-	path = os.path.join(ROOT, relativeDirname)
-	for root, dirs, files in os.walk(path):  
-		for filename in files:
-			if os.path.splitext(filename)[-1].lower() == '.'+fileExtension:
-				if method == 'json':
-					payments[root+'/'+filename]=loadJson(root+'/'+filename)
-				else : 
-					with io.open(root+'/'+filename,'r') as in_:
-						payments[root+'/'+filename] = in_.read()
-						#app.logger.info('root path : %s\nfilename : %s' % (root, filename))
-	return payments
-
 @app.route("/stats")
 def get_stats():
 	return flask.render_template(
 		"bs-stats.html",
 		username=PARAM.get("username", "_"),
-		payments=getFilesFromDirectory("archive",'tbw','json')
+		payments=getFilesFromDirectory("archive", ".tbw", 'json')
 	)
+
 
 @app.route("/logs")
 def get_logs():
@@ -115,43 +104,17 @@ def get_logs():
 		return flask.render_template(
 			"bs-logs.html",
 			username=PARAM.get("username", "_"),
-			payments=getFilesFromDirectory("..",'log')
-	)
+			payments=getFilesFromDirectory("..", ".log")
+    )
 
-"""@app.route("/dashboard", methods=["GET", "POST"])
-def dashboard():
-	error = ''
-	#app.logger.info('address entered : %s' % flask.request.form['walletaddress'])
-	try:
-		if flask.request.method == "POST":
-			address = flask.request.form['walletaddress']
-			#app.logger.info('address entered : %s' % address)
-			return flask.render_template(
-				"bs-dashboard.html",
-				username=PARAM.get("username", "_"),
-				info = rewardCalculation(address,PARAM.get("username", "_"))
-		)
-	except Exception as e:
-		flask.flash(e)
-		#app.logger.info(e)
-		return flask.render_template(
-				"bs-dashboard.html",
-				username=PARAM.get("username", "_"),
-				info=rewardCalculation('',PARAM.get("username", "_"))
-	)
-"""
+
 @app.route("/dashboard/share/<string:address>/<int:period>")
 def computeShare(address, period):
 	username = PARAM["username"]
 
-	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/10000000
+	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
 	balance = float(requests.get(LOCAL_API+"accounts/getBalance?address="+address).json().get("balance", 0))/100000000
-	delegateInfo = requests.get(LOCAL_API+"delegates/search?q="+username).json().get("delegates", {})
-
-	if delegateInfo:
-		vote = float(delegateInfo.pop()['vote'])/10000000
-	else: vote = 1.0
-    #vote = float(requests.get(LOCAL_API+"delegates/search?q="+username).json().get("delegates", {}).pop())/10000000
+	vote = float(requests.get(LOCAL_API+"delegates/get?username="+username).json().get("delegate", {}).get("vote", 0))/100000000
 
 	forged = (period * 3600 * 24) / (CONFIG['blocktime'] * CONFIG['delegates']) * reward
 	weight = balance/max(1, vote+balance) # avoid ZeroDivisioError :)
@@ -168,46 +131,20 @@ def computeShare(address, period):
 			"vote" : vote
 		}
 	)
-	
+
+
 @app.teardown_appcontext
 def close(*args, **kw):
 	if hasattr(flask.g, "database"):
 		flask.g.database.close()
 
 
-def connect():
-	if not hasattr(flask.g, "database"):
-		setattr(flask.g, "database", sqlite3.connect(os.path.join(app.root_path, "..", "pay.db")))
-		flask.g.database.row_factory = sqlite3.Row
-	return flask.g.database.cursor()
-
-
-def search(table="transaction", **kw):
-	cursor = connect()
-	cursor.execute(
-		"SELECT * FROM %s WHERE %s=? ORDER BY timestamp DESC;"%(table, kw.keys()[0]),
-		(kw.values()[0], )
-	)
-	result = cursor.fetchall()
-	return [dict(zip(row.keys(), row)) for row in result]
-
-
 @app.context_processor
 def override_url_for():
 	return dict(url_for=dated_url_for)
 
-def dated_url_for(endpoint, **values):
-	if endpoint == 'static':
-		filename = values.get('filename', None)
-		if filename:
-			file_path = os.path.join(app.root_path,
-									 endpoint, filename)
-			values['q'] = int(os.stat(file_path).st_mtime)
-	return flask.url_for(endpoint, **values)
-
 
 ## Identification
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
 	global CONFIG, PARAM
@@ -250,9 +187,18 @@ def manage():
 		return flask.redirect(flask.url_for("login"))
 	else:
 		# render manage page
-		return flask.render_template(
-			"manage.html"
-)
+		return flask.render_template("manage.html")
+
+
+def dated_url_for(endpoint, **values):
+	if endpoint == 'static':
+		filename = values.get('filename', None)
+		if filename:
+			file_path = os.path.join(app.root_path,
+									 endpoint, filename)
+			values['q'] = int(os.stat(file_path).st_mtime)
+	return flask.url_for(endpoint, **values)
+
 
 def format_datetime(value, format='medium'):
 	if format == 'full':
@@ -267,8 +213,40 @@ def format_datetime(value, format='medium'):
 	return babel.dates.format_datetime(datetoparse, format)
 app.jinja_env.filters['datetime'] = format_datetime
 
+
 def replace_regex(value, pattern, repl):
 	app.logger.info("Valeur : %s, pattern : %s, repl : %s" % (value, pattern, repl))
 	app.logger.info("retour : %s" % re.sub(pattern, repl, value))
 	return re.sub(pattern, repl, value)
 app.jinja_env.filters['replace_regex'] = replace_regex
+
+
+def connect():
+	if not hasattr(flask.g, "database"):
+		setattr(flask.g, "database", sqlite3.connect(os.path.join(app.root_path, "..", "pay.db")))
+		flask.g.database.row_factory = sqlite3.Row
+	return flask.g.database.cursor()
+
+
+def search(table="transaction", **kw):
+	cursor = connect()
+	cursor.execute(
+		"SELECT * FROM %s WHERE %s=? ORDER BY timestamp DESC;"%(table, kw.keys()[0]),
+		(kw.values()[0], )
+	)
+	result = cursor.fetchall()
+	return [dict(zip(row.keys(), row)) for row in result]
+
+
+def getFilesFromDirectory(dirname, ext, method=None):
+	files = {}
+	base = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+	for root, dirs, files in os.walk(os.path.join(base, dirname)):
+		for filename in files:
+			if os.path.splitext(filename)[-1].lower() == ext:
+				if method == 'json':
+					files[os.path.basename(filename)] = loadJson(os.path.join(root, filename))
+				else: 
+					with io.open(os.path.join(root, filename), 'r') as in_:
+						files[os.path.basename(filename)] = in_.read()
+	return files
