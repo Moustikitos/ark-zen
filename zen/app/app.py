@@ -239,14 +239,14 @@ def search(table="transaction", **kw):
 
 
 def getFilesFromDirectory(dirname, ext, method=None):
-	files = {}
+	files_data = {}
 	base = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 	for root, dirs, files in os.walk(os.path.join(base, dirname)):
 		for filename in files:
 			if os.path.splitext(filename)[-1].lower() == ext:
 				if method == 'json':
-					files[os.path.basename(filename)] = loadJson(os.path.join(root, filename))
+					files_data[os.path.basename(filename)] = loadJson(os.path.join(root, filename))
 				else: 
 					with io.open(os.path.join(root, filename), 'r') as in_:
-						files[os.path.basename(filename)] = in_.read()
-	return files
+						files_data[os.path.basename(filename)] = in_.read()
+	return files_data
