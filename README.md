@@ -17,9 +17,11 @@ nodes and `True Block Weight` utilities for pool management.
     * [X] `python` : `sudo apt-get install python`
     * [X] `pip` : `sudo apt-get install python-pip`
     * [X] `setuptools` : `sudo pip install setuptools`
+    * [X] `wheel` : `sudo pip install wheel`
 
   - Python related (automatically managed by `pip`)
     * [X] `pytz`
+    * [X] `babel`
     * [X] `ecdsa`
     * [X] `base58`
     * [X] `requests`
@@ -32,6 +34,8 @@ or
 
 Download and extract https://github.com/Moustikitos/zen/archive/master.zip into
 your home directory.
+
+or git clone https://github.com/Moustikitos/zen.git into your home directory
 
 ## Use
 
