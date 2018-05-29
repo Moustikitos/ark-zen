@@ -7,6 +7,8 @@ nodes and `True Block Weight` utilities for pool management.
 
  * [X] Ark
  * [X] Kapu
+ * [X] Persona
+ * [X] Ripa
 
 ## Install
 
