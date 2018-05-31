@@ -118,15 +118,18 @@ def setup():
 
 	if account.get("secondPublicKey", False):
 		seed = tbw_config.get("#2", "01")
-		if not seed: seed = "01"
 		secondPublicKey = crypto.getKeys(None, seed=crypto.unhexlify(seed))["publicKey"]
 		while secondPublicKey != account["secondPublicKey"]:
-			secret = getpass.getpass("> enter your second secret: ")
-			seed = crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
-			secondPublicKey = crypto.getKeys(None, seed=seed)["publicKey"]
-			tbw_config["#2"] = crypto.hexlify(seed)
+			try:
+				secret = getpass.getpass("> enter your second secret: ")
+				seed = crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
+				secondPublicKey = crypto.getKeys(None, seed=seed)["publicKey"]
+				tbw_config["#2"] = crypto.hexlify(seed)
+			except KeyboardInterrupt:
+				tbw_config.pop("#2", None)
+				break
 	else:
-		tbw_config["#2"] = None
+		tbw_config.pop("#2", None)
 
 	dumpJson(tbw_config, os.path.join(ROOT, "tbw.json"))
 	config["user"] = os.environ.get("USER", None)
