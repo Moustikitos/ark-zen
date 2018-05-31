@@ -117,13 +117,14 @@ def setup():
 	account = requests.get(seed+"/api/accounts?address=%s" % account["address"], verify=True, timeout=5).json().get("account", {})
 
 	if account.get("secondPublicKey", False):
-		seed = tbw_config.get("#2", "00")
-		secondPublicKey = crypto.getKeys(seed=seed)["publicKey"]
+		seed = tbw_config.get("#2", "01")
+		if not seed: seed = "01"
+		secondPublicKey = crypto.getKeys(None, seed=crypto.unhexlify(seed))["publicKey"]
 		while secondPublicKey != account["secondPublicKey"]:
 			secret = getpass.getpass("> enter your second secret: ")
 			seed = crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
-			secondPublicKey = crypto.getKeys(seed=seed)
-		tbw_config["#2"] = hexlify(seed)
+			secondPublicKey = crypto.getKeys(None, seed=seed)["publicKey"]
+			tbw_config["#2"] = crypto.hexlify(seed)
 	else:
 		tbw_config["#2"] = None
 
