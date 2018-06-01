@@ -15,6 +15,9 @@ from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
 from zen.tbw import loadTBW, spread, loadParam
+from zen.app import opt
+
+ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # create the application instance 
 app = flask.Flask(__name__) 
@@ -39,6 +42,7 @@ app.config.update(
 CONFIG = loadConfig()
 PARAM = loadParam()
 LOCAL_API = "http://localhost:%(port)s/api/" % CONFIG
+# LOCAL_API = "http://167.114.29.52:%(port)s/api/" % CONFIG
 
 
 # show index
@@ -106,6 +110,31 @@ def get_logs():
 			username=PARAM.get("username", "_"),
 			payments=getFilesFromDirectory("..", ".log")
     )
+
+
+@app.route("/optimize/<string:blockchain>/<int:vote>/<string:usernames>/<int:delta>")
+def optimize(blockchain, vote, usernames, delta):
+	pool = loadJson(os.path.join(ROOT, "pool.%s.json" % blockchain))
+	if not len(pool):
+		return "No public pool defined here !"
+
+	opt.Delegate.configure(
+		blocktime=CONFIG["blocktime"],
+		delegates=CONFIG["delegates"],
+		reward=float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
+	)
+	delegates = [
+		d for d in requests.get(LOCAL_API+"delegates").json().get("delegates", []) \
+		if d["username"] in usernames.split(",")
+	]
+	delegates = [
+		opt.Delegate(d["username"], pool[d["username"]]["share"], float(d["vote"])/100000000, float(pool[d["username"]]["exclude"])/100000000) \
+		for d in  delegates if d["username"] in pool
+	]
+	if len(delegates):
+		return opt.solve(vote, delegates, step=delta).__repr__()
+	else:
+		return "No public pool here !"
 
 
 @app.route("/dashboard/share/<string:address>/<int:period>")
