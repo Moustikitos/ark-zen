@@ -4,8 +4,8 @@ import io
 import re
 import flask
 import sqlite3
+import datetime
 import threading
-import babel.dates
 import logging
 import requests
 
@@ -116,7 +116,7 @@ def get_logs():
 def optimize(blockchain, vote, usernames, delta):
 	pool = loadJson(os.path.join(ROOT, "pool.%s.json" % blockchain))
 	if not len(pool):
-		return "No public pool defined here !"
+		return "No public pool defined on %s blockchain !" % blockchain
 
 	opt.Delegate.configure(
 		blocktime=CONFIG["blocktime"],
@@ -134,7 +134,7 @@ def optimize(blockchain, vote, usernames, delta):
 	if len(delegates):
 		return opt.solve(vote, delegates, step=delta).__repr__()
 	else:
-		return "No public pool here !"
+		return "No public pool available !"
 
 
 @app.route("/dashboard/share/<string:address>/<int:period>")
@@ -229,17 +229,16 @@ def dated_url_for(endpoint, **values):
 	return flask.url_for(endpoint, **values)
 
 
-def format_datetime(value, format='medium'):
-	if format == 'full':
-		format="EEEE, d. MMMM y 'at' HH:mm"
-	elif format == 'minimal':
-		format="EE dd.MM.y"
-	elif format == 'medium':
-		format="EE dd.MM.y HH:mm"
-	#the [:-6] permits to delete the +XXYY at the end of the timestamp
-	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
-
-	return babel.dates.format_datetime(datetoparse, format)
+def format_datetime(value, size='medium'):
+	if size == 'full':
+		fmt = "%A, %-d. %B %Y at %H:%M"
+	elif size == 'minimal':
+		fmt = "%a, %d.%m.%y"
+	elif size == 'medium':
+		fmt = "%a, %d.%m.%y %H:%M"
+	#the [:-6] permits to delete the +XX:YY at the end of the timestamp
+	tuple_date = datetime.datetime.strptime(value[:-6], "%Y-%m-%d %H:%M:%S.%f")
+	return datetime.datetime.strftime(tuple_date, fmt)
 app.jinja_env.filters['datetime'] = format_datetime
 
 

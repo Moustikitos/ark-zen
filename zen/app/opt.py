@@ -55,17 +55,3 @@ def solve(vote, delegates, step=1):
 		best(*delegates).cumul += step
 	best(*delegates).cumul += (vote-c)
 	return {d.username:d.cumul for d in delegates}
-
-# if __name__ == "__main__":
-
-# 	Delegate.configure(blocktime=8, delegates=51, reward=8)
-
-# 	toons = Delegate("toons", 0.85, 823550, 60000)
-# 	ravelou = Delegate("ravelou", 0.90, 901122)
-
-# 	print(solve(800000, toons, ravelou, step=10))
-
-# 	reset(toons, ravelou)
-# 	print("optimized daily share :", toons.daily(402720) + ravelou.daily(397280))
-# 	print("all on toons :", toons.daily(800000))
-# 	print("all on ravelou :", ravelou.daily(800000))
