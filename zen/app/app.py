@@ -2,6 +2,7 @@
 import os
 import io
 import re
+import json
 import flask
 import sqlite3
 import datetime
@@ -10,7 +11,7 @@ import logging
 import requests
 
 from flask_bootstrap import Bootstrap
-
+from collections import OrderedDict 
 from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
@@ -112,27 +113,41 @@ def get_logs():
     )
 
 
-@app.route("/optimize/<string:blockchain>/<int:vote>/<string:usernames>/<int:delta>")
-def optimize(blockchain, vote, usernames, delta):
+@app.route("/optimize/<string:blockchain>/<int:vote>/<string:usernames>/<string:offsets>/<int:delta>")
+def optimize(blockchain, vote, usernames, offsets, delta):
+	delta = max(delta, 10)
 	pool = loadJson(os.path.join(ROOT, "pool.%s.json" % blockchain))
 	if not len(pool):
 		return "No public pool defined on %s blockchain !" % blockchain
-
+	# configure delegate behaviour according to blockchain parameters
 	opt.Delegate.configure(
 		blocktime=CONFIG["blocktime"],
 		delegates=CONFIG["delegates"],
 		reward=float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
 	)
+	# separate usernames
 	delegates = [
 		d for d in requests.get(LOCAL_API+"delegates").json().get("delegates", []) \
-		if d["username"] in usernames.split(",")
+		if d["username"] in (pool.keys() if usernames == "all" else usernames.split(","))
 	]
+	# create delegate object for the solver
 	delegates = [
 		opt.Delegate(d["username"], pool[d["username"]]["share"], float(d["vote"])/100000000, float(pool[d["username"]]["exclude"])/100000000) \
 		for d in  delegates if d["username"] in pool
 	]
+	# remove curent vote given in username order in offsets
+	if  usernames != "all":
+		i = 0
+		for offset in [int(s) for s in offsets.split(",")]:
+			delegates[i].vote -= offset
+			i += 1
+	# resolve best vote spread
 	if len(delegates):
-		return opt.solve(vote, delegates, step=delta).__repr__()
+		return json.dumps(OrderedDict(sorted(
+			[(k,v) for k,v in opt.solve(vote, delegates, step=delta).items() if v > 0],
+			key=lambda e:e[-1],
+			reverse=True
+		)), indent=2)
 	else:
 		return "No public pool available !"
 

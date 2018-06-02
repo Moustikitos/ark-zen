@@ -39,6 +39,13 @@ your home directory.
 
 or git clone https://github.com/Moustikitos/zen.git into your home directory
 
+then install dependencies
+
+```bash
+cd zen
+pip install -r requirement.txt
+```
+
 ## Use
 
 `python /usr/local/bin/zen-cmd.py [command] [options]`
