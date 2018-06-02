@@ -11,6 +11,7 @@ import requests
 import datetime
 import subprocess
 
+
 __PY3__ = True if sys.version_info[0] >= 3 else False
 ROOT = os.path.abspath(os.path.dirname(__file__))
 NAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -118,12 +119,12 @@ def setup():
 
 	if account.get("secondPublicKey", False):
 		seed = tbw_config.get("#2", "00")
-		secondPublicKey = crypto.getKeys(seed=seed)["publicKey"]
+		secondPublicKey = crypto.getKeys(secret,seed=seed)["publicKey"]
 		while secondPublicKey != account["secondPublicKey"]:
 			secret = getpass.getpass("> enter your second secret: ")
 			seed = crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
-			secondPublicKey = crypto.getKeys(seed=seed)
-		tbw_config["#2"] = hexlify(seed)
+			secondPublicKey = crypto.getKeys(secret, seed=seed)["publicKey"]
+		tbw_config["#2"] = crypto.hexlify(seed)
 	else:
 		tbw_config["#2"] = None
 
