@@ -153,15 +153,19 @@ def optimize(blockchain, vote, usernames, offsets, delta):
 
 
 @app.route("/dashboard/share/<string:address>/<int:period>")
-def computeShare(address, period):
+def compute_share(address, period):
 	username = PARAM["username"]
+
+	excludes = 0
+	for addr in PARAM["excludes"]:
+		excludes += float(requests.get(LOCAL_API+"accounts/getBalance?address="+addr).json().get("balance", 0))/100000000
 
 	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
 	balance = float(requests.get(LOCAL_API+"accounts/getBalance?address="+address).json().get("balance", 0))/100000000
 	vote = float(requests.get(LOCAL_API+"delegates/get?username="+username).json().get("delegate", {}).get("vote", 0))/100000000
 
 	forged = (period * 3600 * 24) / (CONFIG['blocktime'] * CONFIG['delegates']) * reward
-	weight = balance/max(1, vote+balance) # avoid ZeroDivisioError :)
+	weight = balance/max(1, vote+balance-excludes) # avoid ZeroDivisioError :)
 
 	return flask.render_template(
 		"bs-dashboard.html",
@@ -212,7 +216,7 @@ def login():
 			return flask.redirect(flask.url_for("render"))
 	# if classic access render login page 
 	else:
-		return flask.render_template("login.html")
+		return flask.render_template("bs-login.html")
 
 
 @app.route("/logout")
