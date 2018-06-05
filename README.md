@@ -174,6 +174,10 @@ You can also start your node on server boot adding this line :
 
 `@reboot /usr/bin/python /full/path/to/zen-cmd.py restart >> /home/username/chk.log 2>&1`
 
+
+### NGINX installation
+Follow this link : https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-16-04
+
 ## Security
 
 The web user interface is contained by `daemon` into the `zen/app` folder so

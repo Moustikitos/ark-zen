@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance to serve zenapp
+After=network.target
+
+[Service]
+User=dark
+Group=www-data
+WorkingDirectory=/home/dark/zen/zen/app
+Environment="PATH=/home/dark/zen"
+ExecStart=/usr/bin/gunicorn --workers 3 --bind unix:zenapp.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
+
