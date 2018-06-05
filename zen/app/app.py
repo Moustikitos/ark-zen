@@ -2,19 +2,23 @@
 import os
 import io
 import re
+import json
 import flask
 import sqlite3
+import datetime
 import threading
-import babel.dates
 import logging
 import requests
 
 from flask_bootstrap import Bootstrap
-
+from collections import OrderedDict 
 from zen import tfa, crypto
 from zen.cmn import loadConfig, loadJson
 from zen.chk import getBestSeed, getNextForgeRound
 from zen.tbw import loadTBW, spread, loadParam
+from zen.app import opt
+
+ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # create the application instance 
 app = flask.Flask(__name__) 
@@ -39,6 +43,7 @@ app.config.update(
 CONFIG = loadConfig()
 PARAM = loadParam()
 LOCAL_API = "http://localhost:%(port)s/api/" % CONFIG
+# LOCAL_API = "http://167.114.29.52:%(port)s/api/" % CONFIG
 
 
 # show index
@@ -108,16 +113,59 @@ def get_logs():
     )
 
 
+@app.route("/optimize/<string:blockchain>/<int:vote>/<string:usernames>/<string:offsets>/<int:delta>")
+def optimize(blockchain, vote, usernames, offsets, delta):
+	delta = max(delta, 10)
+	pool = loadJson(os.path.join(ROOT, "pool.%s.json" % blockchain))
+	if not len(pool):
+		return "No public pool defined on %s blockchain !" % blockchain
+	# configure delegate behaviour according to blockchain parameters
+	opt.Delegate.configure(
+		blocktime=CONFIG["blocktime"],
+		delegates=CONFIG["delegates"],
+		reward=float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
+	)
+	# separate usernames
+	delegates = [
+		d for d in requests.get(LOCAL_API+"delegates").json().get("delegates", []) \
+		if d["username"] in (pool.keys() if usernames == "all" else usernames.split(","))
+	]
+	# create delegate object for the solver
+	delegates = [
+		opt.Delegate(d["username"], pool[d["username"]]["share"], float(d["vote"])/100000000, float(pool[d["username"]]["exclude"])/100000000) \
+		for d in  delegates if d["username"] in pool
+	]
+	# remove curent vote given in username order in offsets
+	if  usernames != "all":
+		i = 0
+		for offset in [int(s) for s in offsets.split(",")]:
+			delegates[i].vote -= offset
+			i += 1
+	# resolve best vote spread
+	if len(delegates):
+		return json.dumps(OrderedDict(sorted(
+			[(k,v) for k,v in opt.solve(vote, delegates, step=delta).items() if v > 0],
+			key=lambda e:e[-1],
+			reverse=True
+		)), indent=2)
+	else:
+		return "No public pool available !"
+
+
 @app.route("/dashboard/share/<string:address>/<int:period>")
-def computeShare(address, period):
+def compute_share(address, period):
 	username = PARAM["username"]
+
+	excludes = 0
+	for addr in PARAM["excludes"]:
+		excludes += float(requests.get(LOCAL_API+"accounts/getBalance?address="+addr).json().get("balance", 0))/100000000
 
 	reward = float(requests.get(LOCAL_API+"blocks/getReward").json().get("reward", 0))/100000000
 	balance = float(requests.get(LOCAL_API+"accounts/getBalance?address="+address).json().get("balance", 0))/100000000
 	vote = float(requests.get(LOCAL_API+"delegates/get?username="+username).json().get("delegate", {}).get("vote", 0))/100000000
 
 	forged = (period * 3600 * 24) / (CONFIG['blocktime'] * CONFIG['delegates']) * reward
-	weight = balance/max(1, vote+balance) # avoid ZeroDivisioError :)
+	weight = balance/max(1, vote+balance-excludes) # avoid ZeroDivisioError :)
 
 	return flask.render_template(
 		"bs-dashboard.html",
@@ -168,7 +216,7 @@ def login():
 			return flask.redirect(flask.url_for("render"))
 	# if classic access render login page 
 	else:
-		return flask.render_template("login.html")
+		return flask.render_template("bs-login.html")
 
 
 @app.route("/logout")
@@ -200,17 +248,16 @@ def dated_url_for(endpoint, **values):
 	return flask.url_for(endpoint, **values)
 
 
-def format_datetime(value, format='medium'):
-	if format == 'full':
-		format="EEEE, d. MMMM y 'at' HH:mm"
-	elif format == 'minimal':
-		format="EE dd.MM.y"
-	elif format == 'medium':
-		format="EE dd.MM.y HH:mm"
-	#the [:-6] permits to delete the +XXYY at the end of the timestamp
-	datetoparse=babel.dates.datetime.strptime(value[:-6],"%Y-%m-%d %H:%M:%S.%f")
-
-	return babel.dates.format_datetime(datetoparse, format)
+def format_datetime(value, size='medium'):
+	if size == 'full':
+		fmt = "%A, %-d. %B %Y at %H:%M"
+	elif size == 'minimal':
+		fmt = "%a, %d.%m.%y"
+	elif size == 'medium':
+		fmt = "%a, %d.%m.%y %H:%M"
+	#the [:-6] permits to delete the +XX:YY at the end of the timestamp
+	tuple_date = datetime.datetime.strptime(value[:-6], "%Y-%m-%d %H:%M:%S.%f")
+	return datetime.datetime.strftime(tuple_date, fmt)
 app.jinja_env.filters['datetime'] = format_datetime
 
 
@@ -239,14 +286,14 @@ def search(table="transaction", **kw):
 
 
 def getFilesFromDirectory(dirname, ext, method=None):
-	files = {}
+	files_data = {}
 	base = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 	for root, dirs, files in os.walk(os.path.join(base, dirname)):
 		for filename in files:
-			if os.path.splitext(filename)[-1].lower() == ext:
+			if filename.endswith(ext):
 				if method == 'json':
-					files[os.path.basename(filename)] = loadJson(os.path.join(root, filename))
+					files_data[filename.replace(ext, "")] = loadJson(os.path.join(root, filename))
 				else: 
 					with io.open(os.path.join(root, filename), 'r') as in_:
-						files[os.path.basename(filename)] = in_.read()
-	return files
+						files_data[filename.replace(ext, "")] = in_.read()
+	return files_data

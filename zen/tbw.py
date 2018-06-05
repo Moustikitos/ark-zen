@@ -75,10 +75,10 @@ def spread():
 		cowards = set(tbw.keys()) - set(all_addresses)
 		if len(cowards):
 			logMsg("down-voted by : %s" % ", ".join(cowards), stdout=out)
-			reward_back = int(sum([tbw.get(a, 0.) for a in cowards]))*100000000
-			forged = loadForge()
-			forged["rewards"] = "%r" % (int(forged["rewards"])-reward_back)
-			dumpForge(forged)
+			# reward_back = int(sum([tbw.get(a, 0.) for a in cowards]))*100000000
+			# forged = loadForge()
+			# forged["rewards"] = "%r" % (int(forged["rewards"])-reward_back)
+			# dumpForge(forged)
 		newcomers = set(all_addresses) - set(tbw.keys())
 		if len(newcomers):
 			logMsg("up-voted by : %s" % ", ".join(newcomers), stdout=out)

@@ -1,0 +1,78 @@
+{
+    "cryptoguyinza": {
+        "share": 0.95,
+        "exclude": 0
+    },
+    "cos": {
+        "share": 0.97,
+        "exclude": 0
+    },
+    "persona.lounge": {
+        "share": 0.92,
+        "exclude": 0
+    },
+    "dr10": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "arkoar.group": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "kinaadman": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "jamiec79": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "geops": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "supercool": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "toons": {
+        "share": 0.85,
+        "exclude": 60000
+    },
+    "ravelou": {
+        "share": 0.95,
+        "exclude": 0
+    },
+    "goose": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "thefoundry": {
+        "share": 0.85,
+        "exclude": 0
+    },
+    "arkane": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "arkmoon": {
+        "share": 0.85,
+        "exclude": 0
+    },
+    "arkland": {
+        "share": 0.85,
+        "exclude": 0
+    },
+    "thegoldenhorde": {
+        "share": 0.90,
+        "exclude": 0
+    },
+    "dutchdelegate": {
+        "share": 0.85,
+        "exclude": 0
+    },
+    "pieface": {
+        "share": 0.90,
+        "exclude": 0
+    }
+}
