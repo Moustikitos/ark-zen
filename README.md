@@ -18,8 +18,6 @@ nodes and `True Block Weight` utilities for pool management.
     * [X] `daemon` : `sudo apt-get install daemon`
     * [X] `python` : `sudo apt-get install python`
     * [X] `pip` : `sudo apt-get install python-pip`
-    * [X] `setuptools` : `sudo pip install setuptools`
-    * [X] `wheel` : `sudo pip install wheel`
 
   - Python related (automatically managed by `pip`)
     * [X] `pytz`
@@ -30,14 +28,17 @@ nodes and `True Block Weight` utilities for pool management.
     * [X] `flask`
     * [X] `flask_bootstrap`
 
+### using `pip`
+
 `sudo pip install https://github.com/Moustikitos/zen/archive/master.zip`
 
-or
+### using zip archive or `git`
 
-Download and extract https://github.com/Moustikitos/zen/archive/master.zip into
-your home directory.
+Download and extract https://github.com/Moustikitos/zen/archive/master.zip 
 
-or git clone https://github.com/Moustikitos/zen.git into your home directory
+or 
+
+`git clone https://github.com/Moustikitos/zen.git`
 
 then install dependencies
 
@@ -61,7 +62,7 @@ or
 ### Configuration commands
 
   - `setup`
-  Initialize `config.json` and `tbw.json` according to node installed on
+  Initialize `cmn.json` and `tbw.json` according to node installed on
   server. Note that if sedond passphrase is asked, it is not stored "as is" in
   the configuration files. Second passphrase is needed for the true block weight
   payroll command `pay`.
@@ -140,30 +141,20 @@ Then create your tasks (here is just a proposition) :
 
 `crontab -e`
 
-Tell crontab where to find `forever` (type `whitch forever` and copy-paste)
-
-`PATH=/usr/bin:/bin:/usr/bin/env:/full/path/to/forever`
-
-Launch `check` every minute and log messages into `/home/username/chk.log`
-
-` */1 * * * * * /usr/bin/python /full/path/to/zen-cmd.py check >> /home/username/chk.log 2>&1`
-
-Launch `spread` every 5 minutes and log messages into `/home/<username>/tbw.log`
-
-` */5 * * * * * /usr/bin/python /full/path/to/zen-cmd.py spread >> /home/username/tbw.log 2>&1`
-
-Launch `extract` every sunday 19h00 and log messages into `/home/username/tbw.log`
-
-` 0 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log 2>&1`
-
-Launch `pay` every sunday 19h05 and log messages into `/home/username/tbw.log`
-
-` 5 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log 2>&1`
-
-Start web user interface on server boot and log messages into `/home/username/flask.log`
-
-`@reboot /usr/bin/python /full/path/to/zen-cmd.py start >> /home/username/flask.log 2>&1`
-
+```bash
+# Tell crontab where to find `forever` (type `whitch forever` and copy-paste)
+PATH=/usr/bin:/bin:/usr/bin/env:/full/path/to/forever
+# Launch `check` every minute and log messages into `/home/username/chk.log`
+ */1 * * * * * /usr/bin/python /full/path/to/zen-cmd.py check >> /home/username/chk.log 2>&1
+# Launch `spread` every 5 minutes and log messages into `/home/<username>/tbw.log`
+ */5 * * * * * /usr/bin/python /full/path/to/zen-cmd.py spread >> /home/username/tbw.log 2>&1
+# Launch `extract` every sunday 19h00 and log messages into `/home/username/tbw.log`
+ 0 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py extract >> /home/username/tbw.log 2>&1
+# Launch `pay` every sunday 19h05 and log messages into `/home/username/tbw.log`
+ 5 19 * * * 0 /usr/bin/python /full/path/to/zen-cmd.py pay >> /home/username/tbw.log 2>&1
+# Start web user interface on server boot and log messages into `/home/username/flask.log`
+@reboot /usr/bin/python /full/path/to/zen-cmd.py start >> /home/username/flask.log 2>&1
+```
 Close and apply `crontab` tasks (`Ctrl+X`-`Y`-`Enter`)
 
 The magic here is if your server restarts, it will launch `check` every minute
