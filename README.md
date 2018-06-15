@@ -38,7 +38,7 @@ Download and extract https://github.com/Moustikitos/zen/archive/zen-v1.zip
 
 or 
 
-`git clone-b zen-v1 https://github.com/Moustikitos/zen.git`
+`git clone -b zen-v1 https://github.com/Moustikitos/zen.git`
 
 then install dependencies
 
