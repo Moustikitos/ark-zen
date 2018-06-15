@@ -147,6 +147,7 @@ $RECYCLE.BIN/
 
 # misceleanous
 .vscode/
+v1/
 zen/.sign
 *.bat
 *.7z
