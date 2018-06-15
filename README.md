@@ -30,15 +30,15 @@ nodes and `True Block Weight` utilities for pool management.
 
 ### using `pip`
 
-`sudo pip install https://github.com/Moustikitos/zen/archive/zen-v1.zip`
+`sudo pip install https://github.com/Moustikitos/zen/archive/v1.zip`
 
 ### using zip archive or `git`
 
-Download and extract https://github.com/Moustikitos/zen/archive/zen-v1.zip 
+Download and extract https://github.com/Moustikitos/zen/archive/v1.zip 
 
 or 
 
-`git clone -b zen-v1 https://github.com/Moustikitos/zen.git`
+`git clone -b v1 https://github.com/Moustikitos/zen.git`
 
 then install dependencies
 
