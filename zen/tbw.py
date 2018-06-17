@@ -110,3 +110,9 @@ def extract():
 
 def forgery():
 	logMsg("Distributed token : %.0f" % sum(loadTBW().values()))
+
+
+def adjust(value):
+    data = loadTBW()
+    total = sum(data.values())
+    dumpTBW(OrderedDict(sorted([[a, v/total*value] for a,v in data.items()], key=lambda e:e[-1], reverse=True)))
