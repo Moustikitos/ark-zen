@@ -1,5 +1,8 @@
 # -*- coding:utf-8 -*-
 
+from dposlib import rest
+rest.use("dark")
+
 import os
 import io
 import sys
@@ -13,19 +16,17 @@ input = raw_input if not PY3 else input
 
 import requests
 
-
 # configure pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))
-DATA = os.path.abspath(os.path.join(ROOT, "data"))
-JSON = os.path.abspath(os.path.join(ROOT, "json"))
-CFG = os.path.abspath(os.path.join(ROOT, "cfg"))
-LOG = os.path.abspath(os.path.join(ROOT, "log"))
+DATA = os.path.abspath(os.path.join(ROOT, ".data"))
+JSON = os.path.abspath(os.path.join(ROOT, ".json"))
+LOG = os.path.abspath(os.path.join(ROOT, ".log"))
 
 
 class Cache(dict):
 	"A cache object to store temporally values"
 
-	def __init__(self, delay=60):
+	def __init__(self, delay=300):
 		object.__setattr__(self, "delay", delay)
 		object.__setattr__(self, "expires", {})
 
@@ -42,29 +43,6 @@ class Cache(dict):
 			raise AttributeError("%s value expired" % attr)
 
 CACHE = Cache()
-
-
-class JsonDict(dict):
-
-	def __init__(self, name, folder=None):
-		self.__name = name
-		self.__folder = folder
-		dict.__init__(self, loadJson(self.__name, self.__folder))
-
-	def __setitem__(self, *args, **kwargs):
-		dict.__setitem__(self, *args, **kwargs)
-		self.flush()
-		
-	def __delitem__(self, *args, **kwargs):
-		dict.__delitem__(self, *args, **kwargs)
-		self.flush()
-
-	def pop(self, *args, **kwargs):
-		return dict.pop(self,  *args, **kwargs)
-		self.flush()
-
-	def flush(self):
-		dumpJson(self, self.__name, self.__folder)
 
 
 def getPeer():
@@ -98,17 +76,6 @@ def getPeer():
 				pass
 		CACHE.peer = peer if peer else "http://localhost:%(port)d" % elem
 		return CACHE.peer
-
-
-def restGet(*args, **kwargs):
-	path = "/".join([getPeer()]+list(args))
-	return requests.get(path, params=kwargs, verify=True).json()
-
-
-def restPost(*args, **kwargs):
-	pass
-	# path = "/".join([getPeer()]+list(args))
-	# return requests.post(path, params=kwargs, verify=True).json()
 
 
 def loadJson(name, folder=None):
@@ -178,7 +145,10 @@ def init():
 		try: node_folder = os.path.abspath(input("> enter node folder: "))
 		except KeyboardInterrupt: return
 	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
-	blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
+	try:
+		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
+	except IndexError:
+		raise Exception("configuration folder not found")
 
 	if not blockchain:
 		logMsg("node configuration skipped")

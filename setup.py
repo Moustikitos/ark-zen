@@ -24,11 +24,11 @@ kw = {
 	"description": "Failover tool for ARK delegate",
 	"long_description": LONG_DESCRIPTION,
 	"packages": ["zen", "zen.app"],
-	"install_requires": ["requests", "ecdsa", "pytz", "babel", "base58", "flask", "flask_bootstrap"],
-	"scripts": [
-		"bin/zen-cmd.py",
-		"bin/tfa-tk.py"
-	],
+	"install_requires": ["dposlib", "flask", "flask_bootstrap"],
+	# "scripts": [
+	# 	"bin/zen-cmd.py",
+	# 	"bin/tfa-tk.py"
+	# ],
 	"license": "Copyright 2016-2017 Toons, Copyright 2017 ARK, MIT licence",
 	"classifiers": [
 		"Development Status :: 2 - Pre-Alpha",

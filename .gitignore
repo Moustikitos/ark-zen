@@ -149,6 +149,7 @@ $RECYCLE.BIN/
 .vscode/
 v1/
 zen/.sign
+zen/.json
 *.bat
 *.7z
 *.forge
@@ -158,7 +159,7 @@ zen/.sign
 *.sublime-workspace
 *.sublime-project
 *.db
-archive/
+test/
 ./zen-cmd.py
 sitecustomize.py
 cmn.json
