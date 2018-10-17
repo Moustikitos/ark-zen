@@ -8,6 +8,7 @@ import io
 import sys
 import json
 import time
+import shutil
 import datetime
 
 # register python familly
@@ -16,66 +17,19 @@ input = raw_input if not PY3 else input
 
 import requests
 
-# configure pathes
+# configuration pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))
-DATA = os.path.abspath(os.path.join(ROOT, ".data"))
-JSON = os.path.abspath(os.path.join(ROOT, ".json"))
-LOG = os.path.abspath(os.path.join(ROOT, ".log"))
+DATA = os.path.abspath(os.path.join(ROOT, "app", ".data"))
+JSON = os.path.abspath(os.path.join(ROOT, "app", ".json"))
+LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
+# peers
+WEBHOOK_PEER = None
+API_PEER = None
 
 
-class Cache(dict):
-	"A cache object to store temporally values"
-
-	def __init__(self, delay=300):
-		object.__setattr__(self, "delay", delay)
-		object.__setattr__(self, "expires", {})
-
-	def __setattr__(self, attr, value):
-		object.__getattribute__(self, "expires")[attr] = time.time() + object.__getattribute__(self, "delay")
-		self[attr] = value
-
-	def __getattr__(self, attr):
-		if time.time() < object.__getattribute__(self, "expires").get(attr, 0):
-			return self[attr]
-		else:
-			object.__getattribute__(self, "expires").pop(attr, None)
-			self.pop(attr, None)
-			raise AttributeError("%s value expired" % attr)
-
-CACHE = Cache()
-
-
-def getPeer():
-	"""
-	Try to get a valid peer from cache. If no peer found, compute one and from
-	the highest height and store it.
-	"""
-
-	try:
-		# try to get a peer from cache
-		return CACHE.peer
-	except AttributeError:
-		# load the root config file
-		root = loadJson("root.json")
-		# exit if no root config file
-		if root == {}:
-			logMsg("zen package is not configured")
-			raise Exception("zen package is not configured")
-		# load peers from env folder
-		peers = loadJson("peers.json", root["env"])
-		height, peer = 0, None
-		# get the best peer available
-		for elem in peers["list"]:
-			tmp = "http://%(ip)s:%(port)d" % elem
-			try:
-				h = requests.get("/".join([tmp,"api","blocks","getHeight"]), verify=True, timeout=5).json().get("height", 0)
-				if h > height:
-					height = h
-					peer = tmp
-			except requests.exceptions.ConnectionError:
-				pass
-		CACHE.peer = peer if peer else "http://localhost:%(port)d" % elem
-		return CACHE.peer
+def getPublicKeyFromUsername(username):
+	req = dposlib.rest.GET.api.v2.delegates.get(kwargs["username"], peer=API_PEER)
+	req.get("data", {}).get("publicKey", False)
 
 
 def loadJson(name, folder=None):
@@ -93,6 +47,26 @@ def dumpJson(data, name, folder=None):
 	except OSError: pass
 	with io.open(filename, "w" if PY3 else "wb") as out:
 		json.dump(data, out, indent=4)
+
+
+def loadEnv(pathname):
+	with io.open(pathname, "r") as environ:
+		lines = [l.strip() for l in environ.read().split("\n")]
+	result = {}
+	for line in [l for l in lines if l != ""]:
+		key,value = [l.strip() for l in line.split("=")]
+		try:
+			result[key] = int(value)
+		except:
+			result[key] = value
+	return result
+
+
+def dumpEnv(env, pathname):
+	shutil.copy(pathname, pathname+".bak")
+	with io.open(pathname, "w") as environ:
+		for key,value in sorted([(k,v) for k,v in env.items()], key=lambda e:e[0]):
+			environ.write("%s=%s\n" % (key, value))
 
 
 def logMsg(msg, logname=None):
@@ -137,6 +111,7 @@ def chooseItem(msg, *elem):
 
 
 def init():
+	global API_PEER, WEBHOOK_PEER
 	root = loadJson("root.json")
 
 	# first ask network folder
@@ -163,7 +138,17 @@ def init():
 
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s"%blockchain, "config"))
 	root["config"] = os.path.join(networks_folder, "%s.json"%network)
+	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
-	dumpJson(root, "root.json")
+	envfile = os.path.expanduser(os.path.join("~", ".%s"%blockchain, ".env"))
+	env = loadEnv(envfile)
+	env["ARK_WEBHOOKS_API_ENABLED"] = "true"
+	env["ARK_WEBHOOKS_ENABLED"] = "true"
+	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
+	env["ARK_WEBHOOKS_PORT"] = "4004"
+	API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
+	dumpEnv(env, envfile)
+	logMsg("environement configuration saved in %s" % envfile)
 

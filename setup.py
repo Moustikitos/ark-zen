@@ -13,7 +13,7 @@ with open("VERSION") as f1, open("README.md") as f2:
 kw = {
 	"version": VERSION,
 	"name": "Zen",
-	"keywords": ["blockchain", "ark-v2"],
+	"keywords": ["tbw", "ark-v2"],
 	"author": "Toons",
 	"author_email": "moustikitos@gmail.com",
 	"maintainer": "Toons",
@@ -21,15 +21,11 @@ kw = {
 	"url": "https://github.com/Moustikitos/zen",
 	"download_url": "https://github.com/Moustikitos/zen/archive/master.zip",
 	"include_package_data": True,
-	"description": "Failover tool for ARK delegate",
+	"description": "Tool for ARK delegate",
 	"long_description": LONG_DESCRIPTION,
 	"packages": ["zen", "zen.app"],
 	"install_requires": ["dposlib", "flask", "flask_bootstrap"],
-	# "scripts": [
-	# 	"bin/zen-cmd.py",
-	# 	"bin/tfa-tk.py"
-	# ],
-	"license": "Copyright 2016-2017 Toons, Copyright 2017 ARK, MIT licence",
+	"license": "Copyright 2016-2018 Toons",
 	"classifiers": [
 		"Development Status :: 2 - Pre-Alpha",
 		"Environment :: Console",

@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 
 import os
+import json
 import flask
 
 from zen import ROOT, DATA, LOG
@@ -24,39 +25,57 @@ app.config.update(
 	SESSION_REFRESH_EACH_REQUEST = True
 )
 
+# webhook event list
+# https://github.com/ArkEcosystem/core/blob/4b889bd51f49edd43d103245ad4a1c137bebe785/packages/core-blockchain/lib/blockchain.js#L512-L531
+
+
 # compute true block weight
 @app.route("/block/forged", methods=["POST"])
 def spread():
 
-	tbw_data = loadJson("tbw.json")
+	if flask.request.method == "POST":
 
-	data = flask.requests.data
-	webhook = tbw_data["webhook"][data.generatorPublicKey]
-	if not webhook["token"].endswith(request.headers.autorization):
-		return
+		block = json.loads(flask.request.data).get("data", False)
+		if not block:
+			raise Exception("Error: can not read data")
+		else:
+			generatorPublicKey = block["generatorPublicKey"]
 
-	forger = tbw_data["forgers"][data.generatorPublicKey]
-	forgery = loadJson("%s.forgery" % forger["pubkey"], DATA)
+		# load previous forged block and save last forged 
+		filename = "%s.last.block" % generatorPublicKey
+		folder = os.path.join(DATA, generatorPublicKey)
+		last_block = loadJson(filename, folder=folder)
+		dumpJson(block, filename, folder=folder)
+		if last_block.get("id", None) == block["id"]:
+			raise Exception("No new block created")
 
-	rewards = tbw.distributeRewards(
-		data.rewards,
-		data.generatorPublicKey,
-		minvote=forger.get("minvote", 0),
-		excludes=forger.get("excludes", [])
-	)
+		# check autorization and exit if bad one
+		tbw_data = loadJson("tbw.json")
+		webhook = loadJson("%s.webhook" % generatorPublicKey, folder=DATA)
+		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
+			raise Exception("Not autorized here")
 
-	# logname = os.path.join(LOG, "%s.log" % forger["pubkey"])
+		# find forger information using generatorPublicKey
+		forger = loadJson("%s.forger" % generatorPublicKey, folder=DATA)
+		forgery = loadJson("%s.forgery" % generatorPublicKey, folder=folder)
 
-	# voters = list(rewards.keys())
-	# cowards = set(forgery.keys()) - set(voters)
-	# if len(cowards):
-	# 	logMsg("down-voted by : %s" % ", ".join(cowards), logname=logname)
+		# compute the reward distribution
+		rewards = tbw.distributeRewards(
+			float(block["reward"])/100000000.,
+			generatorPublicKey,
+			minvote=forger.get("minvote", 0),
+			excludes=forger.get("excludes", [])
+		)
 
-	# newcomers = set(voters) - set(forgery.keys())
-	# if len(newcomers):
-	# 	logMsg("up-voted by : %s" % ", ".join(newcomers), logname=logname)
+		# dump true block weight data
+		_rwds = forgery.get("rewards", {})
+		dumpJson(
+			{
+				"fees": forgery.get("fees", 0.) + float(block["totalFee"])/100000000.,
+				"rewards": OrderedDict(sorted([[a, _rwds.get(a, 0.)+rewards[a]] for a in rewards.keys()], key=lambda e:e[-1], reverse=True))
+			},
+			"%s.forgery" % generatorPublicKey,
+			folder=folder
+		)
 
-	dumpJson(
-		OrderedDict(sorted([[a, forgery.get(a, 0.)+rewards[a]] for a in rewards.keys()], key=lambda e:e[-1], reverse=True)),
-		"%s.forgery" % forger["pubkey"], DATA
-	)
+	return ""

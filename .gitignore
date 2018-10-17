@@ -147,9 +147,8 @@ $RECYCLE.BIN/
 
 # misceleanous
 .vscode/
+test/
 v1/
-zen/.sign
-zen/.json
 *.bat
 *.7z
 *.forge
@@ -159,9 +158,5 @@ zen/.json
 *.sublime-workspace
 *.sublime-project
 *.db
-test/
-./zen-cmd.py
-sitecustomize.py
-cmn.json
-tbw.json
-chk.status
+*.forger
+*.webhook
