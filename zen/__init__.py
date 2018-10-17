@@ -25,7 +25,8 @@ LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 # peers
 WEBHOOK_PEER = None
 API_PEER = None
-
+# cmd line options
+OPTIONS = None
 
 def getPublicKeyFromUsername(username):
 	req = dposlib.rest.GET.api.v2.delegates.get(kwargs["username"], peer=API_PEER)

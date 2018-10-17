@@ -7,9 +7,7 @@ import dposlib
 import getpass
 
 import zen
-import requests
-
-from zen import loadJson, dumpJson, loadEnv, logMsg, getPublicKeyFromUsername
+from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
 
 
 def init(**kwargs):
@@ -20,9 +18,9 @@ def init(**kwargs):
 		pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
 		for pkey in pkeys:
-			req = dposlib.rest.GET.api.v2.delegates(pkey, peer=zen.API_PEER)
-			account = req.get("data", {})
-
+			req = dposlib.rest.GET.api.v2.delegates(pkey, peer=zen.API_PEER).get("data", {})
+			account = dposlib.rest.GET.api.v2.wallets(pkey, peer=zen.API_PEER).get("data", {})
+			account.update(req)
 			if account != {}:
 				pkey2 = askSecondSecret(account)
 				config = loadJson("%s.forger" % pkey, zen.DATA)
