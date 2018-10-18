@@ -2,6 +2,7 @@
 
 from dposlib import rest
 rest.use("dark")
+rest.core.stop()
 
 import os
 import io
@@ -19,12 +20,14 @@ import requests
 
 # configuration pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))
+JSON = os.path.abspath(os.path.join(ROOT, ".json"))
 DATA = os.path.abspath(os.path.join(ROOT, "app", ".data"))
-JSON = os.path.abspath(os.path.join(ROOT, "app", ".json"))
 LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
+
 # peers
 WEBHOOK_PEER = None
 API_PEER = None
+
 # cmd line options
 OPTIONS = None
 

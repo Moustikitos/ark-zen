@@ -3,7 +3,8 @@ import os
 import sys
 import optparse
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
 import zen
 import zen.tbw
 
@@ -14,7 +15,7 @@ def initialize():
 
 
 def configure(username, **parameters):
-	zen.tbw.init(**parameters)
+	zen.tbw.init(username=username, **parameters)
 
 
 def launch():

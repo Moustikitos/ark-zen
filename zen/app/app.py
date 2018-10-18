@@ -6,7 +6,7 @@ import flask
 
 from collections import OrderedDict
 
-from zen import ROOT, DATA, LOG
+import zen
 from zen import loadJson, dumpJson, tbw
 
 
@@ -45,7 +45,7 @@ def spread():
 
 		# load previous forged block and save last forged 
 		filename = "%s.last.block" % generatorPublicKey
-		folder = os.path.join(DATA, generatorPublicKey)
+		folder = os.path.join(zen.DATA, generatorPublicKey)
 		last_block = loadJson(filename, folder=folder)
 		dumpJson(block, filename, folder=folder)
 		if last_block.get("id", None) == block["id"]:
@@ -53,12 +53,12 @@ def spread():
 
 		# check autorization and exit if bad one
 		tbw_data = loadJson("tbw.json")
-		webhook = loadJson("%s.webhook" % generatorPublicKey, folder=DATA)
+		webhook = loadJson("%s.webhook" % generatorPublicKey, folder=zen.DATA)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
 			raise Exception("Not autorized here")
 
 		# find forger information using generatorPublicKey
-		forger = loadJson("%s.forger" % generatorPublicKey, folder=DATA)
+		forger = loadJson("%s.forger" % generatorPublicKey, folder=zen.DATA)
 		forgery = loadJson("%s.forgery" % generatorPublicKey, folder=folder)
 
 		# compute the reward distribution
