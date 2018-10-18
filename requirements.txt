@@ -1,4 +1,3 @@
-setuptools
 wheel
 dposlib
 flask

@@ -28,6 +28,7 @@ API_PEER = None
 # cmd line options
 OPTIONS = None
 
+
 def getPublicKeyFromUsername(username):
 	req = dposlib.rest.GET.api.v2.delegates.get(kwargs["username"], peer=API_PEER)
 	req.get("data", {}).get("publicKey", False)
@@ -137,8 +138,8 @@ def init():
 		logMsg("node configuration skipped")
 		return
 
-	root["env"] = os.path.expanduser(os.path.join("~", ".%s"%blockchain, "config"))
-	root["config"] = os.path.join(networks_folder, "%s.json"%network)
+	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
+	root["config"] = os.path.join(networks_folder, "%s.json" % network)
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
@@ -152,4 +153,3 @@ def init():
 	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	dumpEnv(env, envfile)
 	logMsg("environement configuration saved in %s" % envfile)
-

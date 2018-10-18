@@ -7,19 +7,25 @@ import dposlib
 import getpass
 
 import zen
-from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
+from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
 
 
 def init(**kwargs):
 
+	if not zen.WEBHOOK_PEER:
+		root = loadJson("root.json")
+		env = loadEnv(os.path.join(root["env"], ".env"))
+		zen.WEBHOOK_PEER = "http://124.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
+		zen.API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+
 	if not len(kwargs):
 		root = loadJson("root.json")
-		delegates = loadJson("delegates.json", root["env"])
+		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
 		pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
 		for pkey in pkeys:
-			req = dposlib.rest.GET.api.v2.delegates(pkey, peer=zen.API_PEER).get("data", {})
-			account = dposlib.rest.GET.api.v2.wallets(pkey, peer=zen.API_PEER).get("data", {})
+			req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
+			account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
 			account.update(req)
 			if account != {}:
 				pkey2 = askSecondSecret(account)
@@ -28,16 +34,19 @@ def init(**kwargs):
 				dumpJson(config, "%s.forger" % pkey, zen.DATA)
 				logMsg("%s delegate set" % account["username"])
 
-				webhook = dposlib.rest.POST.api.webhooks(
-					peer=zen.WEBHOOK_PEER,
-					event="block.forged",
-					target="http://209.250.233.136:5000/block/forged",
-					conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
-				).get("data", False)
-
-				if webhook:
-					dumpJson(webhook, "%s.webhook" % pkey, zen.DATA)
-					logMsg("%s webhook set" % account["username"])
+				webhook = loadJson("%s.webhook" % pkey, zen.DATA)
+				if not webhook.get("token", False):
+					webhook = dposlib.rest.POST.api.webhooks(
+						peer=zen.WEBHOOK_PEER,
+						event="block.forged",
+						target="http://127.0.0.1:5000/block/forged",
+						conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
+					).get("data", False)
+					if webhook:
+						dumpJson(webhook, "%s.webhook" % pkey, zen.DATA)
+						logMsg("%s webhook set" % account["username"])
+				else:
+					logMsg("webhook already set for delegate %s" % account["username"])	
 			else:
 				logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
 
@@ -72,7 +81,7 @@ def askSecondSecret(account):
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
-	voters = dposlib.rest.GET.api.v2.delegates(pkey, "voters", peer=zen.API_PEER).get("data", [])
+	voters = dposlib.rest.GET.api.v2.delegates(pkey, "voters").get("data", [])
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes)
 	total_balance = sum(voters.values())
 	pairs = [[a,b/total_balance*rewards] for a,b in voters.items() if a not in excludes and b > minvote]

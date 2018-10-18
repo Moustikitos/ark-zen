@@ -14,6 +14,7 @@ nodes and `True Block Weight` utilities for pool management.
   - OS related
     * [X] `daemon` : `sudo apt-get install daemon`
     * [X] `python` : `sudo apt-get install python`
+    * [X] `setuptools` : `sudo apt-get install python-setuptools`
     * [X] `pip` : `sudo apt-get install python-pip`
 
   - Python related (automatically managed by `pip`)
@@ -26,7 +27,7 @@ nodes and `True Block Weight` utilities for pool management.
 
 ### using `pip`
 
-`sudo pip install https://github.com/Moustikitos/zen/archive/master.zip`
+`pip install https://github.com/Moustikitos/zen/archive/master.zip`
 
 ### using zip archive or `git`
 
