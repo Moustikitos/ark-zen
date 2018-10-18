@@ -1,8 +1,10 @@
 # -*- coding:utf-8 -*-
 
+import dposlib
 from dposlib import rest
+
 rest.use("dark")
-rest.core.stop()
+dposlib.core.stop()
 
 import os
 import io
@@ -33,8 +35,8 @@ OPTIONS = None
 
 
 def getPublicKeyFromUsername(username):
-	req = dposlib.rest.GET.api.v2.delegates.get(kwargs["username"], peer=API_PEER)
-	req.get("data", {}).get("publicKey", False)
+	req = dposlib.rest.GET.api.v2.delegates(username, peer=API_PEER)
+	return req.get("data", {}).get("publicKey", False)
 
 
 def loadJson(name, folder=None):

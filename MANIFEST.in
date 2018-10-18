@@ -1,4 +1,5 @@
 recursive-include zen *.css
 recursive-include zen *.html
-include VERSION
 include zen-cmd.py
+include LICENSE
+include VERSION

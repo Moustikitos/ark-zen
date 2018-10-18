@@ -52,13 +52,12 @@ def spread():
 			raise Exception("No new block created")
 
 		# check autorization and exit if bad one
-		tbw_data = loadJson("tbw.json")
-		webhook = loadJson("%s.webhook" % generatorPublicKey, folder=zen.DATA)
+		webhook = loadJson("%s.webhook" % generatorPublicKey)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
 			raise Exception("Not autorized here")
 
 		# find forger information using generatorPublicKey
-		forger = loadJson("%s.forger" % generatorPublicKey, folder=zen.DATA)
+		forger = loadJson("%s.forger" % generatorPublicKey)
 		forgery = loadJson("%s.forgery" % generatorPublicKey, folder=folder)
 
 		# compute the reward distribution

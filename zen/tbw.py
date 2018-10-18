@@ -7,6 +7,7 @@ import zen
 import pytz
 import dposlib
 import getpass
+import datetime
 
 from dposlib.util.bin import unhexlify
 from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
@@ -114,10 +115,10 @@ def adjust(username, value):
 
 def extract(username):
 	now = datetime.datetime.now(tz=pytz.UTC)
-	pkey = getPublicKeyFromUsername(kwargs["username"])
+	pkey = getPublicKeyFromUsername(username)
 
 	if pkey:
-		forgery = loadJson("%s.foregery" % pkey, os.path.join(zen.DATA, pkey))
+		forgery = loadJson("%s.forgery" % pkey, os.path.join(zen.DATA, pkey))
 		param = loadJson("%s.forger" % pkey)
 
 		threshold = param.get("threshold", 0.)
@@ -139,7 +140,7 @@ def extract(username):
 
 		forgery["rewards"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
 		forgery["fees"] = 0.
-		dumpJson(forgery, "%s.foregery" % pkey, os.path.join(zen.DATA, pkey))
+		dumpJson(forgery, "%s.forgery" % pkey, os.path.join(zen.DATA, pkey))
 
 
 def dumpRegistry(username):
@@ -152,7 +153,7 @@ def dumpRegistry(username):
 		if keys["publicKey"] == pkey: break
 		else: keys = False
 	
-	if keys
+	if keys:
 
 		config = loadJson("%s.forger" % pkey)
 		folder = os.path.join(zen.ROOT, "app", ".tbw", pkey)
@@ -169,7 +170,7 @@ def dumpRegistry(username):
 			registry = OrderedDict()
 			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
-					int(amount*100000000*weight), address,
+					amount*weight, address,
 					config.get("vendorField", "%s reward" % "username")
 				)
 				transaction.setFees()
