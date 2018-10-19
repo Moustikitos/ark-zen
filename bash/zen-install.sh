@@ -24,7 +24,6 @@ echo
 echo installing python dependencies
 echo ==============================
 pip install -r requirements.txt -q
-pip install https://github.com/Moustikitos/dpos/archive/master.zip -q
 
 # initialize zen
 echo
