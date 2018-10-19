@@ -12,7 +12,6 @@ nodes and `True Block Weight` utilities for pool management.
 ### Dependencies
 
   - OS related
-    * [X] `daemon` : `sudo apt-get install daemon`
     * [X] `python` : `sudo apt-get install python`
     * [X] `setuptools` : `sudo apt-get install python-setuptools`
     * [X] `pip` : `sudo apt-get install python-pip`

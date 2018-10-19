@@ -27,9 +27,6 @@ app.config.update(
 	SESSION_REFRESH_EACH_REQUEST = True
 )
 
-# webhook event list
-# https://github.com/ArkEcosystem/core/blob/4b889bd51f49edd43d103245ad4a1c137bebe785/packages/core-blockchain/lib/blockchain.js#L512-L531
-
 
 # compute true block weight
 @app.route("/block/forged", methods=["POST"])

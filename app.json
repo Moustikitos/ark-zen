@@ -1,0 +1,11 @@
+{
+	"apps": [{
+		"name": "zen-tbw",
+		"script": "serv.py",
+		"instances": 1,
+		"exec_mode": "fork",
+		"exec_interpreter": "python",
+		"log_date_format": "YYYY-MM-DD HH:mm Z",
+		"out_file": "~/tbw.log",
+	}]
+}

@@ -14,29 +14,6 @@ def initialize():
 	zen.tbw.init()
 
 
-def configure(username, **parameters):
-	zen.tbw.init(username=username, **parameters)
-
-
-def launch():
-	app = os.path.abspath(os.path.join(zen.__path__[0], "app", "app.py"))
-	print(os.path.dirname(app))
-	os.environ["FLASK_APP"] = os.path.join(zen.__path__[0], "app", "app.py")
-	os.system('daemon --name=tbw --output=%s --command="python -m flask run --host=0.0.0.0" --chdir=%s' % (
-		os.path.expanduser("~/flask.log"),
-		os.path.dirname(app)
-	))
-
-
-def stop():
-	os.system('daemon --name=tbw --stop')
-
-
-def relaunch():
-	stop()
-	launch()
-
-
 if __name__ == "__main__":
 
 	tbw = zen.loadJson("tbw.json")
