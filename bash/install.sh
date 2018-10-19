@@ -33,4 +33,3 @@ fi
 if [ "$(pm2 id ark-core-relay) " != "[]" ]; then
     pm2 reload ark-core-relay
 fi
-

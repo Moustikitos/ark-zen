@@ -9,32 +9,7 @@ for DPOS pool management.
 
 ## Install
 
-### Dependencies
-
 ```bash
-sudo apt-get install python
-sudo apt-get install python-setuptools
-sudo apt-get install python-pip
-```
-
-### `zen`
-
-```bash
-cd ~
-git clone https://github.com/Moustikitos/zen.git
-```
-
-Install `zen` dependencies:
-
-```bash
-cd ~/zen
-pip install -r requirement.txt
-```
-
-## Start
-
-```bash
-cd ~/zen
-python cfg.py initialize
-pm2 start app.json
+wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/install.sh
+bash install.sh
 ```
