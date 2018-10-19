@@ -17,24 +17,24 @@ sudo apt-get install python-setuptools
 sudo apt-get install python-pip
 ```
 
-### Zen
+### `zen`
 
 ```bash
 cd ~
 git clone https://github.com/Moustikitos/zen.git
 ```
 
-Install dependencies
+Install `zen` dependencies:
 
 ```bash
-cd zen
+cd ~/zen
 pip install -r requirement.txt
 ```
 
 ## Start
 
 ```bash
-cd zen
+cd ~/zen
 python cfg.py initialize
 pm2 start app.json
 ```
