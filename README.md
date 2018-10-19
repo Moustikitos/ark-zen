@@ -1,7 +1,7 @@
 # `zen`
 
-`zen` package, entirely writen in python, provides failover routines for DPOS
-nodes and `True Block Weight` utilities for pool management.
+`zen` package, entirely writen in python, provides `True Block Weight` utilities
+for DPOS pool management.
 
 ## Supported blockchain
 
