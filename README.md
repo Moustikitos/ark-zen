@@ -11,34 +11,30 @@ nodes and `True Block Weight` utilities for pool management.
 
 ### Dependencies
 
-  - OS related
-    * [X] `python` : `sudo apt-get install python`
-    * [X] `setuptools` : `sudo apt-get install python-setuptools`
-    * [X] `pip` : `sudo apt-get install python-pip`
+```bash
+sudo apt-get install python
+sudo apt-get install python-setuptools
+sudo apt-get install python-pip
+```
 
-  - Python related (automatically managed by `pip`)
-    * [X] `pytz`
-    * [X] `ecdsa`
-    * [X] `base58`
-    * [X] `requests`
-    * [X] `flask`
-    * [X] `flask_bootstrap`
+### Zen
 
-### using `pip`
+```bash
+cd ~
+git clone https://github.com/Moustikitos/zen.git
+```
 
-`pip install https://github.com/Moustikitos/zen/archive/master.zip`
-
-### using zip archive or `git`
-
-Download and extract https://github.com/Moustikitos/zen/archive/master.zip 
-
-or 
-
-`git clone https://github.com/Moustikitos/zen.git`
-
-then install dependencies
+Install dependencies
 
 ```bash
 cd zen
 pip install -r requirement.txt
+```
+
+## Start
+
+```bash
+cd zen
+python cfg.py initialize
+pm2 start app.json
 ```
