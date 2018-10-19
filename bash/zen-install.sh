@@ -34,14 +34,14 @@ python cfg.py initialize
 # launch zen-tbw or reload it
 # reload ark-core-relay if launched
 echo
-echo launching/reloading pm2 tasks
-echo =============================
+echo launching/restarting pm2 tasks
+echo ==============================
 if [ "$(pm2 id zen-tbw) " = "[]" ]; then
     pm2 start app.json
 else
-    pm2 reload zen-tbw
+    pm2 restart zen-tbw
 fi
 
 if [ "$(pm2 id ark-core-relay) " != "[]" ]; then
-    pm2 reload ark-core-relay
+    pm2 restart ark-core-relay
 fi
