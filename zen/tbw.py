@@ -35,13 +35,13 @@ def init(**kwargs):
 			account = dposlib.rest.GET.api.v2.wallets(pkey, peer=zen.API_PEER).get("data", {})
 			account.update(req)
 			if account != {}:
+				logMsg("setting up %s delegate..." % account["username"])
 				# ask second secret if any is set
 				pkey2 = askSecondSecret(account)
 				# load forger configuration and update with minimum data
 				config = loadJson("%s.forger" % pkey)
 				config.update(**{"pubkey":pkey, "#2":pkey2, "excludes":[account["address"]]})
 				dumpJson(config, "%s.forger" % pkey)
-				logMsg("%s delegate set" % account["username"])
 				# create a webhook if no one is set
 				webhook = loadJson("%s.webhook" % pkey)
 				if not webhook.get("token", False):
@@ -56,6 +56,7 @@ def init(**kwargs):
 						logMsg("%s webhook set" % account["username"])
 				else:
 					logMsg("webhook already set for delegate %s" % account["username"])	
+				logMsg("%s delegate set" % account["username"])
 			else:
 				logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
 
@@ -82,7 +83,7 @@ def askSecondSecret(account):
 		secondPublicKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(seed))["publicKey"]
 		while secondPublicKey != account["secondPublicKey"]:
 			try:
-				secret = getpass.getpass("> enter your second secret: ")
+				secret = getpass.getpass("> enter %s second secret: " % account["username"])
 				seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
 				secondPublicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
 				return dposlib.core.crypto.hexlify(seed)
@@ -173,11 +174,7 @@ def dumpRegistry(username):
 					amount*weight, address,
 					config.get("vendorField", "%s reward" % "username")
 				)
-				transaction.setFees()
-				transaction.feeIncluded()
-				transaction.sign()
-				transaction.signSign()
-				transaction.identify()
+				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 
 			dumpJson(registry, "%s.registry" % name, os.path.join(zen.DATA, pkey))
