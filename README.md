@@ -10,6 +10,6 @@ for DPOS pool management.
 ## Install
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/install.sh
-bash install.sh
+wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/zen-install.sh
+bash zen-install.sh
 ```

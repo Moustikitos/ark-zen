@@ -124,8 +124,10 @@ def init():
 	# first ask network folder
 	node_folder = ""
 	while not os.path.exists(node_folder):
-		try: node_folder = os.path.abspath(input("> enter node folder: "))
-		except KeyboardInterrupt: return
+		try:
+			node_folder = os.path.abspath(input("> enter node folder: "))
+		except KeyboardInterrupt:
+			raise Exception("configuration aborted...")
 	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
 	try:
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
