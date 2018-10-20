@@ -9,7 +9,7 @@ from collections import OrderedDict
 
 import zen
 import zen.tbw
-from zen import loadJson, dumpJson, generatorPublicKey
+from zen import loadJson, dumpJson, getUsernameFromPublicKey
 
 
 # create the application instance 

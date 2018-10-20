@@ -47,5 +47,5 @@ if __name__ == "__main__":
 
 	if len(args):
 		func = getattr(sys.modules[__name__], args[0])
-			if callable(func):
-				func()
+		if callable(func):
+			func()
