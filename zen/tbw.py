@@ -35,15 +35,16 @@ def init(**kwargs):
 			account = dposlib.rest.GET.api.v2.wallets(pkey, peer=zen.API_PEER).get("data", {})
 			account.update(req)
 			if account != {}:
-				logMsg("setting up %s delegate..." % account["username"])
+				username = account["username"]
+				logMsg("setting up %s delegate..." % username)
 				# ask second secret if any is set
-				pkey2 = askSecondSecret(account)
+				privkey2 = askSecondSecret(account)
 				# load forger configuration and update with minimum data
-				config = loadJson("%s.forger" % pkey)
-				config.update(**{"pubkey":pkey, "#2":pkey2, "excludes":[account["address"]]})
-				dumpJson(config, "%s.forger" % pkey)
+				config = loadJson("%s.json" % username)
+				config.update(**{"pubicKey":pkey, "#2":privkey2, "excludes":[account["address"]]})
+				dumpJson(config, "%s.json" % username)
 				# create a webhook if no one is set
-				webhook = loadJson("%s.webhook" % pkey)
+				webhook = loadJson("%s-webhook.json" % username)
 				if not webhook.get("token", False):
 					webhook = dposlib.rest.POST.api.webhooks(
 						peer=zen.WEBHOOK_PEER,
@@ -52,21 +53,20 @@ def init(**kwargs):
 						conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
 					).get("data", False)
 					if webhook:
-						dumpJson(webhook, "%s.webhook" % pkey)
-						logMsg("%s webhook set" % account["username"])
+						dumpJson(webhook, "%s-webhook.json" % username)
+						logMsg("%s webhook set" % username)
 				else:
-					logMsg("webhook already set for delegate %s" % account["username"])	
-				logMsg("%s delegate set" % account["username"])
+					logMsg("webhook already set for delegate %s" % username)	
+				logMsg("%s delegate set" % username)
 			else:
 				logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
 
 	elif "username" in kwargs:
 		username = kwargs.pop("username")
-		pkey = getPublicKeyFromUsername(username)
-		if pkey:
-			config = loadJson("%s.forger" % pkey)
+		if getPublicKeyFromUsername(username):
+			config = loadJson("%s.json" % username)
 			config.update(**kwargs)
-			dumpJson(config, "%s.forger" % pkey)
+			dumpJson(config, "%s.json" % username)
 			logMsg("%s delegate set" % username)
 		else:
 			logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
@@ -100,14 +100,17 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 
 
 def adjust(username, value):
-	pkey = getPublicKeyFromUsername(kwargs["username"])
-	if pkey:
-		folder = os.path.join(zen.DATA, pkey)
-		forgery = loadJson("%s.forgery" % pkey, folder=folder)
+	if getPublicKeyFromUsername(username):
+		folder = os.path.join(zen.DATA, username)
+		forgery = loadJson("%s.forgery" % username, folder=folder)
 		total = sum(forgery.values())
 		dumpJson(
-			OrderedDict(sorted([[a, v/total*value] for a,v in forgery.items()], key=lambda e:e[-1], reverse=True)),
-			"%s.forgery" % pkey,
+			{
+				"fees": forgery.get("fees", 0.),
+				"blocks": forgery.get("blocks", 0),
+				"contribution": OrderedDict(sorted([[a, v/total*value] for a,v in forgery.items()], key=lambda e:e[-1], reverse=True))
+			},
+			"%s.forgery" % username,
 			folder=folder
 		)
 	else:
@@ -116,32 +119,34 @@ def adjust(username, value):
 
 def extract(username):
 	now = datetime.datetime.now(tz=pytz.UTC)
-	pkey = getPublicKeyFromUsername(username)
 
-	if pkey:
-		forgery = loadJson("%s.forgery" % pkey, os.path.join(zen.DATA, pkey))
-		param = loadJson("%s.forger" % pkey)
+	if getPublicKeyFromUsername(username):
+		param = loadJson("%s.json" % username)
+		threshold = param.get("threshold", 0.2)
+		share =  param.get("share", 1.0)
 
-		threshold = param.get("threshold", 0.)
-		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("rewards", {}).items()], key=lambda e:e[-1], reverse=True))
-		tbw = OrderedDict([a,w] for a,w in data.items() if w >= threshold)
+		forgery = loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
+		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contribution", {}).items()], key=lambda e:e[-1], reverse=True))
+		tbw = OrderedDict([a,w*share] for a,w in data.items() if w >= threshold)
+		totalContribution = sum(data.values())
 
-		amount = sum(tbw.values())
 		dumpJson(
 			{
 				"timestamp": "%s" % now,
+				"delegate-share": totalContribution * (1.0-param.get("share", 1.0)),
 				"undistributed": sum(w for w in data.values() if w < threshold),
-				"distributed": param.get("share", 1.0)*amount,
+				"distributed": sum(tbw.values()),
 				"fees": forgery.get("fees", 0.),
-				"weight": OrderedDict(sorted([[a,w/amount] for a,w in tbw.items()], key=lambda e:e[-1], reverse=True))
+				"weight": OrderedDict(sorted([[a,w/totalContribution] for a,w in tbw.items()], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.tbw" % now.strftime("%Y-%m-%d"),
-			folder=os.path.join(zen.ROOT, "app", ".tbw", pkey)
+			folder=os.path.join(zen.ROOT, "app", ".tbw", username)
 		)
 
-		forgery["rewards"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
+		forgery["contribution"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
+		forgery["blocks"] = 0
 		forgery["fees"] = 0.
-		dumpJson(forgery, "%s.forgery" % pkey, os.path.join(zen.DATA, pkey))
+		dumpJson(forgery, "%s.forgery" % username, os.path.join(zen.DATA, username))
 
 
 def dumpRegistry(username):
@@ -156,8 +161,8 @@ def dumpRegistry(username):
 	
 	if keys:
 
-		config = loadJson("%s.forger" % pkey)
-		folder = os.path.join(zen.ROOT, "app", ".tbw", pkey)
+		config = loadJson("%s.json" % username)
+		folder = os.path.join(zen.ROOT, "app", ".tbw", username)
 		if config.get("#2", None):
 			secondPrivateKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))["privateKey"]
 		else:
@@ -172,13 +177,25 @@ def dumpRegistry(username):
 			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
 					amount*weight, address,
-					config.get("vendorField", "%s reward" % "username")
+					config.get("vendorField", "%s reward" % username)
 				)
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 
-			dumpJson(registry, "%s.registry" % name, os.path.join(zen.DATA, pkey))
+			if config.get("funds", False):
+				transaction = dposlib.core.transfer(tbw["delegate-share"] + tbw["fees"], config["funds"], "%s share" % username)
+				transaction.finalize(fee_included=True)
+				registry[transaction["id"]] = transaction
+
+			dumpJson(registry, "%s.registry" % name, os.path.join(zen.DATA, username))
 			dposlib.core.Transaction.unlink()
 
 			dumpJson(tbw, name, os.path.join(folder, "history"))
 			os.remove(os.path.join(folder, name))
+
+
+def broadcast(username):
+
+	pass
+
+	

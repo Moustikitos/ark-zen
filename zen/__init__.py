@@ -30,13 +30,15 @@ LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 WEBHOOK_PEER = None
 API_PEER = None
 
-# cmd line options
-OPTIONS = None
-
 
 def getPublicKeyFromUsername(username):
 	req = dposlib.rest.GET.api.v2.delegates(username, peer=API_PEER)
 	return req.get("data", {}).get("publicKey", False)
+
+
+def getUsernameFromPublicKey(publicKey):
+	req = dposlib.rest.GET.api.v2.delegates(publicKey, peer=API_PEER)
+	return req.get("data", {}).get("username", False)
 
 
 def loadJson(name, folder=None):

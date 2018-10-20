@@ -9,26 +9,43 @@ import zen
 import zen.tbw
 
 
+def start():
+	os.chdir(os.path.abspath(os.path.dirname(__file__)))
+	os.system("""
+if [ "$(pm2 id zen-tbw) " = "[]" ]; then
+    pm2 start app.json
+else
+    pm2 restart zen-tbw
+fi
+""")
+
+
+def stop():
+	os.chdir(os.path.abspath(os.path.dirname(__file__)))
+	os.system("""
+if [ "$(pm2 id zen-tbw) " = "[]" ]; then
+    pm2 stop zen-tbw
+fi
+""")
+
+
 def initialize():
 	zen.init()
 	zen.tbw.init()
 
 
 if __name__ == "__main__":
-
 	tbw = zen.loadJson("tbw.json")
 
 	# catch command line
 	parser = optparse.OptionParser()
-	(zen.OPTIONS, args) = parser.parse_args()
+	# -f --funds
+	# -s --symbol
+	# -d --delay
+	# -e --excludes
+	(options, args) = parser.parse_args()
 
-	# set the default command
-	if not len(args):
-		args = ["configure"]
-	elif len(args) > 1:
-		parser.print_help()
-		raise Exception("Only one command can be performed")
-
-	func = getattr(sys.modules[__name__], args[0])
-	if callable(func):
-		func()
+	if len(args):
+		func = getattr(sys.modules[__name__], args[0])
+			if callable(func):
+				func()

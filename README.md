@@ -13,3 +13,6 @@ for DPOS pool management.
 wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/zen-install.sh
 bash zen-install.sh
 ```
+
+## Configure
+

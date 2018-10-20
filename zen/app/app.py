@@ -3,11 +3,13 @@
 import os
 import json
 import flask
+import dposlib
 
 from collections import OrderedDict
 
 import zen
-from zen import loadJson, dumpJson, tbw
+import zen.tbw
+from zen import loadJson, dumpJson, generatorPublicKey
 
 
 # create the application instance 
@@ -29,7 +31,7 @@ app.config.update(
 
 
 # compute true block weight
-@app.route("/block/forged", methods=["POST"])
+@app.route("/block/forged", methods=["POST", "GET"])
 def spread():
 
 	if flask.request.method == "POST":
@@ -40,25 +42,28 @@ def spread():
 		else:
 			generatorPublicKey = block["generatorPublicKey"]
 
+		username = getUsernameFromPublicKey(generatorPublicKey)
+		if not username: return ""
+		
 		# load previous forged block and save last forged 
-		filename = "%s.last.block" % generatorPublicKey
-		folder = os.path.join(zen.DATA, generatorPublicKey)
+		filename = "%s.last.block" % username
+		folder = os.path.join(zen.DATA, username)
 		last_block = loadJson(filename, folder=folder)
 		dumpJson(block, filename, folder=folder)
 		if last_block.get("id", None) == block["id"]:
 			raise Exception("No new block created")
 
 		# check autorization and exit if bad one
-		webhook = loadJson("%s.webhook" % generatorPublicKey)
+		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
 			raise Exception("Not autorized here")
 
-		# find forger information using generatorPublicKey
-		forger = loadJson("%s.forger" % generatorPublicKey)
-		forgery = loadJson("%s.forgery" % generatorPublicKey, folder=folder)
+		# find forger information using username
+		forger = loadJson("%s.json" % username)
+		forgery = loadJson("%s.forgery" % username, folder=folder)
 
 		# compute the reward distribution
-		rewards = tbw.distributeRewards(
+		contributions = zen.tbw.distributeRewards(
 			float(block["reward"])/100000000.,
 			generatorPublicKey,
 			minvote=forger.get("minvote", 0),
@@ -66,14 +71,29 @@ def spread():
 		)
 
 		# dump true block weight data
-		_rwds = forgery.get("rewards", {})
+		_ctrb = forgery.get("contribution", {})
 		dumpJson(
 			{
 				"fees": forgery.get("fees", 0.) + float(block["totalFee"])/100000000.,
-				"rewards": OrderedDict(sorted([[a, _rwds.get(a, 0.)+rewards[a]] for a in rewards.keys()], key=lambda e:e[-1], reverse=True))
+				"blocks": forgery.get("blocks", 0) + 1,
+				"contribution": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions.keys()], key=lambda e:e[-1], reverse=True))
 			},
-			"%s.forgery" % generatorPublicKey,
+			"%s.forgery" % username,
 			folder=folder
 		)
 
 	return ""
+
+	# else:
+
+	# 	root = loadJson("root.json")
+	# 	# find delegates secrets and generate publicKeys
+	# 	delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
+	# 	pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
+
+	# 	result = ""
+	# 	for pkey in pkeys:
+	# 		result += "%s<br>" % pkey
+	# 		result += "<br>".join(json.dumps(loadJson("%s.forgery" % pkey, folder=os.path.join(zen.DATA, pkey)), indent=2).split("\n"))
+
+	# 	return result
