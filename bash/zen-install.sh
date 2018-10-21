@@ -29,8 +29,8 @@ pip install --user -r requirements.txt -q
 echo
 echo initializing zen
 echo ================
-python cmd initialize
-chmod +x cmd
+chmod +x exe
+exe initialize
 
 # launch zen-tbw or reload it
 # reload ark-core-relay if launched

@@ -52,6 +52,10 @@ def configure(username=None, **options):
 		zen.tbw.init(**options)
 	
 
+def adjust(username, value):
+	zen.tbw.adjust(username, value)
+
+
 if __name__ == "__main__":
 	tbw = zen.loadJson("tbw.json")
 
