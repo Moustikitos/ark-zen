@@ -28,7 +28,6 @@ LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 
 # peers
 WEBHOOK_PEER = None
-# API_PEER = None
 
 
 def getPublicKeyFromUsername(username):
@@ -149,7 +148,7 @@ def init():
 
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
 	root["config"] = os.path.join(networks_folder, "%s.json" % network)
-	root["node_folder"] = os.path.join(node_folder, "%s.json" % network)
+	root["node_folder"] = node_folder
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
@@ -159,7 +158,6 @@ def init():
 	env["ARK_WEBHOOKS_ENABLED"] = "true"
 	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
 	env["ARK_WEBHOOKS_PORT"] = "4004"
-	# API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
 	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	dumpEnv(env, envfile)
 	logMsg("environement configuration saved in %s" % envfile)

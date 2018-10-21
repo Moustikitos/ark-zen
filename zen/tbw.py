@@ -104,9 +104,9 @@ def askSecondSecret(account):
 				secret = getpass.getpass("> enter %s second secret: " % account["username"])
 				seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
 				secondPublicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
-				return dposlib.core.crypto.hexlify(seed)
 			except KeyboardInterrupt:
 				break
+		return dposlib.core.crypto.hexlify(seed)
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
@@ -223,11 +223,11 @@ def broadcast(username):
 
 		for chunk in [transactions[x:x+50] for x in range(0, len(transactions), 50)]:
 			dposlib.rest.POST.api.transactions(transactions=chunk)
-		time.sleep(dposlib.rest.cfg.blocktime*2)
+		time.sleep(dposlib.rest.cfg.blocktime)
 
-		dumpJson(registry, name, folder=os.path.join(folder, "backup"))
 		tries = 0
 		while len(registry) > 0 and tries < 5:
+			time.sleep(dposlib.rest.cfg.blocktime)
 			for tx in transactions:
 				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmation", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
@@ -236,7 +236,11 @@ def broadcast(username):
 						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
 					)
 			tries += 1
+
 		if tries >=5:
 			logMsg("payroll aborted, network was too bad")
+		else:
+			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
+			os.remove(os.path.join(folder, name))
+
 		sqlite.commit()
-		os.remove(os.path.join(folder, name))
