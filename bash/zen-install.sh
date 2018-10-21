@@ -37,12 +37,12 @@ chmod +x exe
 echo
 echo launching/restarting pm2 tasks
 echo ==============================
-if [ "$(pm2 id zen-tbw) " = "[]" ]; then
+if [ "$(pm2 id zen-tbw) " = "[] " ]; then
     pm2 start app.json
 else
     pm2 restart zen-tbw
 fi
 
-if [ "$(pm2 id ark-core-relay) " != "[]" ]; then
+if [ "$(pm2 id ark-core-relay) " != "[] " ]; then
     pm2 restart ark-core-relay
 fi

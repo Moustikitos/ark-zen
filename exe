@@ -13,7 +13,7 @@ import zen.tbw
 
 def start_tbw():
 	os.system("""
-if [ "$(pm2 id zen-tbw) " = "[]" ]; then
+if [ "$(pm2 id zen-tbw) " = "[] " ]; then
 	cd %(abspath)s
     pm2 start app.json
 else
@@ -26,7 +26,7 @@ fi
 def stop_tbw():
 	os.chdir(os.path.abspath(os.path.dirname(__file__)))
 	os.system("""
-if [ "$(pm2 id zen-tbw) " != "[]" ]; then
+if [ "$(pm2 id zen-tbw) " != "[] " ]; then
 	cd %(abspath)s
     pm2 stop zen-tbw
 fi
