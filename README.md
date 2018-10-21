@@ -17,18 +17,18 @@ bash zen-install.sh
 ## Start/stop True Block Weight
 
 ```bash
-./cmd start-tbw
-./cmd stop-tbw
+./exe start-tbw
+./exe stop-tbw
 ```
 
 ## Configure options
 
 ```bash
-./cmd configure [-u username] [-o value] [--options=values]
+./exe configure [-u username] [-o value] [--options=values]
 ```
 
 ## Launch a payroll
 
 ```bash
-./cmd launch-payroll -u username
+./exe launch-payroll -u username
 ```
