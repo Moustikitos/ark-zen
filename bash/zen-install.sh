@@ -30,7 +30,7 @@ echo
 echo initializing zen
 echo ================
 chmod +x exe
-exe initialize
+./exe initialize
 
 # launch zen-tbw or reload it
 # reload ark-core-relay if launched
