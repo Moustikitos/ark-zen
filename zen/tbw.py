@@ -1,26 +1,43 @@
 # -*- coding:utf-8 -*-
 import os
+import time
+import sqlite3
+import getpass
+import datetime
 
 from collections import OrderedDict
 
 import zen
 import pytz
 import dposlib
-import getpass
-import datetime
 
 from dposlib.util.bin import unhexlify
 from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
+
+
+def initDb(username):
+	sqlite = sqlite3.connect(os.path.join(zen.ROOT, "%s.db" % username))
+	sqlite.row_factory = sqlite3.Row
+	cursor = sqlite.cursor()
+	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(date TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
+	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
+	cursor.execute("CREATE TABLE IF NOT EXISTS payrolls(date TEXT, share REAL, amount INTEGER);")
+	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS payroll_index ON payrolls(date);")
+	sqlite.commit()
+	return sqlite
+
+
+def initPeers():
+	root = loadJson("root.json")
+	env = loadEnv(os.path.join(root["env"], ".env"))
+	zen.WEBHOOK_PEER = "http://124.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 
 
 def init(**kwargs):
 
 	# initialize peers from .env file
 	if not zen.WEBHOOK_PEER:
-		root = loadJson("root.json")
-		env = loadEnv(os.path.join(root["env"], ".env"))
-		zen.WEBHOOK_PEER = "http://124.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
-		zen.API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+		initPeers()
 
 	# if no options given, initialize forgers set on the node
 	if not len(kwargs):
@@ -31,9 +48,10 @@ def init(**kwargs):
 
 		for pkey in pkeys:
 			# for each publicKey, get account data (merge delegate and wallet info)
-			req = dposlib.rest.GET.api.v2.delegates(pkey, peer=zen.API_PEER).get("data", {})
-			account = dposlib.rest.GET.api.v2.wallets(pkey, peer=zen.API_PEER).get("data", {})
+			req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
+			account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
 			account.update(req)
+
 			if account != {}:
 				username = account["username"]
 				logMsg("setting up %s delegate..." % username)
@@ -92,7 +110,7 @@ def askSecondSecret(account):
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
-	voters = dposlib.rest.GET.api.v2.delegates(pkey, "voters", peer=zen.API_PEER).get("data", [])
+	voters = dposlib.rest.GET.api.v2.delegates(pkey, "voters").get("data", [])
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes)
 	total_balance = sum(voters.values())
 	pairs = [[a,b/total_balance*rewards] for a,b in voters.items() if a not in excludes and b > minvote]
@@ -187,7 +205,7 @@ def dumpRegistry(username):
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 
-			dumpJson(registry, "%s.registry" % name, os.path.join(zen.DATA, username))
+			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 			dposlib.core.Transaction.unlink()
 
 			dumpJson(tbw, name, os.path.join(folder, "history"))
@@ -195,7 +213,25 @@ def dumpRegistry(username):
 
 
 def broadcast(username):
+	# proceed all registry file found in username folder
+	sqlite = initDb(username)
+	folder = os.path.join(zen.DATA, username)
+	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
+		registry = loadJson(name, folder=folder)
+		transactions = list(registry.values())
 
-	pass
+		for chunk in [transactions[x:x+50] for x in range(0, len(transactions), 50)]:
+			dposlib.rest.POST.api.transactions(transactions=chunk)
+		time.sleep(rest.cfg.blocktime*2)
 
-	
+		dumpJson(registry, name, folder=os.path.join(folder, "backup"))
+		while len(registry) > 0:
+			for tx in transactions:
+				dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmation", 0) >= 1
+				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
+				cursor.execute(
+					"INSERT OR REPLACE INTO transactions(date, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+					(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
+				)
+		sqlite.commit()
+		os.remove(os.path.join(folder, name))

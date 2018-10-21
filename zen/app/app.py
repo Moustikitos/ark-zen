@@ -83,17 +83,3 @@ def spread():
 		)
 
 	return ""
-
-	# else:
-
-	# 	root = loadJson("root.json")
-	# 	# find delegates secrets and generate publicKeys
-	# 	delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
-	# 	pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
-
-	# 	result = ""
-	# 	for pkey in pkeys:
-	# 		result += "%s<br>" % pkey
-	# 		result += "<br>".join(json.dumps(loadJson("%s.forgery" % pkey, folder=os.path.join(zen.DATA, pkey)), indent=2).split("\n"))
-
-	# 	return result

@@ -23,7 +23,7 @@ fi
 echo
 echo installing python dependencies
 echo ==============================
-pip install -r requirements.txt -q
+pip install --user -r requirements.txt -q
 
 # initialize zen
 echo

@@ -28,16 +28,16 @@ LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 
 # peers
 WEBHOOK_PEER = None
-API_PEER = None
+# API_PEER = None
 
 
 def getPublicKeyFromUsername(username):
-	req = dposlib.rest.GET.api.v2.delegates(username, peer=API_PEER)
+	req = dposlib.rest.GET.api.v2.delegates(username)
 	return req.get("data", {}).get("publicKey", False)
 
 
 def getUsernameFromPublicKey(publicKey):
-	req = dposlib.rest.GET.api.v2.delegates(publicKey, peer=API_PEER)
+	req = dposlib.rest.GET.api.v2.delegates(publicKey)
 	return req.get("data", {}).get("username", False)
 
 
@@ -73,9 +73,9 @@ def loadEnv(pathname):
 
 def dumpEnv(env, pathname):
 	shutil.copy(pathname, pathname+".bak")
-	with io.open(pathname, "w") as environ:
+	with io.open(pathname, "wb") as environ:
 		for key,value in sorted([(k,v) for k,v in env.items()], key=lambda e:e[0]):
-			environ.write("%s=%s\n" % (key, value))
+			environ.write(b"%s=%s\n" % (key, value))
 
 
 def logMsg(msg, logname=None):
@@ -120,7 +120,7 @@ def chooseItem(msg, *elem):
 
 
 def init():
-	global API_PEER, WEBHOOK_PEER
+	global WEBHOOK_PEER
 	root = loadJson("root.json")
 
 	# first ask network folder
@@ -158,7 +158,7 @@ def init():
 	env["ARK_WEBHOOKS_ENABLED"] = "true"
 	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
 	env["ARK_WEBHOOKS_PORT"] = "4004"
-	API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+	# API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
 	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	dumpEnv(env, envfile)
 	logMsg("environement configuration saved in %s" % envfile)
