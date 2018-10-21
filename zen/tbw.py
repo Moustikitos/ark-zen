@@ -121,12 +121,12 @@ def adjust(username, value):
 	if getPublicKeyFromUsername(username):
 		folder = os.path.join(zen.DATA, username)
 		forgery = loadJson("%s.forgery" % username, folder=folder)
-		total = sum(forgery.values())
+		total = sum(forgery["contributions"].values())
 		dumpJson(
 			{
 				"fees": forgery.get("fees", 0.),
 				"blocks": forgery.get("blocks", 0),
-				"contribution": OrderedDict(sorted([[a, v/total*value] for a,v in forgery.items()], key=lambda e:e[-1], reverse=True))
+				"contributions": OrderedDict(sorted([[a, v/total*value] for a,v in forgery["contributions"].items()], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.forgery" % username,
 			folder=folder
@@ -144,7 +144,7 @@ def extract(username):
 		share =  param.get("share", 1.0)
 
 		forgery = loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
-		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contribution", {}).items()], key=lambda e:e[-1], reverse=True))
+		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contributions", {}).items()], key=lambda e:e[-1], reverse=True))
 		tbw = OrderedDict([a,w*share] for a,w in data.items() if w >= threshold)
 		totalContribution = sum(data.values())
 
@@ -161,7 +161,7 @@ def extract(username):
 			folder=os.path.join(zen.ROOT, "app", ".tbw", username)
 		)
 
-		forgery["contribution"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
+		forgery["contributions"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
 		forgery["blocks"] = 0
 		forgery["fees"] = 0.
 		dumpJson(forgery, "%s.forgery" % username, os.path.join(zen.DATA, username))
@@ -215,6 +215,7 @@ def dumpRegistry(username):
 def broadcast(username):
 	# proceed all registry file found in username folder
 	sqlite = initDb(username)
+	cursor = sqlite.cursor()
 	folder = os.path.join(zen.DATA, username)
 	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
 		registry = loadJson(name, folder=folder)
@@ -222,16 +223,20 @@ def broadcast(username):
 
 		for chunk in [transactions[x:x+50] for x in range(0, len(transactions), 50)]:
 			dposlib.rest.POST.api.transactions(transactions=chunk)
-		time.sleep(rest.cfg.blocktime*2)
+		time.sleep(dposlib.rest.cfg.blocktime*2)
 
 		dumpJson(registry, name, folder=os.path.join(folder, "backup"))
-		while len(registry) > 0:
+		tries = 0
+		while len(registry) > 0 and tries < 5:
 			for tx in transactions:
-				dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmation", 0) >= 1
-				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-				cursor.execute(
-					"INSERT OR REPLACE INTO transactions(date, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-					(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
-				)
+				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmation", 0) >= 1:
+					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
+					cursor.execute(
+						"INSERT OR REPLACE INTO transactions(date, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
+					)
+			tries += 1
+		if tries >=5:
+			logMsg("payroll aborted, network was too bad")
 		sqlite.commit()
 		os.remove(os.path.join(folder, name))

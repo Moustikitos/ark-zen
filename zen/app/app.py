@@ -71,12 +71,12 @@ def spread():
 		)
 
 		# dump true block weight data
-		_ctrb = forgery.get("contribution", {})
+		_ctrb = forgery.get("contributions", {})
 		dumpJson(
 			{
 				"fees": forgery.get("fees", 0.) + float(block["totalFee"])/100000000.,
 				"blocks": forgery.get("blocks", 0) + 1,
-				"contribution": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions.keys()], key=lambda e:e[-1], reverse=True))
+				"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions.keys()], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.forgery" % username,
 			folder=folder

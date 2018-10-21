@@ -9,21 +9,7 @@ import zen
 import zen.tbw
 
 
-# def rebuild(url, dbname, snapshot="~/snapshot"):
-# 	os.system(
-# """
-# pm2 stop all
-# pm2 delete all
-# sudo -u postgres dropdb --if-exists %(dbname)s
-# createdb %(dbname)s
-# wget %(url)s %(snapshot)s
-# pg_restore -O -j 8 -d %(dbname)s %(snapshot)s
-# """ % {"dbname":dbname, url":url, "snapshot":snapshot}
-# )
-
-
-def start():
-	# os.chdir(os.path.abspath(os.path.dirname(__file__)))
+def start_tbw():
 	os.system("""
 if [ "$(pm2 id zen-tbw) " = "[]" ]; then
 	cd %(abspath)s
@@ -31,16 +17,19 @@ if [ "$(pm2 id zen-tbw) " = "[]" ]; then
 else
     pm2 restart zen-tbw
 fi
-""" % {"abspath": os.path.abspath(os.path.dirname(__file__))})
+""" % {"abspath": os.path.abspath(os.path.dirname(__file__))}
+)
 
 
-def stop():
+def stop_tbw():
 	os.chdir(os.path.abspath(os.path.dirname(__file__)))
 	os.system("""
-if [ "$(pm2 id zen-tbw) " = "[]" ]; then
+if [ "$(pm2 id zen-tbw) " != "[]" ]; then
+	cd %(abspath)s
     pm2 stop zen-tbw
 fi
-""")
+""" % {"abspath": os.path.abspath(os.path.dirname(__file__))}
+)
 
 
 def initialize():
@@ -67,6 +56,6 @@ if __name__ == "__main__":
 	(options, args) = parser.parse_args()
 
 	if len(args):
-		func = getattr(sys.modules[__name__], args[0])
+		func = getattr(sys.modules[__name__], args[0].replace("-", "_"))
 		if callable(func):
 			func()
