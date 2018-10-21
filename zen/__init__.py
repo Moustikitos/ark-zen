@@ -124,7 +124,7 @@ def init():
 	root = loadJson("root.json")
 
 	# first ask network folder
-	node_folder = ""
+	node_folder = root.get("node_folder", "")
 	while not os.path.exists(node_folder):
 		try:
 			node_folder = os.path.abspath(input("> enter node folder: "))
@@ -149,6 +149,7 @@ def init():
 
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
 	root["config"] = os.path.join(networks_folder, "%s.json" % network)
+	root["node_folder"] = os.path.join(node_folder, "%s.json" % network)
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
