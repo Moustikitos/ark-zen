@@ -182,19 +182,21 @@ def dumpRegistry(username):
 		else: keys = False
 	
 	if keys:
+		dposlib.core.Transaction._publicKey = keys["publicKey"]
+		dposlib.core.Transaction._privateKey = keys["privateKey"]
 
 		config = loadJson("%s.json" % username)
 		folder = os.path.join(zen.ROOT, "app", ".tbw", username)
+
 		if config.get("#2", None):
-			secondPrivateKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))["privateKey"]
-		else:
-			secondPrivateKey = None
+			secondKeys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))
+			dposlib.core.Transaction._secondPublicKey = secondKeys["publicKey"]
+			dposlib.core.Transaction._secondPrivateKey = secondKeys["privateKey"]
 
 		for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
 			tbw = loadJson(name, folder)
 			amount = tbw["distributed"]
 
-			dposlib.core.Transaction.link(keys["privateKey"], secondPrivateKey)
 			registry = OrderedDict()
 			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
@@ -210,13 +212,14 @@ def dumpRegistry(username):
 				registry[transaction["id"]] = transaction
 
 			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
-			dposlib.core.Transaction.unlink()
 
 			dumpJson(tbw, name, os.path.join(folder, "history"))
 			os.remove(os.path.join(folder, name))
 
+		dposlib.core.Transaction.unlink()
 
-def broadcast(username):
+
+def broadcast(username, chunk_size=10):
 	# proceed all registry file found in username folder
 	sqlite = initDb(username)
 	cursor = sqlite.cursor()
@@ -225,15 +228,15 @@ def broadcast(username):
 		registry = loadJson(name, folder=folder)
 		transactions = list(registry.values())
 
-		for chunk in [transactions[x:x+50] for x in range(0, len(transactions), 50)]:
-			dposlib.rest.POST.api.transactions(transactions=chunk)
+		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
+			logMsg("Broadcasting chunk of transactions...\n%r" % dposlib.rest.POST.api.transactions(transactions=chunk))
 		time.sleep(dposlib.rest.cfg.blocktime)
 
 		tries = 0
 		while len(registry) > 0 and tries < 5:
 			time.sleep(dposlib.rest.cfg.blocktime)
 			for tx in transactions:
-				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmation", 0) >= 1:
+				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
 						"INSERT OR REPLACE INTO transactions(date, timestamp, amount, address, id) VALUES(?,?,?,?,?);",

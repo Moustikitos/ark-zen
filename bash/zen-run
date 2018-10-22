@@ -89,6 +89,12 @@ def launch_payroll(args={}, **options):
 	zen.tbw.broadcast(username)
 
 
+def resume_payroll(args={}, **options):
+	username = args["<username>"]
+	zen.tbw.dumpRegistry(username)
+	zen.tbw.broadcast(username)
+
+
 def configure(args={}, **options):
 	username = args["<username>"]
 	if username:

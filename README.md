@@ -14,27 +14,18 @@ wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/zen-install.s
 bash zen-install.sh
 ```
 
-## Initialize blockchain/delegates
+## Available commands
 
 ```bash
-./zen-run initialize
-```
-
-## Start/stop True Block Weight
-
-```bash
-./zen-run start-tbw
-./zen-run stop-tbw
-```
-
-## Configure options
-
-```bash
-./zen-run configure [-u username] [-o value] [--options=values]
-```
-
-## Launch a payroll
-
-```bash
-./zen-run launch-payroll -u username
+cd ~
+./zen-run
+Usage:
+    zen-run reset
+    zen-run initialize
+    zen-run configure <username> [-s <share> -f <fund> -t <threshold> -e <excludes>]
+    zen-run configure [-c <currency> -b <block-delay>]
+    zen-run start-tbw
+    zen-run stop-tbw
+    zen-run launch-payroll <username>
+    zen-run resume-payroll <username>
 ```

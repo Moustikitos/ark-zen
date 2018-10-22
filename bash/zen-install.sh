@@ -43,7 +43,8 @@ else
     echo launching/restarting pm2 tasks
     echo ==============================
     if [ "$(pm2 id zen-tbw) " = "[] " ]; then
-        pm2 start ~/zen/app.json
+        cd ~/zen
+        pm2 start app.json
     else
         pm2 restart zen-tbw
     fi
