@@ -16,10 +16,10 @@ Usage:
 Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll
 -c --currency=<currency>       : configure the token display on front-end page
--e --excludes=<excludes>       : coma-separated address list to exclude from payroll
+-e --excludes=<excludes>       : coma-separated or file address list to exclude from payroll
 -f --funds=<funds>             : delegate funds address
--s --share=<share>             : delegate share rate (0.0<=share<=1.0) [default: 1.0]
--t --threshold=<threshold>     : minimum amount for a payment [default: 0.2]
+-s --share=<share>             : delegate share rate (0.0<=share<=1.0)
+-t --threshold=<threshold>     : minimum amount for a payment
 
 Subcommands:
     reset          : initialization starting from ark-core installation
@@ -37,6 +37,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.expanduser("~/zen")))
 
 import zen
+import base58
 import docopt
 import zen.tbw
 
@@ -44,15 +45,26 @@ import zen.tbw
 def _addresses(value):
 	if os.path.exists(value):
 		with io.open(value, "r") as data:
-			return [addr.strip() for addr in data.read().split("\n").split(",")]
+			addresses = [addr.strip() for addr in data.read().split("\n").split(",")]
 	else:
-		return value.split(",")
+		addresses = value.split(",")
+
+	result = []
+	for address in addresses:
+		try: base58.b58decode_check(address)
+		except ValueError: pass
+		else: result.append(address)
+
+	if not len(result):
+		return None
+	else:
+		return result
 
 FILTER = {
 	"--block-delay": lambda value: int(value),
 	"--currency":    lambda value: str(value),
 	"--excludes":    lambda value: _addresses(value),
-	"--funds":       lambda value: str(value),
+	"--funds":       lambda value: _addresses(value),
 	"--share":       lambda value: min(1.0, float(value)),
 	"--threshold":   lambda value: float(value),
 }
@@ -130,7 +142,7 @@ if __name__ == "__main__":
 		options = {}
 		for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
 			options[option[2:].replace("-", "_")] = FILTER[option](value)
-		return options
+		return dict((k,v) for k,v in options.items() if v != None)
 
 	args = docopt.docopt(__doc__, argv=sys.argv[1:])
 	action = getAction(args)
