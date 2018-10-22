@@ -60,7 +60,7 @@ def init(**kwargs):
 				privkey2 = askSecondSecret(account)
 				# load forger configuration and update with minimum data
 				config = loadJson("%s.json" % username)
-				config.update(**{"pubicKey":pkey, "#2":privkey2, "excludes":[account["address"]]})
+				config.update(**{"pubicKey":pkey, "#2":privkey2})
 				dumpJson(config, "%s.json" % username)
 				# create a webhook if no one is set
 				webhook = loadJson("%s-webhook.json" % username)
@@ -161,7 +161,7 @@ def extract(username):
 				"fees": forgery.get("fees", 0.),
 				"weight": OrderedDict(sorted([[a,w/totalContribution] for a,w in tbw.items()], key=lambda e:e[-1], reverse=True))
 			},
-			"%s.tbw" % now.strftime("%Y-%m-%d"),
+			"%s.tbw" % now.strftime("%Y%m%d-%H%M"),
 			folder=os.path.join(zen.ROOT, "app", ".tbw", username)
 		)
 

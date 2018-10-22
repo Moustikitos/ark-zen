@@ -62,12 +62,16 @@ def spread():
 		forger = loadJson("%s.json" % username)
 		forgery = loadJson("%s.forgery" % username, folder=folder)
 
-		# compute the reward distribution
+		# compute the reward distribution excluding delegate
+		address = dposlib.core.crypto.getAddress(generatorPublicKey)
+		excludes = forger.get("excludes", [address])
+		if address not in excludes:
+			excludes.append(address)
 		contributions = zen.tbw.distributeRewards(
 			float(block["reward"])/100000000.,
 			generatorPublicKey,
 			minvote=forger.get("minvote", 0),
-			excludes=forger.get("excludes", [])
+			excludes=excludes
 		)
 
 		# dump true block weight data
@@ -81,5 +85,13 @@ def spread():
 			"%s.forgery" % username,
 			folder=folder
 		)
+
+		# launch payroll if block delay reach
+		block_delay = forger.get("block_delay", False)
+		if block_delay:
+			if (forgery.get("blocks", 0) + 1) >= block_delay:
+				zen.tbw.extract(username)
+				zen.tbw.dumpRegistry(username)
+				zen.tbw.broadcast(username)
 
 	return ""
