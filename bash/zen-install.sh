@@ -33,7 +33,8 @@ cp bash/zen-run ~
 cd ~
 chmod +x zen-run
 if ! (./zen-run initialize) then
-    echo configuration aborted
+    echo
+    echo setup aborted
 else
 
     # launch zen-tbw or reload it

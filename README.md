@@ -14,6 +14,12 @@ wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/zen-install.s
 bash zen-install.sh
 ```
 
+## Initialize blockchain/delegates
+
+```bash
+./zen-run initialize
+```
+
 ## Start/stop True Block Weight
 
 ```bash
