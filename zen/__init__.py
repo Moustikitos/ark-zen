@@ -109,7 +109,7 @@ def chooseItem(msg, *elem):
 			except KeyboardInterrupt:
 				return False
 		if i == 0:
-			return False
+			return None
 		return elem[i - 1]
 	elif n == 1:
 		return elem[0]
@@ -130,21 +130,34 @@ def init():
 		except KeyboardInterrupt:
 			raise Exception("configuration aborted...")
 	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
+	
 	try:
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
+		# if keyboard interupt, print a newline
+		if blockchain == False:
+			sys.stdout.write("\n")
+			sys.stdout.flush()
 	except IndexError:
 		raise Exception("configuration folder not found")
 		sys.exit(1)
 
 	if not blockchain:
-		logMsg("node configuration skipped")
+		logMsg("node configuration skipped (%s)" % blockchain)
 		sys.exit(1)
 	
 	networks_folder = os.path.join(blockchain_folder, blockchain)
-	network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
+	try:
+		network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
+		# if keyboard interupt, print a newline
+		if network == False:
+			sys.stdout.write("\n")
+			sys.stdout.flush()
+	except IndexError:
+		raise Exception("network folder not found")
+		sys.exit(1)
 	
 	if not network:
-		logMsg("node configuration skipped")
+		logMsg("node configuration skipped (%s)" % network)
 		sys.exit(1)
 
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
