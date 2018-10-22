@@ -19,6 +19,8 @@ bash zen-install.sh
 ```bash
 cd ~
 ./zen-run -h
+```
+```
 Usage:
     zen-run reset
     zen-run initialize
