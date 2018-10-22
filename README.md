@@ -44,6 +44,6 @@ Subcommands:
     configure      : configure options for a given <username>
     start-tbw      : start the true block weight process
     stop-tbw       : stop the true block weight process
-    launch-payroll : create a payroll for <username> (true block weight status reseted)
+    launch-payroll : create a payroll for <username> (true block weight status reset)
     resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 ```
