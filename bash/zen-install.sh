@@ -2,6 +2,7 @@
 clear
 echo installing system dependencies
 echo ==============================
+sudo apt-get -qq install pm2
 sudo apt-get -qq install python
 sudo apt-get -qq install python-setuptools
 sudo apt-get -qq install python-pip

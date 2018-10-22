@@ -12,7 +12,7 @@ with open("VERSION") as f1, open("README.md") as f2:
 
 kw = {
 	"version": VERSION,
-	"name": "Zen",
+	"name": "zen",
 	"keywords": ["tbw", "ark-v2"],
 	"author": "Toons",
 	"author_email": "moustikitos@gmail.com",
@@ -27,9 +27,8 @@ kw = {
 	"install_requires": ["docopt", "dposlib", "flask", "flask_bootstrap"],
 	"license": "Copyright 2016-2018 Toons",
 	"classifiers": [
-		"Development Status :: 2 - Pre-Alpha",
+		"Development Status :: 6 - Mature",
 		"Environment :: Console",
-		"Environment :: Web Environment",
 		"Intended Audience :: Developers",
 		"Intended Audience :: End Users/Desktop",
 		"License :: OSI Approved :: MIT License",

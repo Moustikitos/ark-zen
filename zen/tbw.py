@@ -145,7 +145,7 @@ def extract(username):
 	if getPublicKeyFromUsername(username):
 		param = loadJson("%s.json" % username)
 		threshold = param.get("threshold", 0.2)
-		share =  param.get("share", 1.0)
+		share = param.get("share", 1.0)
 
 		forgery = loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
 		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contributions", {}).items()], key=lambda e:e[-1], reverse=True))
@@ -155,7 +155,7 @@ def extract(username):
 		dumpJson(
 			{
 				"timestamp": "%s" % now,
-				"delegate-share": totalContribution * (1.0-param.get("share", 1.0)),
+				"delegate-share": totalContribution * (1.0 - share),
 				"undistributed": sum(w for w in data.values() if w < threshold),
 				"distributed": sum(tbw.values()),
 				"fees": forgery.get("fees", 0.),

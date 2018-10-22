@@ -1,8 +1,7 @@
 recursive-include zen *.css
 recursive-include zen *.html
-recursive-include bash *.sh
+recursive-include bash *
 include LICENSE
 include VERSION
 include app.json
-include cfg.py
 include srv.py
