@@ -94,4 +94,4 @@ def spread():
 				zen.tbw.dumpRegistry(username)
 				zen.tbw.broadcast(username)
 
-	return "<h1>Zen True Block Weight is running</h1>"
+	return json.dumps({"zen-tbw":True}, indent=2)
