@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+import sys
 import time
 import sqlite3
 import getpass
@@ -105,7 +106,10 @@ def askSecondSecret(account):
 				seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
 				secondPublicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
 			except KeyboardInterrupt:
-				break
+				sys.stdout.write("\n")
+				sys.stdout.flush()
+				logMsg("delegate configuration skipped")
+				sys.exit(1)
 		return dposlib.core.crypto.hexlify(seed)
 
 

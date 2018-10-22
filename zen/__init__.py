@@ -107,6 +107,8 @@ def chooseItem(msg, *elem):
 			except ValueError:
 				i = -1
 			except KeyboardInterrupt:
+				sys.stdout.write("\n")
+				sys.stdout.flush()
 				return False
 		if i == 0:
 			return None
@@ -133,10 +135,6 @@ def init():
 	
 	try:
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
-		# if keyboard interupt, print a newline
-		if blockchain == False:
-			sys.stdout.write("\n")
-			sys.stdout.flush()
 	except IndexError:
 		raise Exception("configuration folder not found")
 		sys.exit(1)
@@ -148,10 +146,6 @@ def init():
 	networks_folder = os.path.join(blockchain_folder, blockchain)
 	try:
 		network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
-		# if keyboard interupt, print a newline
-		if network == False:
-			sys.stdout.write("\n")
-			sys.stdout.flush()
 	except IndexError:
 		raise Exception("network folder not found")
 		sys.exit(1)
