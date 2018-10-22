@@ -40,10 +40,10 @@ Options:
 
 Subcommands:
     reset          : initialization starting from ark-core installation
-	initialize     : initialization starting from delegates configuration
-	configure      : configure options for a given <username>
-	start-tbw      : start the true block weight process
-	stop-tbw       : stop the true block weight process
-	launch-payroll : create a payroll for <username> (true block weight status reseted)
-	resume-payroll : resume existing <username> payroll (true block weight status unchanged)
+    initialize     : initialization starting from delegates configuration
+    configure      : configure options for a given <username>
+    start-tbw      : start the true block weight process
+    stop-tbw       : stop the true block weight process
+    launch-payroll : create a payroll for <username> (true block weight status reseted)
+    resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 ```
