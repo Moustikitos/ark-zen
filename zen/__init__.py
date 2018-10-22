@@ -122,7 +122,7 @@ def init():
 	global WEBHOOK_PEER
 	root = loadJson("root.json")
 
-	# first ask network folder
+	# ask node folder if not found in root.json
 	node_folder = root.get("node_folder", "")
 	while not os.path.exists(node_folder):
 		try:
@@ -134,17 +134,18 @@ def init():
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
 	except IndexError:
 		raise Exception("configuration folder not found")
+		sys.exit(1)
 
 	if not blockchain:
 		logMsg("node configuration skipped")
-		return
+		sys.exit(1)
 	
 	networks_folder = os.path.join(blockchain_folder, blockchain)
 	network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
 	
 	if not network:
 		logMsg("node configuration skipped")
-		return
+		sys.exit(1)
 
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
 	root["config"] = os.path.join(networks_folder, "%s.json" % network)

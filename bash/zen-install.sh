@@ -29,20 +29,25 @@ pip install --user -r requirements.txt -q
 echo
 echo initializing zen
 echo ================
-chmod +x exe
-./exe initialize
-
-# launch zen-tbw or reload it
-# reload ark-core-relay if launched
-echo
-echo launching/restarting pm2 tasks
-echo ==============================
-if [ "$(pm2 id zen-tbw) " = "[] " ]; then
-    pm2 start app.json
+cp bash/zen-run ~
+cd ~
+chmod +x zen-run
+if ! (./zen-run initialize) then
+    echo configuration aborted
 else
-    pm2 restart zen-tbw
-fi
 
-if [ "$(pm2 id ark-core-relay) " != "[] " ]; then
-    pm2 restart ark-core-relay
+    # launch zen-tbw or reload it
+    # reload ark-core-relay if launched
+    echo
+    echo launching/restarting pm2 tasks
+    echo ==============================
+    if [ "$(pm2 id zen-tbw) " = "[] " ]; then
+        pm2 start ~/zen/app.json
+    else
+        pm2 restart zen-tbw
+    fi
+
+    if [ "$(pm2 id ark-core-relay) " != "[] " ]; then
+        pm2 restart ark-core-relay
+    fi
 fi
