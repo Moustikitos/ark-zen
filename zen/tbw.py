@@ -31,7 +31,7 @@ def initDb(username):
 def initPeers():
 	root = loadJson("root.json")
 	env = loadEnv(os.path.join(root["env"], ".env"))
-	zen.WEBHOOK_PEER = "http://124.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
+	zen.WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 
 
 def init(**kwargs):
@@ -151,15 +151,16 @@ def extract(username):
 		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contributions", {}).items()], key=lambda e:e[-1], reverse=True))
 		tbw = OrderedDict([a,w*share] for a,w in data.items() if w >= threshold)
 		totalContribution = sum(data.values())
+		totalDistributed = sum(tbw.values())
 
 		dumpJson(
 			{
 				"timestamp": "%s" % now,
 				"delegate-share": totalContribution * (1.0 - share),
 				"undistributed": sum(w for w in data.values() if w < threshold),
-				"distributed": sum(tbw.values()),
+				"distributed": totalDistributed,
 				"fees": forgery.get("fees", 0.),
-				"weight": OrderedDict(sorted([[a,w/totalContribution] for a,w in tbw.items()], key=lambda e:e[-1], reverse=True))
+				"weight": OrderedDict(sorted([[a,s/totalDistributed] for a,s in tbw.items()], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.tbw" % now.strftime("%Y%m%d-%H%M"),
 			folder=os.path.join(zen.ROOT, "app", ".tbw", username)
