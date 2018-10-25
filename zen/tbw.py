@@ -34,6 +34,10 @@ def initPeers():
 	zen.WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 
 
+def printNewLine():
+	sys.stdout.write("\n")
+	sys.stdout.flush()
+
 def init(**kwargs):
 
 	# initialize peers from .env file
@@ -48,6 +52,7 @@ def init(**kwargs):
 		pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
 		for pkey in pkeys:
+			printNewLine()
 			# for each publicKey, get account data (merge delegate and wallet info)
 			req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
 			account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
@@ -88,7 +93,7 @@ def init(**kwargs):
 			dumpJson(config, "%s.json" % username)
 			logMsg("%s delegate set" % username)
 		else:
-			logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
+			logMsg("can not find delegate %s" % username)
 
 	else:
 		tbw = loadJson("tbw.json")
@@ -106,8 +111,7 @@ def askSecondSecret(account):
 				seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
 				secondPublicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
 			except KeyboardInterrupt:
-				sys.stdout.write("\n")
-				sys.stdout.flush()
+				printNewLine()
 				logMsg("delegate configuration skipped")
 				sys.exit(1)
 		return dposlib.core.crypto.hexlify(seed)
