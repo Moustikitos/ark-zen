@@ -234,7 +234,8 @@ def broadcast(username, chunk_size=10):
 		transactions = list(registry.values())
 
 		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
-			logMsg("Broadcasting chunk of transactions...\n%r" % dposlib.rest.POST.api.transactions(transactions=chunk))
+			response = dposlib.rest.POST.api.transactions(transactions=chunk)
+			logMsg("Broadcasting chunk of transactions...\n%r" % json.dumps(response, indent=2))
 		time.sleep(dposlib.rest.cfg.blocktime)
 
 		tries = 0
@@ -250,7 +251,7 @@ def broadcast(username, chunk_size=10):
 			tries += 1
 
 		if tries >=5:
-			logMsg("payroll aborted, network was too bad")
+			logMsg("action finished, network was too bad or the fees are to high")
 		else:
 			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
 			os.remove(os.path.join(folder, name))

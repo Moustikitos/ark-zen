@@ -78,18 +78,17 @@ if [ "$(pm2 id zen-tbw) " = "[] " ]; then
 else
     pm2 restart zen-tbw
 fi
-""" % {"abspath": os.path.abspath(os.path.dirname(__file__))}
+""" % {"abspath": os.path.dirname(zen.__path__[0])}
 )
 
 
 def stop_tbw(args={}, **options):
-	os.chdir(os.path.abspath(os.path.dirname(__file__)))
 	os.system("""
 if [ "$(pm2 id zen-tbw) " != "[] " ]; then
 	cd %(abspath)s
     pm2 stop zen-tbw
 fi
-""" % {"abspath": os.path.abspath(os.path.dirname(__file__))}
+""" % {"abspath": os.path.dirname(zen.__path__[0])}
 )
 
 
