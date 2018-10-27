@@ -9,6 +9,7 @@ from collections import OrderedDict
 
 import zen
 import zen.tbw
+from dposlib import rest
 from zen import loadJson, dumpJson, getUsernameFromPublicKey
 
 
@@ -45,10 +46,25 @@ def spread():
 		username = getUsernameFromPublicKey(generatorPublicKey)
 		if not username: return ""
 		
-		# load previous forged block and save last forged 
+		req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
+		if req.get("error", False):
+			raise Exception("Api error occured: %r" % req)
+
 		filename = "%s.last.block" % username
 		folder = os.path.join(zen.DATA, username)
+		# load forged blocks history
+		# compute fees, blocs and rewards from the last saved block
+		rewards = fees = blocks = 0
 		last_block = loadJson(filename, folder=folder)
+		last_blocks = req.get("data", {})
+		for blk in last_blocks:
+			if blk["id"] != last_block["id"]:
+				rewards += float(blk["forged"]["reward"])/100000000.
+				fees += float(blk["forged"]["fee"])/100000000.
+				blocks += 1
+			else:
+				break
+
 		dumpJson(block, filename, folder=folder)
 		if last_block.get("id", None) == block["id"]:
 			raise Exception("No new block created")
@@ -67,8 +83,9 @@ def spread():
 		excludes = forger.get("excludes", [address])
 		if address not in excludes:
 			excludes.append(address)
+
 		contributions = zen.tbw.distributeRewards(
-			float(block["reward"])/100000000.,
+			rewards,
 			generatorPublicKey,
 			minvote=forger.get("minvote", 0),
 			excludes=excludes
@@ -78,9 +95,9 @@ def spread():
 		_ctrb = forgery.get("contributions", {})
 		dumpJson(
 			{
-				"fees": forgery.get("fees", 0.) + float(block["totalFee"])/100000000.,
-				"blocks": forgery.get("blocks", 0) + 1,
-				"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions.keys()], key=lambda e:e[-1], reverse=True))
+				"fees": forgery.get("fees", 0.) + fees,
+				"blocks": forgery.get("blocks", 0) + blocks,
+				"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.forgery" % username,
 			folder=folder
@@ -89,7 +106,7 @@ def spread():
 		# launch payroll if block delay reach
 		block_delay = forger.get("block_delay", False)
 		if block_delay:
-			if (forgery.get("blocks", 0) + 1) >= block_delay:
+			if (forgery.get("blocks", 0) + blocks) >= block_delay:
 				zen.tbw.extract(username)
 				zen.tbw.dumpRegistry(username)
 				zen.tbw.broadcast(username)

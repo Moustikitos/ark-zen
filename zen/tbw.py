@@ -118,10 +118,13 @@ def askSecondSecret(account):
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
-	voters = dposlib.rest.GET.api.v2.delegates(pkey, "voters").get("data", [])
+	req = dposlib.rest.GET.api.v2.delegates(pkey, "voters")
+	if req.get("error", False):
+		raise Exception("Api error occured: %r" % req)
+	voters = req.get("data", [])
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes)
 	total_balance = sum(voters.values())
-	pairs = [[a,b/total_balance*rewards] for a,b in voters.items() if a not in excludes and b > minvote]
+	pairs = [[a, b/total_balance*rewards] for a,b in voters.items() if b > minvote]
 	return OrderedDict(sorted(pairs, key=lambda e:e[-1], reverse=True))
 
 
