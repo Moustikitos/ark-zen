@@ -239,7 +239,7 @@ def broadcast(username, chunk_size=10):
 
 		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
 			response = dposlib.rest.POST.api.transactions(transactions=chunk)
-			logMsg("Broadcasting chunk of transactions...\n%r" % json.dumps(response, indent=2))
+			logMsg("Broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
 		time.sleep(dposlib.rest.cfg.blocktime)
 
 		tries = 0
