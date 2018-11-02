@@ -24,7 +24,7 @@ cd ~
 Usage:
     zen-run reset
     zen-run initialize
-    zen-run configure <username> [-s <share> -f <funds> -t <threshold> -e <excludes> -b <block-delay>]
+    zen-run configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen-run configure [-c <currency>]
     zen-run adjust-forge <username> <value>
     zen-run start-tbw
@@ -35,10 +35,11 @@ Usage:
 Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll
 -c --currency=<currency>       : configure the token display on front-end page
--e --excludes=<excludes>       : coma-separated address list to exclude from payroll
--f --funds=<funds>             : delegate funds address
--s --share=<share>             : delegate share rate (0.0<=share<=1.0) [default: 1.0]
--t --threshold=<threshold>     : minimum amount for a payment [default: 0.2]
+-e --excludes=<excludes>       : coma-separated or file address list to exclude from payroll
+-w --wallet=<wallet>           : delegate funds wallet
+-f --fee-level=<fee-level>     : set the fee level for the delegate
+-s --share=<share>             : delegate share rate (0.0<=share<=1.0)
+-t --threshold=<threshold>     : minimum amount for a payment
 
 Subcommands:
     reset          : initialization starting from ark-core installation
@@ -46,6 +47,6 @@ Subcommands:
     configure      : configure options for a given <username>
     start-tbw      : start the true block weight process
     stop-tbw       : stop the true block weight process
-    launch-payroll : create a payroll for <username> (true block weight status reset)
+    launch-payroll : create a payroll for <username> (true block weight status reseted)
     resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 ```
