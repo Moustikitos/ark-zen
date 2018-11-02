@@ -5,7 +5,7 @@
 Usage:
     zen-run reset
     zen-run initialize
-    zen-run configure <username> [-s <share> -f <funds> -t <threshold> -e <excludes> -b <block-delay>]
+    zen-run configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen-run configure [-c <currency>]
     zen-run adjust-forge <username> <value>
     zen-run start-tbw
@@ -17,7 +17,8 @@ Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll
 -c --currency=<currency>       : configure the token display on front-end page
 -e --excludes=<excludes>       : coma-separated or file address list to exclude from payroll
--f --funds=<funds>             : delegate funds address
+-w --wallet=<wallet>           : delegate funds wallet
+-f --fee-level=<fee-level>     : set the fee level for the delegate
 -s --share=<share>             : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>     : minimum amount for a payment
 
@@ -59,15 +60,6 @@ def _addresses(value):
 		return None
 	else:
 		return result
-
-FILTER = {
-	"--block-delay": lambda value: int(value),
-	"--currency":    lambda value: str(value),
-	"--excludes":    lambda value: _addresses(value),
-	"--funds":       lambda value: _addresses(value),
-	"--share":       lambda value: min(1.0, float(value)),
-	"--threshold":   lambda value: float(value),
-}
 
 
 def start_tbw(args={}, **options):
@@ -130,6 +122,15 @@ def adjust_forge(args={}, **options):
 
 if __name__ == "__main__":
 	tbw = zen.loadJson("tbw.json")
+
+	FILTER = {
+		"--block-delay": lambda value: int(value),
+		"--currency":    lambda value: str(value),
+		"--excludes":    lambda value: _addresses(value),
+		"--wallet":      lambda value: _addresses(value)[0],
+		"--share":       lambda value: min(1.0, float(value)),
+		"--threshold":   lambda value: float(value),
+	}
 
 	def getAction(args):
 		for action in [k for k in args if k[0] not in ["-", "<"]]:

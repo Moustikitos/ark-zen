@@ -21,10 +21,8 @@ def initDb(username):
 	sqlite = sqlite3.connect(os.path.join(zen.ROOT, "%s.db" % username))
 	sqlite.row_factory = sqlite3.Row
 	cursor = sqlite.cursor()
-	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(date TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
+	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
 	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
-	cursor.execute("CREATE TABLE IF NOT EXISTS payrolls(date TEXT, share REAL, amount INTEGER);")
-	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS payroll_index ON payrolls(date);")
 	sqlite.commit()
 	return sqlite
 
@@ -197,6 +195,12 @@ def dumpRegistry(username):
 		config = loadJson("%s.json" % username)
 		folder = os.path.join(zen.ROOT, "app", ".tbw", username)
 
+		fee_level = config.get("fee_level", False)
+		if fee_level:
+			dposlib.core.Transaction.setDynamicFee(fee_level)
+		else:
+			dposlib.core.Transaction.setStaticFee()
+
 		if config.get("#2", None):
 			secondKeys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))
 			dposlib.core.Transaction._secondPublicKey = secondKeys["publicKey"]
@@ -215,7 +219,7 @@ def dumpRegistry(username):
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 
-			if config.get("funds", False):
+			if config.get("wallet", False):
 				transaction = dposlib.core.transfer(tbw["delegate-share"] + tbw["fees"], config["funds"], "%s share" % username)
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
@@ -249,7 +253,7 @@ def broadcast(username, chunk_size=10):
 				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
-						"INSERT OR REPLACE INTO transactions(date, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+						"INSERT OR REPLACE INTO transactions(name, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
 						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
 					)
 			tries += 1
@@ -261,3 +265,4 @@ def broadcast(username, chunk_size=10):
 			os.remove(os.path.join(folder, name))
 
 		sqlite.commit()
+
