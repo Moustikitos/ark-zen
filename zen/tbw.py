@@ -13,6 +13,8 @@ import zen
 import pytz
 import dposlib
 
+from dposlib import rest
+from dposlib.blockchain import slots
 from dposlib.util.bin import unhexlify
 from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
 
@@ -20,13 +22,43 @@ from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
 def initDb(username):
 	sqlite = sqlite3.connect(os.path.join(zen.ROOT, "%s.db" % username))
 # conn.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-# c = conn.cursor()
-	sqlite.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r)) #sqlite3.Row
+# c = conn.cursor() = lambda c, r: dict(zip([col[0] for col in c.description], r)) #
+	sqlite.row_factory = sqlite3.Row
 	cursor = sqlite.cursor()
 	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
 	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
 	sqlite.commit()
 	return sqlite
+
+
+def rebuildDb(username):
+	sqlite = initDb(username)
+	cursor = sqlite.cursor()
+
+	account = rest.GET.api.v2.delegates(username, returnKey="data")
+	address =  account.get("address", False)
+	if address:
+		transactions = []
+		req = [None]
+		while len(req) > 0:
+			offset = len(transactions)
+			options = {} if not offset else {"offset":offset}
+			req = rest.GET.api.v2.wallets(address, "transactions", **options).get("data", [])
+			transactions.extend([(
+				slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
+				tx["timestamp"]["epoch"],
+				tx["amount"]/100000000.,
+				tx.get("recipient", ""),
+				tx["id"]
+			) for tx in req if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address])
+	
+		cursor.executemany(
+			"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+			transactions
+		)
+	
+	sqlite.commit()
+	sqlite.close()
 
 
 def initPeers():
