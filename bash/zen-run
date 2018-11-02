@@ -11,6 +11,7 @@ Usage:
     zen-run start-tbw
     zen-run stop-tbw
     zen-run launch-payroll <username>
+    zen-run retry-payroll <username> -n <name-list>
     zen-run resume-payroll <username>
 
 Options:
@@ -21,6 +22,7 @@ Options:
 -f --fee-level=<fee-level>     : set the fee level for the delegate
 -s --share=<share>             : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>     : minimum amount for a payment
+-n --name-list=<name-list>     : *.tbw name list
 
 Subcommands:
     reset          : initialization starting from ark-core installation
@@ -29,6 +31,7 @@ Subcommands:
     start-tbw      : start the true block weight process
     stop-tbw       : stop the true block weight process
     launch-payroll : create a payroll for <username> (true block weight status reseted)
+    retry-payroll  : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 """
 
@@ -43,13 +46,26 @@ import docopt
 import zen.tbw
 
 
-def _addresses(value):
+def _fee(value)
+	if value in ["minFee", "avgFee", "maxFee"]:
+		return value
+	else:
+		try: return int(value)
+		except: return None
+	return None
+
+
+def _split(value):
 	if os.path.exists(value):
 		with io.open(value, "r") as data:
-			addresses = [addr.strip() for addr in data.read().split("\n").split(",")]
+			lst = [addr.strip() for addr in data.read().split("\n").split(",")]
 	else:
-		addresses = value.split(",")
+		lst = value.split(",")
+	return lst
 
+
+def _addresses(value):
+	addresses = _split(value)
 	result = []
 	for address in addresses:
 		try: base58.b58decode_check(address)
@@ -107,6 +123,17 @@ def resume_payroll(args={}, **options):
 	zen.tbw.broadcast(username)
 
 
+def retry_payroll(args={}, **options):
+	username = args["<username>"]
+	folder = os.path.join(zen.ROOT, "app", ".tbw", username)
+	for path in [
+		os.path.join(zen.ROOT, "app", ".tbw", username, "history", "%s.tbw" % name) \
+		for name in options["name_list"]
+	]: os.system('mv "%s" "%s"' % (path, folder))
+	zen.tbw.dumpRegistry(username)
+	zen.tbw.broadcast(username)
+
+
 def configure(args={}, **options):
 	username = args["<username>"]
 	if username:
@@ -130,6 +157,8 @@ if __name__ == "__main__":
 		"--wallet":      lambda value: _addresses(value)[0],
 		"--share":       lambda value: min(1.0, float(value)),
 		"--threshold":   lambda value: float(value),
+		"--name-list":   lambda value: _split(value),
+		"--fee-level":   lambda value: _fee(value),
 	}
 
 	def getAction(args):
@@ -141,7 +170,11 @@ if __name__ == "__main__":
 	def getOptions(args):
 		options = {}
 		for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
-			options[option[2:].replace("-", "_")] = FILTER[option](value)
+			try:
+				options[option[2:].replace("-", "_")] = FILTER[option](value)
+			except Exception as error:
+				zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
+				sys.exit(1)
 		return dict((k,v) for k,v in options.items() if v != None)
 
 	args = docopt.docopt(__doc__, argv=sys.argv[1:])

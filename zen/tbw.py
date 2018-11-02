@@ -37,6 +37,7 @@ def printNewLine():
 	sys.stdout.write("\n")
 	sys.stdout.flush()
 
+
 def init(**kwargs):
 
 	# initialize peers from .env file
