@@ -29,17 +29,18 @@ def zen_index(username):
 @app.route("/<string:username>/history/<int:page>/<int:n>")
 def zen_history(username, page, n):
 	cursor = connect(username)
-
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")
-	tbw_list = sorted([name for name in os.listdir(history_folder) if name.endswith(".tbw")], reverse=True)
+
+	tbw_list = sorted([os.path.splitext(name)[0] for name in os.listdir(history_folder) if name.endswith(".tbw")], reverse=True)
 	n_tbw = len(tbw_list)
 	n_page = int(math.ceil(float(n_tbw) / n))
 	start = page*n
 
-	selection = tbw_list[start:start+n]
-	data = dict([name, zen.loadJson(name, folder=history_folder)] for name in selection)
+	selection = list(sorted(tbw_list, reverse=True))[start:start+n]
+	data = dict([name, zen.loadJson(name+".tbw", folder=history_folder)] for name in selection)
+
 	details = dict(
-		[name, cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name.replace(".tbw",""),)).fetchall()] \
+		[name, cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name,)).fetchall()] \
 		for name in selection 
 	)
 
