@@ -1,5 +1,4 @@
 # -*- encoding:utf-8 -*-
-
 import os
 import json
 import flask
@@ -14,7 +13,7 @@ from zen import loadJson, dumpJson, getUsernameFromPublicKey
 
 
 # create the application instance 
-app = flask.Flask(__name__) 
+app = flask.Flask(__name__)
 app.config.update(
 	# 300 seconds = 5 minutes lifetime session
 	PERMANENT_SESSION_LIFETIME = 300,
@@ -27,7 +26,9 @@ app.config.update(
 	SESSION_COOKIE_SECURE = False,
 	# update cookies on each request
 	# cookie are outdated after PERMANENT_SESSION_LIFETIME seconds of idle
-	SESSION_REFRESH_EACH_REQUEST = True
+	SESSION_REFRESH_EACH_REQUEST = True,
+	# 
+	TEMPLATES_AUTO_RELOAD = True
 )
 
 
@@ -48,6 +49,7 @@ def spread():
 		
 		req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
 		if req.get("error", False):
+			dposlib.core.rotate_peers()
 			raise Exception("Api error occured: %r" % req)
 
 		filename = "%s.last.block" % username
@@ -112,3 +114,20 @@ def spread():
 				zen.tbw.broadcast(username)
 
 	return json.dumps({"zen-tbw":True}, indent=2)
+
+
+########################
+# css reload bugfix... #
+########################
+@app.context_processor
+def override_url_for():
+	return dict(url_for=dated_url_for)
+
+def dated_url_for(endpoint, **values):
+	if endpoint == 'static':
+		filename = values.get("filename", False)
+		if filename:
+			file_path = os.path.join(app.root_path, endpoint, filename)
+			values["q"] = int(os.stat(file_path).st_mtime)
+	return flask.url_for(endpoint, **values)
+########################

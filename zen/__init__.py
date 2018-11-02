@@ -41,7 +41,7 @@ def getUsernameFromPublicKey(publicKey):
 
 
 def loadJson(name, folder=None):
-	filename = os.path.join(JSON, name if not folder else os.path.join(folder, name))
+	filename = os.path.join(JSON if not folder else folder, name)
 	if os.path.exists(filename):
 		with io.open(filename) as in_:
 			return json.load(in_)
@@ -50,7 +50,7 @@ def loadJson(name, folder=None):
 
 
 def dumpJson(data, name, folder=None):
-	filename = os.path.join(JSON, name if not folder else os.path.join(folder, name))
+	filename = os.path.join(JSON if not folder else folder, name)
 	try: os.makedirs(os.path.dirname(filename))
 	except OSError: pass
 	with io.open(filename, "w" if PY3 else "wb") as out:
@@ -123,6 +123,7 @@ def chooseItem(msg, *elem):
 def init():
 	global WEBHOOK_PEER
 	root = loadJson("root.json")
+	tbw = loadJson("tbw.json")
 
 	# ask node folder if not found in root.json
 	node_folder = root.get("node_folder", "")

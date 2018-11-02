@@ -19,7 +19,9 @@ from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
 
 def initDb(username):
 	sqlite = sqlite3.connect(os.path.join(zen.ROOT, "%s.db" % username))
-	sqlite.row_factory = sqlite3.Row
+# conn.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
+# c = conn.cursor()
+	sqlite.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r)) #sqlite3.Row
 	cursor = sqlite.cursor()
 	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
 	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
@@ -254,7 +256,7 @@ def broadcast(username, chunk_size=10):
 				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
-						"INSERT OR REPLACE INTO transactions(name, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
 						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
 					)
 			tries += 1
