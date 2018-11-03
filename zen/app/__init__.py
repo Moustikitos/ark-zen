@@ -31,7 +31,11 @@ def zen_history(username, page, n):
 	cursor = connect(username)
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")
 
-	tbw_list = sorted([os.path.splitext(name)[0] for name in os.listdir(history_folder) if name.endswith(".tbw")], reverse=True)
+	try:
+		tbw_list = sorted([os.path.splitext(name)[0] for name in os.listdir(history_folder) if name.endswith(".tbw")], reverse=True)
+	except:
+		tbw_list = []
+
 	n_tbw = len(tbw_list)
 	n_page = int(math.ceil(float(n_tbw) / n))
 	start = page*n

@@ -6,9 +6,8 @@
 
 {%- block body %}
 
-
-<div class="container">
-
+{%- if page_number > 0 %}
+<div class="container">	
 <nav aria-label="payroll navigation">
 	<ul class="pagination">
 		<li class="page-item">
@@ -34,10 +33,10 @@
 	</ul>
 </nav>
 </div>
+{%- endif %}
 
 <div class="container">
 <div class="accordion" id="payrollList">
-
 {%- for item in selection %}
 	{%- set name = "_"+item.replace(".", "").replace("-","") %}
 	<div class="card">

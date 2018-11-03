@@ -13,6 +13,7 @@ Usage:
     zen-run launch-payroll <username>
     zen-run retry-payroll <username> -n <name-list>
     zen-run resume-payroll <username>
+    zen-run remove-delegate [<username>]
 
 Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll
@@ -45,6 +46,7 @@ import base58
 import docopt
 import zen.tbw
 
+from dposlib import rest
 
 def _fee(value):
 	if value in ["minFee", "avgFee", "maxFee"]:
@@ -101,7 +103,8 @@ fi
 
 
 def reset(args={}, **options):
-	os.remove(os.path.join(zen.JSON, "root.json"))
+	if os.path.exists(os.path.join(zen.JSON, "root.json")):
+		os.remove(os.path.join(zen.JSON, "root.json"))
 	initialize(args, **options)
 
 
@@ -132,6 +135,36 @@ def retry_payroll(args={}, **options):
 	]: os.system('mv "%s" "%s"' % (path, folder))
 	zen.tbw.dumpRegistry(username)
 	zen.tbw.broadcast(username)
+
+
+def remove_delegate(args={}, **options):
+	root = zen.loadJson("root.json")
+	username = args["<username>"]
+
+	if not username:
+		webhooks = [name for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
+		usernames = [name.split("-")[0] for name in webhooks]
+		username = zen.chooseItem("Select listener to destroy:", *[u for u in usernames if u])
+		if not username:
+			return
+
+	webhook_path = os.path.join(zen.JSON, "%s-webhook.json" % username)
+	webhook = zen.loadJson(webhook_path)
+	w_id = webhook.get("id", False)
+	if w_id:
+		rest.DELETE.api.webhooks("%s"%webhook["id"], peer="http://127.0.0.1:4004")
+		os.remove(webhook_path)
+		zen.logMsg("%s webhook destroyed" % username)
+	else:
+		zen.logMsg("%s webhook not found" % username)
+
+	username_path = os.path.join(zen.JSON, "%s.json" % username)
+	delegate = zen.loadJson(username_path)
+	if len(delegate):
+		os.remove(username_path)
+		zen.logMsg("%s destroyed" % username)
+	else:
+		zen.logMsg("%s not found" % username)
 
 
 def configure(args={}, **options):

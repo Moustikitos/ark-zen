@@ -197,10 +197,10 @@ def extract(username):
 		dumpJson(
 			{
 				"timestamp": "%s" % now,
-				"delegate-share": totalContribution * (1.0 - share),
-				"undistributed": sum(w for w in data.values() if w < threshold),
-				"distributed": totalDistributed,
-				"fees": forgery.get("fees", 0.),
+				"delegate-share": round(totalContribution * (1.0 - share), 8),
+				"undistributed": round(sum(w for w in data.values() if w < threshold), 8),
+				"distributed": round(totalDistributed, 8),
+				"fees": round(forgery.get("fees", 0.), 8),
 				"weight": OrderedDict(sorted([[a,s/totalDistributed] for a,s in tbw.items()], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.tbw" % now.strftime("%Y%m%d-%H%M"),
@@ -248,14 +248,17 @@ def dumpRegistry(username):
 			registry = OrderedDict()
 			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
-					amount*weight, address,
+					round(amount*weight, 8), address,
 					config.get("vendorField", "%s reward" % username)
 				)
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 
 			if config.get("wallet", False):
-				transaction = dposlib.core.transfer(tbw["delegate-share"] + tbw["fees"], config["funds"], "%s share" % username)
+				transaction = dposlib.core.transfer(
+					round(tbw["delegate-share"]+tbw["fees"], 8),
+					config["wallet"], "%s share" % username
+				)
 				transaction.finalize(fee_included=True)
 				registry[transaction["id"]] = transaction
 

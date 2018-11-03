@@ -77,7 +77,7 @@ def dumpEnv(env, pathname):
 			environ.write(b"%s=%s\n" % (key, value))
 
 
-def logMsg(msg, logname=None):
+def logMsg(msg, logname=None, dated=False):
 	if logname:
 		logfile = os.path.join(LOG, logname)
 		try:
@@ -87,9 +87,16 @@ def logMsg(msg, logname=None):
 		stdout = io.open(logfile, "a")
 	else:
 		stdout = sys.stdout
-	stdout.write(">>> [%s] %s\n" % (datetime.datetime.now().strftime("%x %X"), msg))
+
+	stdout.write(
+		">>> " + \
+		("[%s] " % datetime.datetime.now().strftime("%x %X") if dated else "") + \
+		"%s\n" % msg
+	)
 	stdout.flush()
-	return stdout.close() if logname else None
+
+	if logname:
+		return stdout.close()
 
 
 def chooseItem(msg, *elem):
