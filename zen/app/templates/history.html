@@ -5,13 +5,15 @@
 {%- endblock title %}
 
 {%- block body %}
-
 {%- if page_number > 0 %}
 <div class="container">	
 <nav aria-label="payroll navigation">
 	<ul class="pagination">
-		<li class="page-item">
-			<a class="page-link" href="/{{username}}/history/{{ [0, curent_page-1] | max }}/{{entry_number}}">Previous</a>
+		<li class="page-item{{' disabled' if curent_page == 0 else ''}}">
+			<a
+				class="page-link"
+				href="/{{username}}/history/{{ [0, curent_page-1] | max }}/{{entry_number}}"
+			><span class="ellipsed">&laquo;</span><span class="not-ellipsed">Previous</span></a>
 		</li>
 	{%- for page in range(page_number) %}
 		{%- if page < 2 or page >= page_number-2 %}
@@ -21,14 +23,17 @@
 		{%- endif %}
 		{%- if page_number > 4 and loop.index == 2 %}
 		&nbsp;
-		<li class="page-item{{' active' if page in range(2,page_number-3,1) else ''}}">
+		<li class="page-item{{' active disabled' if page in range(2,page_number-3,1) else ''}}">
 			<a class="page-link" href="#">&#x2026;</a>
 		</li>
 		&nbsp;
 		{%- endif %}
 	{%- endfor %}
-		<li class="page-item">
-			<a class="page-link" href="/{{username}}/history/{{ [curent_page+1, page_number-1] | min }}/{{entry_number}}">Next</a>
+		<li class="page-item{{' disabled' if curent_page == page_number-1 else ''}}">
+			<a
+				class="page-link"
+				href="/{{username}}/history/{{ [curent_page+1, page_number-1] | min }}/{{entry_number}}"
+			><span class="ellipsed">&raquo;</span><span class="not-ellipsed">Next</span></a>
 		</li>
 	</ul>
 </nav>
@@ -41,11 +46,14 @@
 	{%- set name = "_"+item.replace(".", "").replace("-","") %}
 	<div class="card">
 		<div class="card-header" id="{{ name }}">
-			<a	data-toggle="collapse"
+			<button
+				class="btn btn-link btn-sm btn-block text-left"
+				data-toggle="collapse"
 				data-target="#collapse{{ name }}"
 				aria-expanded="{{ 'true' if loop.index == 1 else 'false' }}"
 				aria-controls="collapse{{ name }}"
 				href="#"
+				style="font-weight:bold;"
 			>{{ data[item]["timestamp"][:16] }}</a>
 		</div>
 		<div class="collapse {{ 'show' if loop.index == 1 else 'hide' }}"
@@ -56,18 +64,18 @@
 			<div class="card-body">
 				<table class="table table-hover table-dark table-sm">
 			{%- for (key,value) in data[item].items() if key not in ["weight", "timestamp", "delegate-share"] %}
-				<tr><td width="100%">{{ key }}</td><td>{{ "%.8f" % value }}</td></tr>
+				<tr><td width="100%">{{ key }}</td><td style="text-align:right;">{{ "%.8f" % value }}&nbsp;&#1126;</td></tr>
 			{%- endfor %}
 				</table>
 				<button 
 					type="button"
-					class="btn btn-primary"
+					class="btn btn-info"
 					data-toggle="modal"
 					data-target="#details{{ name }}"
 				>Details</button>
 <!-- Modal -->
 <div class="modal fade" id="details{{ name }}" tabindex="-1" role="dialog" aria-labelledby="modal{{ name }}" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered" role="document">
+	<div class="modal-dialog" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="modal{{ name }}">Distribution details</h5>
@@ -85,8 +93,11 @@
 <tbody>
 {%- for reccord in details[item] %}
 <tr>
-	<td width="100%">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</td>
-	<td>{{ "%.8f" % reccord["amount"] }}</td>
+	<td width="100%">
+		<span class="not-ellipsed">{{ reccord["address"] }}</span>
+		<span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span>
+	</td>
+	<td style="text-align:right;">{{ "%.8f" % reccord["amount"] }}&nbsp;&#1126;</td>
 </tr>
 {%- endfor %}
 </tbody>
