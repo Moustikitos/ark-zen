@@ -26,6 +26,8 @@ def index():
 
 @app.route("/<string:username>")
 def delegate_index(username):
+	if username == "favicon.ico":
+		return ""
 	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
 	config = zen.loadJson("%s.json" % username)
 	config.pop("#2", False)
