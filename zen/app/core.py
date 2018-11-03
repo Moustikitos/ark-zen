@@ -99,6 +99,7 @@ def spread():
 			excludes=excludes
 		)
 
+		# from here, all blochain call are finished so
 		# dump the last block forged provided by webhook
 		dumpJson(block, filename, folder=folder)
 

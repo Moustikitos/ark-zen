@@ -21,8 +21,6 @@ from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
 
 def initDb(username):
 	sqlite = sqlite3.connect(os.path.join(zen.ROOT, "%s.db" % username))
-# conn.row_factory = lambda c, r: dict(zip([col[0] for col in c.description], r))
-# c = conn.cursor() = lambda c, r: dict(zip([col[0] for col in c.description], r)) #
 	sqlite.row_factory = sqlite3.Row
 	cursor = sqlite.cursor()
 	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")

@@ -4,6 +4,7 @@ import zen
 import math
 import json
 import flask
+import dposlib
 import datetime
 
 from zen.app.core import app
@@ -18,7 +19,9 @@ def connect(username):
 
 @app.route("/")
 def index():
-	return ""
+	usernames = [name.split("-")[0] for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
+	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
+	return flask.render_template("index.html", accounts=[a for a in accounts if not a.get("username", False)])
 
 
 @app.route("/<string:username>")
