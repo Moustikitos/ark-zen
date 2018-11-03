@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{%- block title %}
+<title>Delegate page</title>
+{%- endblock title %}
+
+
+{%- block body %}
+<div class="container">
+{%- set public_key = config.pop("publicKey") %}
+	<h1>{{ username }}</h1>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a>
+	<span style="font-size:9px">{{ public_key }}</span>
+	<table class="table table-sm table-striped table-hover">
+		{%- for key,value in config.items() %}
+		<tr>
+			<th>{{ key }}</th>
+			<td width="100%">{{ value }}</td>
+		</tr>
+		{%- endfor %}
+	</table>
+<hr/>
+</div>
+
+<div class="container">
+{%- set share = config["share"] %}
+{%- set total = (forgery["contributions"].values() | sum) %}
+	<table class="table table-sm table-dark table-striped table-hover table-responsive-sm">
+		<thead class="thead-light">
+			<tr>
+				<th width="100%">Voter address</th>
+				<th>Weight</th>
+				<th style="text-align:right;">Share</th>
+			</tr>
+		</thead>
+		<tbody>
+		{%- for key,value in forgery["contributions"].items() %}
+			<tr>
+				<td>
+					<span class="not-ellipsed">{{ key }}</span>
+					<span class="ellipsed">{{ key[:5] }}&nbsp;&#x2026;&nbsp;{{ key[-5:] }}</span>	
+				</td>
+				<td>{{ ("%.3f&nbsp;%%" % (100*value/total)) | safe }}</td>
+				<td style="text-align:right;">{{ ("%.8f&nbsp;&#1126;"% (value*share)) | safe }}</td>
+			</tr>
+		{%- endfor %}
+		</tbody>
+	</table>
+</div>
+{%- endblock body %}

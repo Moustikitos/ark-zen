@@ -97,7 +97,7 @@ def init(**kwargs):
 				privkey2 = askSecondSecret(account)
 				# load forger configuration and update with minimum data
 				config = loadJson("%s.json" % username)
-				config.update(**{"pubicKey":pkey, "#2":privkey2})
+				config.update(**{"publicKey":pkey, "#2":privkey2})
 				dumpJson(config, "%s.json" % username)
 				# create a webhook if no one is set
 				webhook = loadJson("%s-webhook.json" % username)

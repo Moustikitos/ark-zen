@@ -4,6 +4,7 @@
 <title>Delegate page</title>
 {%- endblock title %}
 
+
 {%- block body %}
 {%- for account in accounts %}
 	{%- set last_block = account.pop("blocks") %}
@@ -12,7 +13,8 @@
 	{%- set public_key = account.pop("publicKey") %}
 	{%- set username = account.pop("username") %}
 <div class="container">
-	<h1><a href="/{{username}}/history/0/5">{{ username }}</a></h1>
+	<h1><a href="/{{username}}">{{ username }}</a></h1>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a>
 	<span style="font-size:9px">{{ public_key }}</span>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in account.items() %}

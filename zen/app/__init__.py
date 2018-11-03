@@ -21,12 +21,15 @@ def connect(username):
 def index():
 	usernames = [name.split("-")[0] for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
 	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
-	return flask.render_template("index.html", accounts=[a for a in accounts if not a.get("username", False)])
+	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)])
 
 
 @app.route("/<string:username>")
-def zen_index(username):
-	return ""
+def delegate_index(username):
+	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
+	config = zen.loadJson("%s.json" % username)
+	config.pop("#2", False)
+	return flask.render_template("delegate.html", username=username, forgery=forgery, config=config)
 
 
 @app.route("/<string:username>/history/<int:page>/<int:n>")
