@@ -135,13 +135,14 @@ function getAnchor() {
 }
 
 var anchor = getAnchor();
-var payroll_list = document.getElementById("payrollList");
+var target = document.getElementById(anchor).parentElement;
 
-if (anchor != null){
-	payroll_list.children[0].getElementsByTagName('button')[0].setAttribute("aria-expanded", false)
-	payroll_list.children[0].getElementsByTagName('div')[1].setAttribute("class", "collapse hide")
-
-	var target = document.getElementById(anchor).parentElement
+if (target){
+	var card0 = document.getElementById("payrollList").children[0];
+	// hide first card
+	card0.getElementsByTagName('button')[0].setAttribute("aria-expanded", false)
+	card0.getElementsByTagName('div')[1].setAttribute("class", "collapse hide")
+	// show targeted card
 	target.getElementsByTagName('button')[0].setAttribute("aria-expanded", true)
 	target.getElementsByTagName('div')[1].setAttribute("class", "collapse show")
 }
