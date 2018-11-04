@@ -57,4 +57,4 @@ Subcommands:
 
 ## `zen` front-end
 
-https://raw.githubusercontent.com/Moustikitos/zen/master/app.png
+![zen front-end](https://raw.githubusercontent.com/Moustikitos/zen/master/app.png)
