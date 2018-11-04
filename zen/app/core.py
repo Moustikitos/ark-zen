@@ -132,8 +132,14 @@ def spread():
 # css reload bugfix... #
 ########################
 @app.context_processor
-def override_url_for():
-	return dict(url_for=dated_url_for)
+def tweak():
+	tbw_config = zen.loadJson("tbw.json")
+	token = tbw_config.get("currency", "t")
+	return dict(
+		url_for=dated_url_for,
+		tbw_config=tbw_config,
+		_currency=lambda value: flask.Markup("%.8f&nbsp;%s" % (value, token))
+	)
 
 def dated_url_for(endpoint, **values):
 	if endpoint == 'static':

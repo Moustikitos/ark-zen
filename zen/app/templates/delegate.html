@@ -9,7 +9,7 @@
 <div class="container">
 {%- set public_key = config.pop("publicKey") %}
 	<h1>{{ username }}</h1>
-	<a href="/{{username}}/history/0/5">Check last payrolls</a>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a><br/>
 	<span style="font-size:9px">{{ public_key }}</span>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in config.items() %}
@@ -25,8 +25,8 @@
 <div class="container">
 {%- set share = config["share"] %}
 {%- set total = (forgery["contributions"].values() | sum) %}
-	<table class="table table-sm table-dark table-striped table-hover table-responsive-sm">
-		<thead class="thead-light">
+	<table class="table table-sm table-light table-striped table-hover table-responsive-sm">
+		<thead class="thead-dark">
 			<tr>
 				<th width="100%">Voter address</th>
 				<th>Weight</th>
@@ -40,8 +40,8 @@
 					<span class="not-ellipsed">{{ key }}</span>
 					<span class="ellipsed">{{ key[:5] }}&nbsp;&#x2026;&nbsp;{{ key[-5:] }}</span>	
 				</td>
-				<td>{{ ("%.3f&nbsp;%%" % (100*value/total)) | safe }}</td>
-				<td style="text-align:right;">{{ ("%.8f&nbsp;&#1126;"% (value*share)) | safe }}</td>
+				<td>{{ ("%.1f&nbsp;%%" % (100*value/total)) | safe }}</td>
+				<td style="text-align:right;">{{ _currency(value*share) }}</td>
 			</tr>
 		{%- endfor %}
 		</tbody>

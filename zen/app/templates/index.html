@@ -4,17 +4,16 @@
 <title>Delegate page</title>
 {%- endblock title %}
 
-
 {%- block body %}
 {%- for account in accounts %}
-	{%- set last_block = account.pop("blocks") %}
+	{%- set blocks = account.pop("blocks", {}) %}
 	{%- set forged = account.pop("forged") %}
 	{%- set productivity = account.pop("production") %}
 	{%- set public_key = account.pop("publicKey") %}
 	{%- set username = account.pop("username") %}
 <div class="container">
 	<h1><a href="/{{username}}">{{ username }}</a></h1>
-	<a href="/{{username}}/history/0/5">Check last payrolls</a>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a><br/>
 	<span style="font-size:9px">{{ public_key }}</span>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in account.items() %}
@@ -24,6 +23,8 @@
 			{%- if key == "address" %}
 				<span class="not-ellipsed">{{ value }}</span>
 				<span class="ellipsed">{{ value[:5] }}&nbsp;&#x2026;&nbsp;{{ value[-5:] }}</span>	
+			{%- elif key == "votes" %}
+				{{ _currency(value) }}
 			{%- else %}
 				{{ value }}
 			{%- endif %}
@@ -36,8 +37,14 @@
 		</tr>
 		<tr>
 			<th>forgery</th>
-			<td>{{ "%.8f" % (forged["total"]/100000000.0) }}</td>
+			<td>{{ _currency(forged["total"]/100000000.0) }}</td>
 		</tr>
+		{%- if "last" in blocks %}
+		<tr>
+			<th>last block</th>
+			<td>{{ blocks["last"]["timestamp"]["human"].replace("T", " ") }}</td>
+		</tr>
+		{%- endif %}
 	</table>
 </div>
 {%- endfor %}

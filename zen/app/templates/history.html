@@ -64,7 +64,7 @@
 			<div class="card-body">
 				<table class="table table-hover table-dark table-sm">
 			{%- for (key,value) in data[item].items() if key not in ["weight", "timestamp", "delegate-share"] %}
-				<tr><td width="100%">{{ key }}</td><td style="text-align:right;">{{ "%.8f" % value }}&nbsp;&#1126;</td></tr>
+				<tr><td width="100%">{{ key }}</td><td style="text-align:right;">{{ _currency(value) }}</td></tr>
 			{%- endfor %}
 				</table>
 				<button 
@@ -98,7 +98,7 @@
 		<span class="not-ellipsed">{{ reccord["address"] }}</span>
 		<span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span>
 	</td>
-	<td style="text-align:right;">{{ "%.8f" % reccord["amount"] }}&nbsp;&#1126;</td>
+	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
 </tr>
 {%- endfor %}
 </tbody>
