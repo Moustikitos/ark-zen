@@ -30,7 +30,9 @@ Usage:
     zen-run start-tbw
     zen-run stop-tbw
     zen-run launch-payroll <username>
+    zen-run retry-payroll <username> -n <name-list>
     zen-run resume-payroll <username>
+    zen-run remove-delegate [<username>]
 
 Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll
@@ -40,6 +42,7 @@ Options:
 -f --fee-level=<fee-level>     : set the fee level for the delegate
 -s --share=<share>             : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>     : minimum amount for a payment
+-n --name-list=<name-list>     : *.tbw name list
 
 Subcommands:
     reset          : initialization starting from ark-core installation
@@ -48,5 +51,6 @@ Subcommands:
     start-tbw      : start the true block weight process
     stop-tbw       : stop the true block weight process
     launch-payroll : create a payroll for <username> (true block weight status reseted)
+    retry-payroll  : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 ```
