@@ -36,8 +36,6 @@ def delegate_index(username):
 
 @app.route("/<string:username>/history/<int:page>/<int:n>")
 def zen_history(username, page, n):
-
-	print (flask.request.url)
 	
 	cursor = connect(username)
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")

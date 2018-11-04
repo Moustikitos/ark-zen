@@ -14,25 +14,25 @@ wget https://raw.githubusercontent.com/Moustikitos/zen/master/bash/zen-install.s
 bash zen-install.sh
 ```
 
-## `zen-run` command
+## `zen` command
 
 ```bash
 cd ~
-./zen-run -h
+./zen -h
 ```
 ```
 Usage:
-    zen-run reset
-    zen-run initialize
-    zen-run configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
-    zen-run configure [-c <currency>]
-    zen-run adjust-forge <username> <value>
-    zen-run start-tbw
-    zen-run stop-tbw
-    zen-run launch-payroll <username>
-    zen-run retry-payroll <username> -n <name-list>
-    zen-run resume-payroll <username>
-    zen-run remove-delegate [<username>]
+    zen reset
+    zen initialize
+    zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
+    zen configure [-c <currency>]
+    zen adjust-forge <username> <value>
+    zen start-tbw
+    zen stop-tbw
+    zen launch-payroll <username>
+    zen retry-payroll <username> -n <name-list>
+    zen resume-payroll <username>
+    zen remove-delegate [<username>]
 
 Options:
 -b --block-delay=<block-delay> : block amount to wait between payroll

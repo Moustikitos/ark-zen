@@ -11,12 +11,12 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if ! (git clone https://github.com/Moustikitos/zen.git) then
-    cd ~/zen
+if ! (git clone https://github.com/Moustikitos/ark-zen.git) then
+    cd ~/ark-zen
     git fetch --all
     git reset --hard origin/master
 else
-    cd ~/zen
+    cd ~/ark-zen
 fi
 
 # install python dependencies
@@ -29,10 +29,10 @@ pip install --user -r requirements.txt -q
 echo
 echo initializing zen
 echo ================
-cp bash/zen-run ~
+cp bash/zen ~
 cd ~
-chmod +x zen-run
-if ! (./zen-run initialize) then
+chmod +x zen
+if ! (./zen initialize) then
     echo
     echo setup aborted
 else
@@ -43,7 +43,7 @@ else
     echo launching/restarting pm2 tasks
     echo ==============================
     if [ "$(pm2 id zen-tbw) " = "[] " ]; then
-        cd ~/zen
+        cd ~/ark-zen
         pm2 start app.json
     else
         pm2 restart zen-tbw

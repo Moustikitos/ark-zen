@@ -18,10 +18,10 @@
 		</tr>
 		{%- endfor %}
 	</table>
-<hr/>
 </div>
 
 <div class="container">
+	<div class="alert alert-info"><strong>Live forgery&nbsp;:</strong>&nbsp;check your pending reward...</div>
 {%- set share = config["share"] %}
 {%- set total = (forgery["contributions"].values() | sum) %}
 	<table class="table table-sm table-light table-striped table-hover table-responsive-sm">
