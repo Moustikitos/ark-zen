@@ -54,3 +54,7 @@ Subcommands:
     retry-payroll  : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll : resume existing <username> payroll (true block weight status unchanged)
 ```
+
+## `zen` front-end
+
+https://raw.githubusercontent.com/Moustikitos/zen/master/app.png
