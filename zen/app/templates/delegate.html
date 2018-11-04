@@ -9,8 +9,7 @@
 <div class="container">
 {%- set public_key = config.pop("publicKey") %}
 	<h1>{{ username }}</h1>
-	<a href="/{{username}}/history/0/5">Check last payrolls</a><br/>
-	<span style="font-size:9px">{{ public_key }}</span>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in config.items() %}
 		<tr>

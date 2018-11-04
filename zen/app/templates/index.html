@@ -13,8 +13,7 @@
 	{%- set username = account.pop("username") %}
 <div class="container">
 	<h1><a href="/{{username}}">{{ username }}</a></h1>
-	<a href="/{{username}}/history/0/5">Check last payrolls</a><br/>
-	<span style="font-size:9px">{{ public_key }}</span>
+	<a href="/{{username}}/history/0/5">Check last payrolls</a>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in account.items() %}
 		<tr>

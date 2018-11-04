@@ -36,6 +36,9 @@ def delegate_index(username):
 
 @app.route("/<string:username>/history/<int:page>/<int:n>")
 def zen_history(username, page, n):
+
+	print (flask.request.url)
+	
 	cursor = connect(username)
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")
 
@@ -53,7 +56,7 @@ def zen_history(username, page, n):
 
 	details = dict(
 		[name, cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name,)).fetchall()] \
-		for name in selection 
+		for name in selection
 	)
 
 	return flask.render_template("history.html",
@@ -63,5 +66,19 @@ def zen_history(username, page, n):
 		entry_number=n,
 		selection=selection,
 		data=data,
+		details=details
+	)
+
+
+@app.route("/<string:username>/history/<int:page>/<int:n>/<string:item>")
+def zen_details(username, page, n, item):
+	cursor = connect(username)
+	details = cursor.execute("SELECT * FROM transactions WHERE filename = ?", (item,)).fetchall()
+
+	return flask.render_template("details.html",
+		username=username,
+		curent_page=page,
+		entry_number=n,
+		item=item,
 		details=details
 	)

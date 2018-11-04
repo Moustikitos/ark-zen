@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{%- block title %}
+<title>History</title>
+{%- endblock title %}
+
+{%- block body %}
+{%- set name = "_"+item.replace(".", "").replace("-","") %}
+
+<div class="container">
+    <h1><a href="/{{username}}/history/{{curent_page}}/{{entry_number}}#{{name}}">{{ username }}</a></h1>
+    <p>{{ item }}</p>
+</div>
+
+<div class="container">
+<table class="table table-striped table-hover table-dark table-sm table-responsive-sm">
+<thead class="thead-light">
+	<tr>
+		<th>Recipient Id</th>
+		<th style="text-align:right;">Amount</th>
+	</tr>
+</thead>
+<tbody>
+{%- for reccord in details %}
+<tr>
+	<td width="100%"><span class="not-ellipsed">{{ reccord["address"] }}</span><span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span></td>
+	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
+</tr>
+{%- endfor %}
+</tbody>
+</table>
+</div>
+{%- endblock body %}

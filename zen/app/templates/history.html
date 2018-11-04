@@ -5,38 +5,40 @@
 {%- endblock title %}
 
 {%- block body %}
+		
 {%- if page_number > 0 %}
-<div class="container">	
-<nav aria-label="payroll navigation">
-	<ul class="pagination">
-		<li class="page-item{{' disabled' if curent_page == 0 else ''}}">
-			<a
-				class="page-link"
-				href="/{{username}}/history/{{ [0, curent_page-1] | max }}/{{entry_number}}"
-			><span class="ellipsed">&laquo;</span><span class="not-ellipsed">Previous</span></a>
-		</li>
-	{%- for page in range(page_number) %}
-		{%- if page < 2 or page >= page_number-2 %}
-		<li class="page-item{{' active' if page == curent_page else ''}}">
-			<a class="page-link" href="/{{username}}/history/{{page}}/{{entry_number}}">{{ page+1 }}</a>
-		</li>
-		{%- endif %}
-		{%- if page_number > 4 and loop.index == 2 %}
-		&nbsp;
-		<li class="page-item{{' active disabled' if page in range(2,page_number-3,1) else ''}}">
-			<a class="page-link" href="#">&#x2026;</a>
-		</li>
-		&nbsp;
-		{%- endif %}
-	{%- endfor %}
-		<li class="page-item{{' disabled' if curent_page == page_number-1 else ''}}">
-			<a
-				class="page-link"
-				href="/{{username}}/history/{{ [curent_page+1, page_number-1] | min }}/{{entry_number}}"
-			><span class="ellipsed">&raquo;</span><span class="not-ellipsed">Next</span></a>
-		</li>
-	</ul>
-</nav>
+<div class="container">
+	<h1><a href="/{{username}}">{{ username }}</a></h1>
+	<nav aria-label="payroll navigation">
+		<ul class="pagination">
+			<li class="page-item{{' disabled' if curent_page == 0 else ''}}">
+				<a
+					class="page-link"
+					href="/{{username}}/history/{{ [0, curent_page-1] | max }}/{{entry_number}}"
+				><span class="ellipsed">&laquo;</span><span class="not-ellipsed">Previous</span></a>
+			</li>
+		{%- for page in range(page_number) %}
+			{%- if page < 2 or page >= page_number-2 %}
+			<li class="page-item{{' active' if page == curent_page else ''}}">
+				<a class="page-link" href="/{{username}}/history/{{page}}/{{entry_number}}">{{ page+1 }}</a>
+			</li>
+			{%- endif %}
+			{%- if page_number > 4 and loop.index == 2 %}
+			&nbsp;
+			<li class="page-item{{' active disabled' if page in range(2,page_number-3,1) else ''}}">
+				<a class="page-link" href="#">&#x2026;</a>
+			</li>
+			&nbsp;
+			{%- endif %}
+		{%- endfor %}
+			<li class="page-item{{' disabled' if curent_page == page_number-1 else ''}}">
+				<a
+					class="page-link"
+					href="/{{username}}/history/{{ [curent_page+1, page_number-1] | min }}/{{entry_number}}"
+				><span class="ellipsed">&raquo;</span><span class="not-ellipsed">Next</span></a>
+			</li>
+		</ul>
+	</nav>
 </div>
 {%- endif %}
 
@@ -67,8 +69,12 @@
 				<tr><td width="100%">{{ key }}</td><td style="text-align:right;">{{ _currency(value) }}</td></tr>
 			{%- endfor %}
 				</table>
+{# 
+	limit number of record to show in a modal for
+	performance issue
+ #}
+{%- if (details[item] | length) <= 100 %}
 				<button 
-					type="button"
 					class="btn btn-info"
 					data-toggle="modal"
 					data-target="#details{{ name }}"
@@ -94,10 +100,7 @@
 <tbody>
 {%- for reccord in details[item] %}
 <tr>
-	<td width="100%">
-		<span class="not-ellipsed">{{ reccord["address"] }}</span>
-		<span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span>
-	</td>
+	<td width="100%"><span class="not-ellipsed">{{ reccord["address"] }}</span><span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span></td>
 	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
 </tr>
 {%- endfor %}
@@ -111,10 +114,36 @@
 	</div>
 </div>
 <!-- Modal -->
+{%- else %}
+				<a 
+					role="button"
+					class="btn btn-info"
+					href="/{{username}}/history/{{curent_page}}/{{entry_number}}/{{item}}"
+				>Details</a>
+{%- endif%}
 			</div>
 		</div>
 	</div>
 {%- endfor %}
 </div>
 </div>
+
+<script>
+function getAnchor() {
+	urlParts = document.URL.split('#');
+	return (urlParts.length > 1) ? urlParts[1] : null;
+}
+
+var anchor = getAnchor();
+var payroll_list = document.getElementById("payrollList");
+
+if (anchor != null){
+	payroll_list.children[0].getElementsByTagName('button')[0].setAttribute("aria-expanded", false)
+	payroll_list.children[0].getElementsByTagName('div')[1].setAttribute("class", "collapse hide")
+
+	var target = document.getElementById(anchor).parentElement
+	target.getElementsByTagName('button')[0].setAttribute("aria-expanded", true)
+	target.getElementsByTagName('div')[1].setAttribute("class", "collapse show")
+}
+</script>
 {%- endblock body %}
