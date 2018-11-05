@@ -9,19 +9,23 @@
 <div class="container">
 {%- set public_key = config.pop("publicKey") %}
 	<h1>{{ username }}</h1>
-	<a href="/{{username}}/history/0/5">Check last payrolls</a>
+	<div class="alert alert-info">
+		<strong>&#9881;&nbsp;Delegate configuration</strong>
+	</div>
 	<table class="table table-sm table-striped table-hover">
 		{%- for key,value in config.items() %}
 		<tr>
 			<th>{{ key }}</th>
-			<td width="100%">{{ value }}</td>
+			<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else value) | safe }}</td>
 		</tr>
 		{%- endfor %}
 	</table>
-</div>
-
-<div class="container">
-	<div class="alert alert-info"><strong>Live forgery&nbsp;:</strong>&nbsp;check your pending reward...</div>
+	<div class="alert alert-info">
+		<strong>&#9878;&nbsp;<a href="/{{username}}/history/0/5">Last payrolls</strong></a>
+	</div>
+	<div class="alert alert-info">
+		<strong>&#9874;&nbsp;Live forgery</strong>
+	</div>
 {%- set share = config["share"] %}
 {%- set total = (forgery["contributions"].values() | sum) %}
 	<table class="table table-sm table-light table-striped table-hover table-responsive-sm">
@@ -39,7 +43,7 @@
 					<span class="not-ellipsed">{{ key }}</span>
 					<span class="ellipsed">{{ key[:5] }}&nbsp;&#x2026;&nbsp;{{ key[-5:] }}</span>	
 				</td>
-				<td>{{ ("%.1f&nbsp;%%" % (100*value/total)) | safe }}</td>
+				<td style="text-align:center;">{{ ("%.1f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>
 				<td style="text-align:right;">{{ _currency(value*share) }}</td>
 			</tr>
 		{%- endfor %}

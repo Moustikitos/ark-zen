@@ -15,7 +15,7 @@
 				<a
 					class="page-link"
 					href="/{{username}}/history/{{ [0, curent_page-1] | max }}/{{entry_number}}"
-				><span class="ellipsed">&laquo;</span><span class="not-ellipsed">Previous</span></a>
+				><span class="ellipsed">&#10094;</span><span class="not-ellipsed">Previous</span></a>
 			</li>
 		{%- for page in range(page_number) %}
 			{%- if page < 2 or page >= page_number-2 %}
@@ -35,7 +35,7 @@
 				<a
 					class="page-link"
 					href="/{{username}}/history/{{ [curent_page+1, page_number-1] | min }}/{{entry_number}}"
-				><span class="ellipsed">&raquo;</span><span class="not-ellipsed">Next</span></a>
+				><span class="ellipsed">&#10095;</span><span class="not-ellipsed">Next</span></a>
 			</li>
 		</ul>
 	</nav>
@@ -56,7 +56,7 @@
 				aria-controls="collapse{{ name }}"
 				href="#"
 				style="font-weight:bold;"
-			>{{ data[item]["timestamp"][:16] }}</a>
+			>&#10004;&nbsp;{{ data[item]["timestamp"][:16] }}</a>
 		</div>
 		<div class="collapse {{ 'show' if loop.index == 1 else 'hide' }}"
 			id="collapse{{ name }}"
