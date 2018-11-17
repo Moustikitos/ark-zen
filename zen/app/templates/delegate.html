@@ -12,7 +12,7 @@
 	<div class="alert alert-info">
 		<strong>&#9881;&nbsp;Delegate configuration</strong>
 	</div>
-	<table class="table table-sm table-striped table-hover">
+	<table class="table table-sm table-striped table-hover table-primary">
 		{%- for key,value in config.items() %}
 		<tr>
 			<th>{{ key }}</th>
@@ -29,8 +29,8 @@
 {%- if "contributions" in forgery and "share" in config %}
 	{%- set share = config["share"] %}
 	{%- set total = (forgery["contributions"].values() | sum) %}
-	<table class="table table-sm table-light table-striped table-hover table-responsive-sm">
-		<thead class="thead-dark">
+	<table class="table table-sm table-primary table-striped table-hover table-responsive-sm">
+		<thead class="thead-light">
 			<tr>
 				<th width="100%">Voter address</th>
 				<th>Weight</th>
@@ -40,10 +40,10 @@
 		<tbody>
 		{%- for key,value in forgery["contributions"].items() %}
 			<tr>
-				<td>
+				<th>
 					<span class="not-ellipsed">{{ key }}</span>
 					<span class="ellipsed">{{ key[:5] }}&nbsp;&#x2026;&nbsp;{{ key[-5:] }}</span>	
-				</td>
+				</th>
 				<td style="text-align:center;">{{ ("%.1f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>
 				<td style="text-align:right;">{{ _currency(value*share) }}</td>
 			</tr>
