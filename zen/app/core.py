@@ -79,7 +79,10 @@ def spread():
 					rewards += float(blk["forged"]["reward"])/100000000.
 					fees += float(blk["forged"]["fee"])/100000000.
 					blocks += 1
+
 		if not rewards:
+			dumpJson(block, filename, folder=folder)
+			# return template instead of raise an excetption
 			raise Exception("No rewards found for %s" % username)
 
 		# find forger information using username
