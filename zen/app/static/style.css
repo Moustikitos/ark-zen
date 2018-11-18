@@ -1,9 +1,9 @@
-@media screen and (min-width: 0px) and (max-width: 470px) {
+@media screen and (min-width: 0px) and (max-width: 420px) {
 	.not-ellipsed { display: none; }
 	.ellipsed { display: inline; }
 }
 
-@media screen and (min-width: 471px) {
+@media screen and (min-width: 421px) {
 	.not-ellipsed { display: inline; }
 	.ellipsed { display: none; }
 }

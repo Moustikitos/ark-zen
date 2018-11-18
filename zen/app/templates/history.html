@@ -58,13 +58,13 @@
 				style="font-weight:bold;"
 			>&#10004;&nbsp;{{ data[item]["timestamp"][:16] }}</a>
 		</div>
-		<div class="collapse {{ 'show' if loop.index == 1 else 'hide' }}"
+		<div class="collapse {{ 'show' if loop.index == 1 else 'hide' }} bg-info"
 			id="collapse{{ name }}"
 			aria-labelledby="{{ name }}"
 			data-parent="#payrollList"
 		>
 			<div class="card-body">
-				<table class="table table-hover table-primary table-sm table-striped">
+				<table class="table table-hover table-primary table-sm table-striped table-responsive-sm">
 			{%- for (key,value) in data[item].items() if key not in ["weight", "timestamp", "delegate-share"] %}
 				<tr><th>{{ key }}</th><td width="100%">{{ _currency(value) }}</td></tr>
 			{%- endfor %}
@@ -75,7 +75,7 @@
  #}
 {%- if (details[item] | length) <= 50 %}
 				<button 
-					class="btn btn-info"
+					class="btn btn-warning"
 					data-toggle="modal"
 					data-target="#details{{ name }}"
 				>Details</button>
@@ -117,7 +117,7 @@
 {%- else %}
 				<a 
 					role="button"
-					class="btn btn-info"
+					class="btn btn-warning"
 					href="/{{username}}/history/{{curent_page}}/{{entry_number}}/{{item}}"
 				>Details</a>
 {%- endif%}
@@ -141,10 +141,10 @@ if (target){
 	var card0 = document.getElementById("payrollList").children[0];
 	// hide first card
 	card0.getElementsByTagName('button')[0].setAttribute("aria-expanded", false)
-	card0.getElementsByTagName('div')[1].setAttribute("class", "collapse hide")
+	card0.getElementsByTagName('div')[1].setAttribute("class", "collapse hide bg-info")
 	// show targeted card
 	target.getElementsByTagName('button')[0].setAttribute("aria-expanded", true)
-	target.getElementsByTagName('div')[1].setAttribute("class", "collapse show")
+	target.getElementsByTagName('div')[1].setAttribute("class", "collapse show bg-info")
 }
 </script>
 {%- endblock body %}

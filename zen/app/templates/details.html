@@ -8,8 +8,8 @@
 {%- set name = "_"+item.replace(".", "").replace("-","") %}
 
 <div class="container">
-    <h1><a href="/{{username}}/history/{{curent_page}}/{{entry_number}}#{{name}}">{{ username }}</a></h1>
-    <p>{{ item }}</p>
+    <h1><a href="/{{username}}/history/{{curent_page}}/{{entry_number}}#{{name}}">{{ username }}::history</a></h1>
+    <div class="alert alert-info">&#9878; Payroll id&nbsp;:&nbsp;<strong>{{ item }}</strong></div>
 </div>
 
 <div class="container">
