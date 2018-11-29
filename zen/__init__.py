@@ -3,9 +3,6 @@
 import dposlib
 from dposlib import rest
 
-rest.use("dark")
-dposlib.core.stop()
-
 import os
 import io
 import sys
@@ -177,3 +174,11 @@ def init():
 	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	dumpEnv(env, envfile)
 	logMsg("environement configuration saved in %s" % envfile)
+
+
+root = loadJson("root.json")
+if root.get("config", "").endswith("mainnet.json"):
+	rest.use("ark")
+else:
+	rest.use("dark")		
+dposlib.core.stop()

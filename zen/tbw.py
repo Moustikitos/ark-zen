@@ -102,15 +102,18 @@ def init(**kwargs):
 				# create a webhook if no one is set
 				webhook = loadJson("%s-webhook.json" % username)
 				if not webhook.get("token", False):
-					webhook = dposlib.rest.POST.api.webhooks(
+					data = dposlib.rest.POST.api.webhooks(
 						peer=zen.WEBHOOK_PEER,
 						event="block.forged",
 						target="http://127.0.0.1:5000/block/forged",
 						conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
-					).get("data", False)
+					)
+					webhook = data.get("data", False)
 					if webhook:
 						dumpJson(webhook, "%s-webhook.json" % username)
 						logMsg("%s webhook set" % username)
+					else:
+						logMsg("error occur on webhook creation:\n%s" % data)
 				else:
 					logMsg("webhook already set for delegate %s" % username)	
 				logMsg("%s delegate set" % username)
