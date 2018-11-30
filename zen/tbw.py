@@ -75,6 +75,7 @@ def init(**kwargs):
 	# initialize peers from .env file
 	if not zen.WEBHOOK_PEER:
 		initPeers()
+	webhook_peer = kwargs.get("webhook_peer", zen.WEBHOOK_PEER)
 
 	# if no options given, initialize forgers set on the node
 	if not len(kwargs):
@@ -83,42 +84,23 @@ def init(**kwargs):
 		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
 		pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
-		for pkey in pkeys:
-			printNewLine()
-			# for each publicKey, get account data (merge delegate and wallet info)
-			req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
-			account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
-			account.update(req)
+		for pkey in set(pkeys):
+			setDelegate(pkey, webhook_peer, webhook_peer != zen.WEBHOOK_PEER)
 
-			if account != {}:
-				username = account["username"]
-				logMsg("setting up %s delegate..." % username)
-				# ask second secret if any is set
-				privkey2 = askSecondSecret(account)
-				# load forger configuration and update with minimum data
-				config = loadJson("%s.json" % username)
-				config.update(**{"publicKey":pkey, "#2":privkey2})
-				dumpJson(config, "%s.json" % username)
-				# create a webhook if no one is set
-				webhook = loadJson("%s-webhook.json" % username)
-				if not webhook.get("token", False):
-					data = dposlib.rest.POST.api.webhooks(
-						peer=zen.WEBHOOK_PEER,
-						event="block.forged",
-						target="http://127.0.0.1:5000/block/forged",
-						conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
-					)
-					webhook = data.get("data", False)
-					if webhook:
-						dumpJson(webhook, "%s-webhook.json" % username)
-						logMsg("%s webhook set" % username)
-					else:
-						logMsg("error occur on webhook creation:\n%s" % data)
-				else:
-					logMsg("webhook already set for delegate %s" % username)	
-				logMsg("%s delegate set" % username)
-			else:
-				logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
+	elif "usernames" in kwargs:
+		pkeys = []
+		for username in kwargs.pop("usernames", []):
+			req = dposlib.rest.GET.api.v2.delegates(username).get("data", {})
+			if len(req):
+				pkeys.append(req["publicKey"])
+
+		for pkey in pkeys:
+			account = setDelegate(pkey, webhook_peer, webhook_peer != zen.WEBHOOK_PEER)
+			if account:
+				config = loadJson("%s.json" % account["username"])
+				config["#1"] = askSecret(account)
+				config.update(**kwargs)
+				dumpJson(config, "%s.json" % account["username"])
 
 	elif "username" in kwargs:
 		username = kwargs.pop("username")
@@ -134,6 +116,59 @@ def init(**kwargs):
 		tbw = loadJson("tbw.json")
 		tbw.update(**kwargs)
 		dumpJson(tbw, "tbw.json")
+
+
+def setDelegate(pkey, webhook_peer, public=False):
+	printNewLine()
+	# for each publicKey, get account data (merge delegate and wallet info)
+	req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
+	account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
+	account.update(req)
+
+	if account != {}:
+		username = account["username"]
+		logMsg("setting up %s delegate..." % username)
+		# load forger configuration and update with minimum data
+		config = loadJson("%s.json" % username)
+		config.update(**{"publicKey":pkey, "#2":askSecondSecret(account)})
+		dumpJson(config, "%s.json" % username)
+		# create a webhook if no one is set
+		webhook = loadJson("%s-webhook.json" % username)
+		if not webhook.get("token", False):
+			data = dposlib.rest.POST.api.webhooks(
+				peer=webhook_peer,
+				event="block.forged",
+				target="http://%s:5000/block/forged" % (zen.PUBLIC_IP if public else "127.0.0.1"),
+				conditions=[{"key": "generatorPublicKey", "condition": "eq", "value": pkey}]
+			)
+			webhook = data.get("data", False)
+			if webhook:
+				webhook["peer"] = webhook_peer
+				dumpJson(webhook, "%s-webhook.json" % username)
+				logMsg("%s webhook set" % username)
+			else:
+				logMsg("error occur on webhook creation:\n%s" % data)
+		else:
+			logMsg("webhook already set for delegate %s" % username)	
+		logMsg("%s delegate set" % username)
+		return account
+	else:
+		logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
+
+
+def askSecret(account):
+	seed = "01"
+	publicKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(seed))["publicKey"]
+	while publicKey != account["publicKey"]:
+		try:
+			secret = getpass.getpass("> enter %s secret: " % account["username"])
+			seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
+			publicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
+		except KeyboardInterrupt:
+			printNewLine()
+			logMsg("delegate configuration skipped")
+			sys.exit(1)
+	return dposlib.core.crypto.hexlify(seed)
 
 
 def askSecondSecret(account):
@@ -217,12 +252,16 @@ def extract(username):
 def dumpRegistry(username):
 	root = loadJson("root.json")
 
-	pkey = getPublicKeyFromUsername(username)
-	delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
-	for secret in delegates["secrets"]:
-		keys = dposlib.core.crypto.getKeys(secret)
-		if keys["publicKey"] == pkey: break
-		else: keys = False
+	config = loadJson("%s.json" % username)
+	if "#1" in config:
+		keys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#1"]))
+	else:
+		pkey = getPublicKeyFromUsername(username)
+		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
+		for secret in delegates["secrets"]:
+			keys = dposlib.core.crypto.getKeys(secret)
+			if keys["publicKey"] == pkey: break
+			else: keys = False
 	
 	if keys:
 		dposlib.core.Transaction._publicKey = keys["publicKey"]

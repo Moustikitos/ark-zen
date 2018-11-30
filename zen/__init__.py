@@ -9,6 +9,7 @@ import sys
 import json
 import time
 import shutil
+import socket
 import datetime
 
 # register python familly
@@ -25,6 +26,21 @@ LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 
 # peers
 WEBHOOK_PEER = None
+PUBLIC_IP = None
+
+
+def getIp():
+	global PUBLIC_IP
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	try:
+		# doesn't even have to be reachable
+		s.connect(('10.255.255.255', 1))
+		PUBLIC_IP = s.getsockname()[0]
+	except:
+		PUBLIC_IP = '127.0.0.1'
+	finally:
+		s.close()
+	return PUBLIC_IP
 
 
 def getPublicKeyFromUsername(username):
@@ -53,6 +69,12 @@ def dumpJson(data, name, folder=None):
 	with io.open(filename, "w" if PY3 else "wb") as out:
 		json.dump(data, out, indent=4)
 
+
+def dropJson(name, folder=None):
+	filename = os.path.join(JSON if not folder else folder, name)
+	if os.path.exists(filename):
+		os.remove(filename)
+	
 
 def loadEnv(pathname):
 	with io.open(pathname, "r") as environ:
@@ -182,3 +204,4 @@ if root.get("config", "").endswith("mainnet.json"):
 else:
 	rest.use("dark")		
 dposlib.core.stop()
+getIp()

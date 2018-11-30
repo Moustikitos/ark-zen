@@ -30,6 +30,7 @@ def delegate_index(username):
 		return ""
 	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
 	config = zen.loadJson("%s.json" % username)
+	config.pop("#1", False)
 	config.pop("#2", False)
 	return flask.render_template("delegate.html", username=username, forgery=forgery, config=config)
 
