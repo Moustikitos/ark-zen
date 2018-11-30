@@ -16,7 +16,8 @@ if ! (git clone --branch 1.2.0 https://github.com/Moustikitos/ark-zen.git) then
 else
     cd ~/ark-zen
 fi
-git checkout tags/1.2.0
+git fetch --all
+git checkout tags/1.2.0 -f
 
 # install python dependencies
 echo
