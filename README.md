@@ -10,7 +10,7 @@ for DPOS pool.
 ## Install
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh
 bash zen-install.sh
 ```
 
