@@ -11,7 +11,7 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if ! (git clone https://github.com/Moustikitos/ark-zen.git) then
+if ! (git clone --branch 0.1.1 https://github.com/Moustikitos/ark-zen.git) then
     cd ~/ark-zen
     git fetch --all
     git reset --hard origin/master
