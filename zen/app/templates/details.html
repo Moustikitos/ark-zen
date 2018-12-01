@@ -23,7 +23,7 @@
 <tbody>
 {%- for reccord in details %}
 <tr>
-	<th width="100%"><span class="not-ellipsed">{{ reccord["address"] }}</span><span class="ellipsed">{{ reccord["address"][:5] }}&nbsp;&#x2026;&nbsp;{{ reccord["address"][-5:] }}</span></th>
+	<th width="100%">{{ _address(reccord["address"]) }}</th>
 	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
 </tr>
 {%- endfor %}

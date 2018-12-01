@@ -19,8 +19,7 @@
 			<th>{{ key }}</th>
 			<td width="100%">
 			{%- if key == "address" %}
-				<span class="not-ellipsed">{{ value }}</span>
-				<span class="ellipsed">{{ value[:5] }}&nbsp;&#x2026;&nbsp;{{ value[-5:] }}</span>	
+				{{ _address(value) }}	
 			{%- elif key == "votes" %}
 				{{ _currency(value) }}
 			{%- else %}

@@ -343,4 +343,3 @@ def broadcast(username, chunk_size=10):
 			os.remove(os.path.join(folder, name))
 
 		sqlite.commit()
-

@@ -2,4 +2,3 @@ wheel
 docopt
 git+https://github.com/Moustikitos/dpos.git@0.1.4#egg=dposlib
 flask
-flask_Bootstrap

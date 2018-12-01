@@ -19,7 +19,7 @@
 			{%- for key,value in config.items() %}
 			<tr>
 				<th>{{ key }}</th>
-				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value) if key == "threshold" else value) | safe }}</td>
+				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value) if key == "threshold" else _address(value) if key == "wallet" else value) | safe }}</td>
 			</tr>
 			{%- endfor %}
 		</table>
@@ -41,10 +41,7 @@
 		<tbody>
 		{%- for key,value in forgery["contributions"].items() %}
 			<tr>
-				<th>
-					<span class="not-ellipsed">{{ key }}</span>
-					<span class="ellipsed">{{ key[:5] }}&nbsp;&#x2026;&nbsp;{{ key[-5:] }}</span>	
-				</th>
+				<th>{{ _address(key) }}</th>
 				<td style="text-align:center;">{{ ("%.1f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>
 				<td style="text-align:right;">{{ _currency(value*share) }}</td>
 			</tr>

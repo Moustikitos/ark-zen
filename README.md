@@ -18,7 +18,7 @@ bash zen-install.sh
 
 ```bash
 cd ~
-./zen -h
+./zen --help
 ```
 ```
 Usage:

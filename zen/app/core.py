@@ -141,7 +141,10 @@ def tweak():
 	return dict(
 		url_for=dated_url_for,
 		tbw_config=tbw_config,
-		_currency=lambda value: flask.Markup("%.8f&nbsp;%s" % (value, token))
+		_currency=lambda value: flask.Markup("%.8f&nbsp;%s" % (value, token)),
+		_address=lambda address: flask.Markup(
+			'<span class="not-ellipsed">%s</span><span class="ellipsed">%s</span>' % 
+			(address, "%s&nbsp;&#x2026;&nbsp;%s" % (address[:5],address[-5:])))
 	)
 
 def dated_url_for(endpoint, **values):
