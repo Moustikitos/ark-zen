@@ -7,10 +7,10 @@ for DPOS pool.
 
  * [X] Ark-v2
 
-## Install
+## Install v1.2.0
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.2.0/bash/zen-install.sh
 bash zen-install.sh
 ```
 
