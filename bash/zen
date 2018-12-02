@@ -4,6 +4,7 @@
 """
 Usage:
     zen reset
+	zen rebuild
     zen initialize
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
     zen configure [-c <currency>]
@@ -28,6 +29,7 @@ Options:
 
 Subcommands:
     reset           : initialization starting from ark-core installation
+    rebuild         : rebuild database from snapshots
     initialize      : initialization starting from delegates configuration
     configure       : configure options for a given <username>
     start-tbw       : start the true block weight process
@@ -38,11 +40,6 @@ Subcommands:
     add-delegate    : add <username> delegate not registered on ark-core-forger
     remove-delegate : remove delegate from list or specified by <username>
 """
-# REBUILD
-# dropdb ark_devnet
-# createdb ark_devnet
-# wget https://dsnapshots.ark.io/devnet-v2
-# pg_restore -O -j 8 -d ark_devnet devnet-v2  
 
 import os
 import sys
@@ -53,6 +50,7 @@ import zen
 import base58
 import docopt
 import zen.tbw
+import zen.snp
 
 from dposlib import rest
 
@@ -110,6 +108,10 @@ fi
 )
 
 
+def rebuild(args={}, **options):
+	zen.snp.rollbackAndRebuild()
+
+
 def reset(args={}, **options):
 	if os.path.exists(os.path.join(zen.JSON, "root.json")):
 		os.remove(os.path.join(zen.JSON, "root.json"))
@@ -119,6 +121,12 @@ def reset(args={}, **options):
 def initialize(args={}, **options):
 	zen.init()
 	zen.tbw.init()
+
+	zen.tbw.printNewLine()
+	if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
+		zen.snp.createSnapshot()
+	else:
+		zen.logMsg("snapshot creation skipped")		
 
 
 def add_delegate(args={}, **options):

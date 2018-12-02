@@ -61,3 +61,19 @@ Subcommands:
 ## `zen` front-end
 
 ![zen front-end](https://raw.githubusercontent.com/Moustikitos/zen/master/app.png)
+
+## Releases
+
+### Andromeda (v1.2.0)
+
+ - [x] true block weight
+ - [x] secured payrolls
+ - [x] command line interface
+ - [x] light weight HTML front-end
+ - [x] multiple pool management
+
+### TODO (dev version)
+
+ - [x] enable remote delegate management
+ - [x] blockchain database rebuild
+ - [ ] snapshot management
