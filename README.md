@@ -76,4 +76,6 @@ Subcommands:
 
  - [x] enable remote delegate management
  - [x] blockchain database rebuild
- - [ ] snapshot management
+ - [x] snapshot management
+ - [ ] fork sensor
+ - [ ] auto-rollback

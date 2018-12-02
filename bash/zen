@@ -15,6 +15,7 @@ Usage:
     zen retry-payroll <username> -n <name-list>
     zen resume-payroll <username>
     zen remove-delegate [<username>]
+    zen snap-blockchain
 
 Options:
 -b --block-delay=<block-delay>   : block amount to wait between payroll
@@ -39,6 +40,7 @@ Subcommands:
     resume-payroll  : resume existing <username> payroll (true block weight status unchanged)
     add-delegate    : add <username> delegate not registered on ark-core-forger
     remove-delegate : remove delegate from list or specified by <username>
+    snap-blockchain : update snapshot or create it if no snapshot initialized yet
 """
 
 import os
@@ -124,7 +126,7 @@ def initialize(args={}, **options):
 
 	zen.tbw.printNewLine()
 	if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
-		zen.snp.createSnapshot()
+		snap_blockchain()
 	else:
 		zen.logMsg("snapshot creation skipped")		
 
@@ -200,6 +202,14 @@ def configure(args={}, **options):
 def adjust_forge(args={}, **options):
 	username = args["<username>"]
 	zen.tbw.adjust(username, float(args["<value>"]))
+
+
+def snap_blockchain(args={}, **options):
+	root = zen.loadJson("root.json")
+	network = os.path.basename(root["config"]).replace(".json", "")
+	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".ark", "snapshots", network)))
+	except: zen.snp.createSnapshot()
+	else: zen.snp.updateSnapshot()
 
 
 if __name__ == "__main__":

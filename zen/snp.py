@@ -7,7 +7,7 @@ import zen
 def getSnapshots(snapdir):
 	snapshots = sorted([name for name in os.listdir(snapdir) if os.path.isdir(os.path.join(snapdir, name)) and name.startswith("1-")])
 	if not len(snapshots):
-		raise Exception("no snapshots initiated")
+		raise Exception("no snapshots initialized yet")
 	return snapshots 
 
 
@@ -28,15 +28,15 @@ def updateSnapshot():
 	snapdir = os.path.expanduser(os.path.join("~", ".ark", "snapshots", network))
 
 	snapshots = getSnapshots(snapdir)
-	os.system('''
+	if not os.system('''
 cd %(workdir)s
 yarn create:%(network)s -b %(snapshot)s''' % {
 	"workdir": workdir,
 	"network": os.path.basename(root["config"]).replace(".json", ""),
 	"snapshot": snapshots[-1]
-})
-	for snapshot in snapshots:
-		os.system('rm -rf "%s"' % os.path.join(snapdir, snapshot))
+}):
+		for snapshot in snapshots:
+			os.system('rm -rf "%s"' % os.path.join(snapdir, snapshot))
 
 
 def rebuildFromZero():

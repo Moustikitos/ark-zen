@@ -30,6 +30,7 @@ PUBLIC_IP = None
 
 
 def getIp():
+	"""Store the public ip of server in PUBLIC_IP global var"""
 	global PUBLIC_IP
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	try:
