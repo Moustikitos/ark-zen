@@ -68,7 +68,7 @@ def rollbackAndRebuild():
 	snapdir = os.path.expanduser(os.path.join("~", ".ark", "snapshots", network))
 
 	snapshots = getSnapshots(snapdir)
-	blockstop = int(snapshots[-1].split("-")[-1])
+	blockstop = int(snapshots[-1].split("-")[-1]) - 500
 
 	os.system('''
 cd %(workdir)s

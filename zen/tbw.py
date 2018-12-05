@@ -192,10 +192,9 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	if req.get("error", False):
 		raise Exception("Api error occured: %r" % req)
 	voters = req.get("data", [])
-	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes)
+	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
 	total_balance = sum(voters.values())
-	pairs = [[a, b/total_balance*rewards] for a,b in voters.items() if b > minvote]
-	return OrderedDict(sorted(pairs, key=lambda e:e[-1], reverse=True))
+	return OrderedDict(sorted([[a, b/total_balance*rewards] for a,b in voters.items()], key=lambda e:e[-1], reverse=True))
 
 
 def adjust(username, value):

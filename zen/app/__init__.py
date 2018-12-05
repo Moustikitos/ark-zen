@@ -7,6 +7,8 @@ import flask
 import dposlib
 import datetime
 
+from collections import OrderedDict
+
 from zen.app.core import app
 from zen.tbw import initDb
 
@@ -29,6 +31,7 @@ def delegate_index(username):
 	if username == "favicon.ico":
 		return ""
 	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
+	forgery["contributions"] = OrderedDict(sorted([item for item in forgery["contributions"].items()], key=lambda i:i[-1], reverse=True))
 	config = zen.loadJson("%s.json" % username)
 	config.pop("#1", False)
 	config.pop("#2", False)

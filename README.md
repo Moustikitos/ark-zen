@@ -10,7 +10,7 @@ for DPOS pool.
 ## Install v1.2.0
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.2.0/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.3.0/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -22,17 +22,14 @@ cd ~
 ```
 ```
 Usage:
-    zen reset
-    zen initialize
+    zen (reset | initialize)
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
+    zen remove-delegate [<username>]
     zen configure [-c <currency>]
     zen adjust-forge <username> <value>
-    zen start-tbw
-    zen stop-tbw
-    zen launch-payroll <username>
+    zen (start-tbw | stop-tbw)
+    zen (launch-payroll | resume-payroll) <username>
     zen retry-payroll <username> -n <name-list>
-    zen resume-payroll <username>
-    zen remove-delegate [<username>]
 
 Options:
 -b --block-delay=<block-delay>   : block amount to wait between payroll
@@ -58,6 +55,23 @@ Subcommands:
     remove-delegate : remove delegate from list or specified by <username>
 ```
 
+## crontab use case
+
+Edit the crontab file
+```bash
+crontab -e
+```
+**create a snapshot and update it every 12 hours**
+```
+0 */12 *   *   *     /home/{username}/zen snap-blockchain
+```
+**automatic startup on server restart**
+```
+@reboot /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-relay >> /home/{username}/core-commander/logs/commander.log 2>&1
+@reboot sleep 30 && /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-forger >> /home/{username}/core-commander/logs/commander.log 2>&1
+@reboot cd /home/{username}/ark-zen && /usr/bin/pm2 start app.json
+```
+
 ## `zen` front-end
 
 ![zen front-end](https://raw.githubusercontent.com/Moustikitos/zen/master/app.png)
@@ -72,10 +86,13 @@ Subcommands:
  - [x] light weight HTML front-end
  - [x] multiple pool management
 
-### TODO (dev version)
-
+### Boötis (v1.3.0)
  - [x] enable remote delegate management
  - [x] blockchain database rebuild
  - [x] snapshot management
+ - [x] custom peer management
+
+### TODO (dev version)
+
  - [ ] fork sensor
  - [ ] auto-rollback

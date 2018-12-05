@@ -32,6 +32,15 @@ app.config.update(
 )
 
 
+@app.route("/block/missed", methods=["POST", "GET"])
+def check():
+	if flask.request.method == "POST":
+		data = json.loads(flask.request.data).get("data", False)
+		logMsg(">>> missing block :\n%s" % json.dumps(data, indent=2))
+
+	return json.dumps({"zen-tbw::block/missed":True}, indent=2)
+
+
 # compute true block weight
 @app.route("/block/forged", methods=["POST", "GET"])
 def spread():
@@ -50,7 +59,7 @@ def spread():
 		# check autorization and exit if bad one
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
-			raise Exception("Not autorized here")
+			raise Exception("not autorized here")
 
 		# at start there is no *.last.block file so must check first 
 		filename = "%s.last.block" % username
@@ -83,7 +92,7 @@ def spread():
 		if not rewards:
 			dumpJson(block, filename, folder=folder)
 			# return template instead of raise an excetption
-			raise Exception("No rewards found for %s" % username)
+			raise Exception("no rewards found for %s" % username)
 
 		# find forger information using username
 		forger = loadJson("%s.json" % username)
@@ -98,7 +107,7 @@ def spread():
 		contributions = zen.tbw.distributeRewards(
 			rewards,
 			generatorPublicKey,
-			minvote=forger.get("minvote", 0),
+			minvote=forger.get("minimum_vote", 0)*100000000,
 			excludes=excludes
 		)
 
@@ -112,7 +121,7 @@ def spread():
 			{
 				"fees": forgery.get("fees", 0.) + fees,
 				"blocks": forgery.get("blocks", 0) + blocks,
-				"contributions": OrderedDict(sorted([[a, round(_ctrb.get(a, 0.)+contributions[a], 8)] for a in contributions], key=lambda e:e[-1], reverse=True))
+				"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions], key=lambda e:e[-1], reverse=True))
 			},
 			"%s.forgery" % username,
 			folder=folder
@@ -128,7 +137,7 @@ def spread():
 				zen.tbw.dumpRegistry(username)
 				zen.tbw.broadcast(username)
 
-	return json.dumps({"zen-tbw":True}, indent=2)
+	return json.dumps({"zen-tbw::block/forged":True}, indent=2)
 
 
 ########################

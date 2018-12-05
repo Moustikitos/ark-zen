@@ -12,6 +12,8 @@ import shutil
 import socket
 import datetime
 
+# https://docs.ark.io/guidebook/core/events.html#available-events
+
 # register python familly
 PY3 = True if sys.version_info[0] >= 3 else False
 input = raw_input if not PY3 else input
@@ -147,6 +149,36 @@ def chooseItem(msg, *elem):
 		return False
 
 
+def chooseMultipleItem(msg, *elem):
+	"""
+	Convenience function to allow the user to select multiple items from a list.
+	"""
+	n = len(elem)
+	if n > 0:
+		sys.stdout.write(msg + "\n")
+		for i in range(n):
+			sys.stdout.write("    %d - %s\n" % (i + 1, elem[i]))
+		sys.stdout.write("    0 - quit\n")
+		indexes = []
+		while len(indexes) == 0:
+			try:
+				indexes = input("Choose items: [1-%d or all]> " % n)
+				if indexes == "all":
+					indexes = [i + 1 for i in range(n)]
+				elif indexes == "0":
+					indexes = []
+					break
+				else:
+					indexes = [int(s) for s in indexes.strip().replace(" ", ",").split(",") if s != ""]
+					indexes = [r for r in indexes if 0 < r <= n]
+			except:
+				indexes = []
+		return [elem[i-1] for i in indexes]
+	
+	sys.stdout.write("Nothing to choose...\n")
+	return []
+
+
 def init():
 	global WEBHOOK_PEER
 	root = loadJson("root.json")
@@ -203,6 +235,11 @@ root = loadJson("root.json")
 if root.get("config", "").endswith("mainnet.json"):
 	rest.use("ark")
 else:
-	rest.use("dark")		
+	rest.use("dark")
 dposlib.core.stop()
+
+tbw = loadJson("tbw.json")
+if len(tbw.get("custom_peers", [])) > 0:
+	dposlib.rest.cfg.peers = tbw["custom_peers"]
+
 getIp()

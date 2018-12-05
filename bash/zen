@@ -3,19 +3,15 @@
 
 """
 Usage:
-    zen reset
-	zen rebuild
-    zen initialize
+    zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
     zen configure [-c <currency>]
     zen adjust-forge <username> <value>
-    zen start-tbw
-    zen stop-tbw
     zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
     zen resume-payroll <username>
     zen remove-delegate [<username>]
-    zen snap-blockchain
+    zen add-custom-peer <peer-list>
 
 Options:
 -b --block-delay=<block-delay>   : block amount to wait between payroll
@@ -56,13 +52,14 @@ import zen.snp
 
 from dposlib import rest
 
+
 def _fee(value):
 	if value in ["minFee", "avgFee", "maxFee"]:
 		return value
 	else:
 		try: return int(value)
-		except: return False
-	return False
+		except: return None
+	return None
 
 
 def _split(value):
@@ -210,6 +207,23 @@ def snap_blockchain(args={}, **options):
 	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".ark", "snapshots", network)))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
+
+
+def add_custom_peer(args={}, **options):
+	tbw = zen.loadJson("tbw.json")
+	custom_peers = tbw.get("custom_peers", [])
+	custom_peers.extend(_split(args["<peer-list>"]))
+	tbw["custom_peers"] = custom_peers
+	zen.dumpJson(tbw, "tbw.json")
+
+
+def remove_custom_peer(args={}, **options):
+	tbw = zen.loadJson("tbw.json")
+	items = zen.chooseMultipleItem("> select peers to remove", *tbw["custom_peers"])
+	if len(items):
+		for item in items:
+			tbw["custom_peers"].remove(item)
+	zen.dumpJson(tbw, "tbw.json")
 
 
 if __name__ == "__main__":
