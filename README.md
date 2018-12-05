@@ -22,14 +22,15 @@ cd ~
 ```
 ```
 Usage:
-    zen (reset | initialize)
+    zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
-    zen remove-delegate [<username>]
     zen configure [-c <currency>]
     zen adjust-forge <username> <value>
-    zen (start-tbw | stop-tbw)
-    zen (launch-payroll | resume-payroll) <username>
+    zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
+    zen resume-payroll <username>
+    zen remove-delegate [<username>]
+    zen append-custom-peer <peer-list>
 
 Options:
 -b --block-delay=<block-delay>   : block amount to wait between payroll
@@ -43,16 +44,20 @@ Options:
 -n --name-list=<name-list>       : *.tbw name list
 
 Subcommands:
-    reset           : initialization starting from ark-core installation
-    initialize      : initialization starting from delegates configuration
-    configure       : configure options for a given <username>
-    start-tbw       : start the true block weight process
-    stop-tbw        : stop the true block weight process
-    launch-payroll  : create a payroll for <username> (true block weight status reseted)
-    retry-payroll   : retry a specified payroll for <username> (true block weight status unchanged)
-    resume-payroll  : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate    : add <username> delegate not registered on ark-core-forger
-    remove-delegate : remove delegate from list or specified by <username>
+    reset              : initialization starting from ark-core installation
+    initialize         : initialization starting from delegates configuration
+    rebuild            : rebuild database from snapshots
+    configure          : configure options for a given <username>
+    start-tbw          : start the true block weight process
+    stop-tbw           : stop the true block weight process
+    launch-payroll     : create a payroll for <username> (true block weight status reseted)
+    retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
+    resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
+    add-delegate       : add remote <username> (ie ark-core-forger running on remote node)
+    remove-delegate    : remove delegate from list or specified by <username>
+    snap-blockchain    : update snapshot or create it if no snapshot initialized yet
+    append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
+    remove-custom-peer : remove one or more custom peer from a selection list
 ```
 
 ## crontab use case
