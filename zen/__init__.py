@@ -238,8 +238,8 @@ else:
 	rest.use("dark")
 dposlib.core.stop()
 
-tbw = loadJson("tbw.json")
-if len(tbw.get("custom_peers", [])) > 0:
-	dposlib.rest.cfg.peers = tbw["custom_peers"]
+_tbw = loadJson("tbw.json")
+if len(_tbw.get("custom_peers", [])) > 0:
+	dposlib.rest.cfg.peers = _tbw["custom_peers"]
 
 getIp()

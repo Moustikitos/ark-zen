@@ -10,7 +10,7 @@ for DPOS pool.
 ## Install last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.3.0/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.3.1/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -96,6 +96,9 @@ crontab -e
  - [x] blockchain database rebuild
  - [x] snapshot management
  - [x] custom peer management
+
+### Cassiopeia (v1.3.1)
+ - [x] reward distribution bugFix
 
 ### TODO (dev version)
 
