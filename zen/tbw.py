@@ -317,7 +317,7 @@ def dumpRegistry(username):
 		dposlib.core.Transaction.unlink()
 
 
-def broadcast(username, chunk_size=10):
+def broadcast(username, chunk_size=140):
 	# proceed all registry file found in username folder
 	sqlite = initDb(username)
 	cursor = sqlite.cursor()
@@ -327,6 +327,7 @@ def broadcast(username, chunk_size=10):
 		transactions = list(registry.values())
 
 		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
+			waitFor(transactions[0]["senderPublicKey"])
 			response = dposlib.rest.POST.api.transactions(transactions=chunk)
 			logMsg("Broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
 		time.sleep(dposlib.rest.cfg.blocktime)
@@ -350,3 +351,14 @@ def broadcast(username, chunk_size=10):
 			os.remove(os.path.join(folder, name))
 
 		sqlite.commit()
+
+
+def waitFor(pkey):
+	logMsg("waiting for forger...")
+	rank = 51
+	while rank > 0:
+		time.sleep(16 if rank > 3 else 1)
+		try: forging_queue = rest.GET.api.v1.delegates.getNextForgers(limit=51).get("delegates", [])
+		except: break
+		try: rank = forging_queue.index(pkey)
+		except ValueError: break
