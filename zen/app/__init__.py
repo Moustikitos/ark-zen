@@ -57,7 +57,7 @@ def zen_history(username, page, n):
 	data = dict([name, zen.loadJson(name+".tbw", folder=history_folder)] for name in selection)
 
 	details = dict(
-		[name, cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name,)).fetchall()] \
+		[name, sorted(cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name,)).fetchall(), key=lambda e:e["amount"], reverse=True)] \
 		for name in selection
 	)
 

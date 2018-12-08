@@ -36,27 +36,31 @@ def rebuildDb(username):
 	account = rest.GET.api.v2.delegates(username, returnKey="data")
 	address =  account.get("address", False)
 	if address:
+
 		transactions = []
-		req = [None]
-		while len(req) > 0:
-			offset = len(transactions)
-			options = {} if not offset else {"offset":offset}
-			req = rest.GET.api.v2.wallets(address, "transactions", **options).get("data", [])
+		count, pageCount = 0, 1
+		while count < pageCount:
+			req = rest.GET.api.v2.wallets(address, "transactions", page=count+1)
+			if req.get("error", False):
+				raise Exception("Api error occured: %r" % req)
+			pageCount = req["meta"]["pageCount"]
+			logMsg("reading transaction page %s over %s" % (count+1, pageCount))
 			transactions.extend([(
 				slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
 				tx["timestamp"]["epoch"],
 				tx["amount"]/100000000.,
 				tx.get("recipient", ""),
 				tx["id"]
-			) for tx in req if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address])
+			) for tx in req.get("data", []) if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address])
+			count += 1
 	
 		cursor.executemany(
 			"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
 			transactions
 		)
-	
-	sqlite.commit()
-	sqlite.close()
+		
+		sqlite.commit()
+		sqlite.close()
 
 
 def initPeers():
@@ -330,7 +334,7 @@ def broadcast(username, chunk_size=10):
 		tries = 0
 		while len(registry) > 0 and tries < 5:
 			time.sleep(dposlib.rest.cfg.blocktime)
-			for tx in transactions:
+			for tx in [t for t in transactions if t["id"] in registry]:
 				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
