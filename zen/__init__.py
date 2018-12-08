@@ -242,4 +242,5 @@ _tbw = loadJson("tbw.json")
 if len(_tbw.get("custom_peers", [])) > 0:
 	dposlib.rest.cfg.peers = _tbw["custom_peers"]
 
+dposlib.rest.cfg.timeout = 10
 getIp()

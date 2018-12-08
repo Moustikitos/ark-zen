@@ -37,7 +37,7 @@ def rebuildDb(username):
 	address =  account.get("address", False)
 	if address:
 
-		transactions = []
+		# transactions = []
 		count, pageCount = 0, 1
 		while count < pageCount:
 			req = rest.GET.api.v2.wallets(address, "transactions", page=count+1)
@@ -45,22 +45,22 @@ def rebuildDb(username):
 				raise Exception("Api error occured: %r" % req)
 			pageCount = req["meta"]["pageCount"]
 			logMsg("reading transaction page %s over %s" % (count+1, pageCount))
-			transactions.extend([(
-				slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
-				tx["timestamp"]["epoch"],
-				tx["amount"]/100000000.,
-				tx.get("recipient", ""),
-				tx["id"]
-			) for tx in req.get("data", []) if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address])
-			count += 1
 	
-		cursor.executemany(
-			"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-			transactions
-		)
-		
-		sqlite.commit()
-		sqlite.close()
+			cursor.executemany(
+				"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+				[(
+					slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
+					tx["timestamp"]["epoch"],
+					tx["amount"]/100000000.,
+					tx.get("recipient", ""),
+					tx["id"]
+				) for tx in req.get("data", []) if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address]
+			)
+
+			count += 1
+			sqlite.commit()
+
+	sqlite.close()
 
 
 def initPeers():

@@ -44,10 +44,8 @@ def zen_history(username, page, n):
 	cursor = connect(username)
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")
 
-	try:
-		tbw_list = sorted([os.path.splitext(name)[0] for name in os.listdir(history_folder) if name.endswith(".tbw")], reverse=True)
-	except:
-		tbw_list = []
+	tbw_list = [r["filename"] for r in cursor.execute("SELECT DISTINCT filename FROM transactions").fetchall()]
+	tbw_list.sort(reverse=True)
 
 	n_tbw = len(tbw_list)
 	n_page = int(math.ceil(float(n_tbw) / n))

@@ -15,7 +15,7 @@
 	<div class="alert alert-info">
 		<strong>&#9881;&nbsp;Delegate configuration</strong>
 		<hr/>
-		<table class="table table-sm table-striped table-hover table-primary table-responsive-sm">
+		<table class="table table-sm table-striped table-hover table-primary table-responsive">
 			{%- for key,value in config.items() %}
 			<tr>
 				<th>{{ key }}</th>
@@ -30,7 +30,7 @@
 	{%- set total = (forgery["contributions"].values() | sum) %}
 		<strong>&#9874;&nbsp;Live forgery :: {{ _currency(total) }} :: {{ forgery["contributions"] | length }} voters </strong>
 		<hr/>
-		<table class="table table-sm table-primary table-striped table-hover table-responsive-md">
+		<table class="table table-sm table-primary table-striped table-hover table-responsive">
 			<thead class="thead-light">
 				<tr>
 					<th>#</th>
