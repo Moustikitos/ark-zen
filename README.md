@@ -98,9 +98,13 @@ crontab -e
  - [x] custom peer management
 
 ### Cassiopeia (v1.3.1)
- - [x] reward distribution bugFix
+ - [x] reward distribution bugfix
+
+### Delphinus (v1.4.0)
+ - [x] automatic fee coverage
+ - [x] transaction history rebuild
+ - [x] delegate targetting
 
 ### TODO (dev version)
-
  - [ ] fork sensor
  - [ ] auto-rollback

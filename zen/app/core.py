@@ -84,7 +84,7 @@ def spread():
 				if blk["id"] == last_block["id"] or blk["timestamp"]["epoch"] < last_block["timestamp"]:
 					break
 				else:
-					logMsg("    getting reward from block %s..." % blk["id"])
+					logMsg("    getting rewards and fees from block %s..." % blk["id"])
 					rewards += float(blk["forged"]["reward"])/100000000.
 					fees += float(blk["forged"]["fee"])/100000000.
 					blocks += 1
@@ -103,7 +103,6 @@ def spread():
 		excludes = forger.get("excludes", [address])
 		if address not in excludes:
 			excludes.append(address)
-
 		contributions = zen.tbw.distributeRewards(
 			rewards,
 			generatorPublicKey,

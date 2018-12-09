@@ -94,7 +94,7 @@ def init(**kwargs):
 	elif "usernames" in kwargs:
 		pkeys = []
 		for username in kwargs.pop("usernames", []):
-			req = dposlib.rest.GET.api.v2.delegates(username).get("data", {})
+			req = rest.GET.api.v2.delegates(username).get("data", {})
 			if len(req):
 				pkeys.append(req["publicKey"])
 
@@ -111,6 +111,8 @@ def init(**kwargs):
 		if getPublicKeyFromUsername(username):
 			config = loadJson("%s.json" % username)
 			config.update(**kwargs)
+			if not(config.get("fee_level", True)):
+				config.pop("fee_level", None)
 			dumpJson(config, "%s.json" % username)
 			logMsg("%s delegate set" % username)
 		else:
@@ -125,8 +127,8 @@ def init(**kwargs):
 def setDelegate(pkey, webhook_peer, public=False):
 	printNewLine()
 	# for each publicKey, get account data (merge delegate and wallet info)
-	req = dposlib.rest.GET.api.v2.delegates(pkey).get("data", {})
-	account = dposlib.rest.GET.api.v2.wallets(pkey).get("data", {})
+	req = rest.GET.api.v2.delegates(pkey).get("data", {})
+	account = rest.GET.api.v2.wallets(pkey).get("data", {})
 	account.update(req)
 
 	if account != {}:
@@ -139,7 +141,7 @@ def setDelegate(pkey, webhook_peer, public=False):
 		# create a webhook if no one is set
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook.get("token", False):
-			data = dposlib.rest.POST.api.webhooks(
+			data = rest.POST.api.webhooks(
 				peer=webhook_peer,
 				event="block.forged",
 				target="http://%s:5000/block/forged" % (zen.PUBLIC_IP if public else "127.0.0.1"),
@@ -192,13 +194,14 @@ def askSecondSecret(account):
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
-	totalCount, voters = 1, []
-	while len(voters) < totalCount:
-		req = dposlib.rest.GET.api.v2.delegates(pkey, "voters", offset=len(voters))
+	count, pageCount, voters = 0, 1, []
+	while count < pageCount:
+		req = rest.GET.api.v2.delegates(pkey, "voters", page=count+1)
 		if req.get("error", False):
 			raise Exception("Api error occured: %r" % req)
-		totalCount = req["meta"]["totalCount"]
+		pageCount = req["meta"]["pageCount"]
 		voters.extend(req.get("data", []))
+		count += 1
 		
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
 	total_balance = sum(voters.values())
@@ -291,19 +294,21 @@ def dumpRegistry(username):
 		for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
 			tbw = loadJson(name, folder)
 			amount = tbw["distributed"]
+			fee_covered = (tbw["fees"]/0.1) > len(tbw["weight"])
 
-			registry = OrderedDict()
+			totalFees, registry = 0, OrderedDict()
 			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
 					round(amount*weight, 8), address,
 					config.get("vendorField", "%s reward" % username)
 				)
-				transaction.finalize(fee_included=True)
+				transaction.finalize(fee_included=not fee_covered)
+				totalFees += transaction["fee"]
 				registry[transaction["id"]] = transaction
 
 			if config.get("wallet", False):
 				transaction = dposlib.core.transfer(
-					round(tbw["delegate-share"]+tbw["fees"], 8),
+					round(tbw["delegate-share"] + tbw["fees"]-(totalFees if fee_covered else 0), 8),
 					config["wallet"], "%s share" % username
 				)
 				transaction.finalize(fee_included=True)
@@ -328,15 +333,15 @@ def broadcast(username, chunk_size=140):
 
 		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
 			waitFor(transactions[0]["senderPublicKey"])
-			response = dposlib.rest.POST.api.transactions(transactions=chunk)
+			response = rest.POST.api.transactions(transactions=chunk)
 			logMsg("Broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-		time.sleep(dposlib.rest.cfg.blocktime)
+		time.sleep(rest.cfg.blocktime)
 
 		tries = 0
 		while len(registry) > 0 and tries < 5:
-			time.sleep(dposlib.rest.cfg.blocktime)
+			time.sleep(rest.cfg.blocktime)
 			for tx in [t for t in transactions if t["id"] in registry]:
-				if dposlib.rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
+				if rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
 						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
@@ -355,10 +360,10 @@ def broadcast(username, chunk_size=140):
 
 def waitFor(pkey):
 	logMsg("waiting for forger...")
-	rank = 51
+	rank = rest.cfg.delegate
 	while rank > 0:
-		time.sleep(16 if rank > 3 else 1)
-		try: forging_queue = rest.GET.api.v1.delegates.getNextForgers(limit=51).get("delegates", [])
+		time.sleep(2*rest.cfg.blocktime if rank > 3 else 1)
+		try: forging_queue = rest.GET.api.v1.delegates.getNextForgers(limit=rest.cfg.delegate).get("delegates", [])
 		except: break
 		try: rank = forging_queue.index(pkey)
 		except ValueError: break

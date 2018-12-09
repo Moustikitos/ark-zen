@@ -60,8 +60,8 @@ def _fee(value):
 		return value
 	else:
 		try: return int(value)
-		except: return None
-	return None
+		except: return False
+	return False
 
 
 def _split(value):

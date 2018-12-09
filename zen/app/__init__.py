@@ -21,25 +21,28 @@ def connect(username):
 
 @app.route("/")
 def index():
-	usernames = [name.split("-")[0] for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
+	usernames = [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
 	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)])
 
 
 @app.route("/<string:username>")
 def delegate_index(username):
-	if username == "favicon.ico":
-		return ""
-	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
-	forgery["contributions"] = OrderedDict(sorted([item for item in forgery["contributions"].items()], key=lambda i:i[-1], reverse=True))
+	if username not in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]:
+		return "", 400
+
 	config = zen.loadJson("%s.json" % username)
 	config.pop("#1", False)
 	config.pop("#2", False)
+	forgery = zen.loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
+	forgery["contributions"] = OrderedDict(sorted([item for item in forgery["contributions"].items()], key=lambda i:i[-1], reverse=True))
 	return flask.render_template("delegate.html", username=username, forgery=forgery, config=config)
 
 
 @app.route("/<string:username>/history/<int:page>/<int:n>")
 def zen_history(username, page, n):
+	if username not in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]:
+		return "", 400
 	
 	cursor = connect(username)
 	history_folder = os.path.join(zen.ROOT, "app", ".tbw", username, "history")
@@ -72,6 +75,9 @@ def zen_history(username, page, n):
 
 @app.route("/<string:username>/history/<int:page>/<int:n>/<string:item>")
 def zen_details(username, page, n, item):
+	if username not in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]:
+		return "", 400
+
 	cursor = connect(username)
 	details = cursor.execute("SELECT * FROM transactions WHERE filename = ?", (item,)).fetchall()
 

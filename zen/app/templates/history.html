@@ -8,7 +8,7 @@
 		
 {%- if page_number > 0 %}
 <div class="container">
-	<h1><a href="/{{username}}">{{ username }}</a></h1>
+	<h1><a href="/{{username}}">{{ username }} delegate</a></h1>
 	<nav aria-label="payroll navigation">
 		<ul class="pagination">
 			<li class="page-item{{' disabled' if curent_page == 0 else ''}}">
@@ -81,7 +81,7 @@
 				>Details</button>
 <!-- Modal -->
 <div class="modal fade" id="details{{ name }}" tabindex="-1" role="dialog" aria-labelledby="modal{{ name }}" aria-hidden="true">
-	<div class="modal-dialog" role="document">
+	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="modal{{ name }}">Distribution details</h5>
