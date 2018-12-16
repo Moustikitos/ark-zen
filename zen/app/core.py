@@ -74,7 +74,7 @@ def spread():
 			# get last forged block from blockchain
 			req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
 			if req.get("error", False):
-				dposlib.core.rotate_peers()
+				# dposlib.core.rotate_peers()
 				raise Exception("Api error : %r" % req)
 			# compute fees, blocs and rewards from the last saved block
 			last_blocks = req.get("data", {})
@@ -88,11 +88,9 @@ def spread():
 					rewards += float(blk["forged"]["reward"])/100000000.
 					fees += float(blk["forged"]["fee"])/100000000.
 					blocks += 1
-
-		if not rewards:
+		else:
 			dumpJson(block, filename, folder=folder)
-			# return template instead of raise an excetption
-			raise Exception("no rewards found for %s" % username)
+			raise Exception("first iteration for %s" % username)
 
 		# find forger information using username
 		forger = loadJson("%s.json" % username)

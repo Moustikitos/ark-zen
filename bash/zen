@@ -5,7 +5,7 @@
 Usage:
     zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
-    zen configure [-c <currency>]
+    zen configure [-c <currency> --fee-coverage --target-delegate --chunk-size <chubk-size>]
     zen adjust-forge <username> <value>
     zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
@@ -14,15 +14,18 @@ Usage:
     zen append-custom-peer <peer-list>
 
 Options:
--b --block-delay=<block-delay>   : block amount to wait between payroll
--c --currency=<currency>         : configure the token display on front-end page
+-b --block-delay=<block-delay>   : block amount to wait beetween payroll
+-c --currency=<currency>         : configure token display on front-end page
 -e --excludes=<excludes>         : coma-separated or file address list to exclude from payroll
 -w --wallet=<wallet>             : delegate funds wallet
 -f --fee-level=<fee-level>       : set the fee level for the delegate
 -h --webhook-peer=<webhook-peer> : define the webhook peer to use
 -s --share=<share>               : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>       : minimum amount for a payment
--n --name-list=<name-list>       : *.tbw name list
+-n --name-list=<name-list>       : *.tbw coma-separated name list
+--chunk-size=<chunk-size>        : max transaction per request [default:15]
+--target-delegate                : send transactions to delegate when forging (flag)
+--fee-coverage                   : delegate covers transaction fees (flag)
 
 Subcommands:
     reset              : initialization starting from ark-core installation
@@ -240,6 +243,7 @@ if __name__ == "__main__":
 		"--threshold":   lambda value: float(value),
 		"--name-list":   lambda value: _split(value),
 		"--fee-level":   lambda value: _fee(value),
+		"--chunk-size":  lambda value: int(value),
 	}
 
 	def getAction(args):
@@ -252,7 +256,7 @@ if __name__ == "__main__":
 		options = {}
 		for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
 			try:
-				options[option[2:].replace("-", "_")] = FILTER[option](value)
+				options[option[2:].replace("-", "_")] = FILTER.get(option, lambda v:v)(value)
 			except Exception as error:
 				zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
 				sys.exit(1)

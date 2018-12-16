@@ -6,6 +6,7 @@ import json
 import sqlite3
 import getpass
 import datetime
+import threading
 
 from collections import OrderedDict
 
@@ -113,6 +114,7 @@ def init(**kwargs):
 			config.update(**kwargs)
 			if not(config.get("fee_level", True)):
 				config.pop("fee_level", None)
+				logMsg("Dynamic fees disabled")
 			dumpJson(config, "%s.json" % username)
 			logMsg("%s delegate set" % username)
 		else:
@@ -120,6 +122,13 @@ def init(**kwargs):
 
 	else:
 		tbw = loadJson("tbw.json")
+		for key in [k for k in ["target_delegate", "fee_coverage"] if k in kwargs]:
+			if tbw.get(key, False):
+				tbw.pop(key)
+				kwargs.pop(key)
+				logMsg("%s disabled" % key)
+			else:
+				logMsg("%s enabled" % key)
 		tbw.update(**kwargs)
 		dumpJson(tbw, "tbw.json")
 
@@ -259,8 +268,9 @@ def extract(username):
 		dumpJson(forgery, "%s.forgery" % username, os.path.join(zen.DATA, username))
 
 
-def dumpRegistry(username):
+def dumpRegistry(username, fee_coverage=False):
 	root = loadJson("root.json")
+	tbw = loadJson("tbw.json")
 
 	config = loadJson("%s.json" % username)
 	if "#1" in config:
@@ -292,12 +302,12 @@ def dumpRegistry(username):
 			dposlib.core.Transaction._secondPrivateKey = secondKeys["privateKey"]
 
 		for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
-			tbw = loadJson(name, folder)
-			amount = tbw["distributed"]
-			fee_covered = (tbw["fees"]/0.1) > len(tbw["weight"])
+			data = loadJson(name, folder) 
+			amount = data["distributed"]
+			fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/0.1) > len(data["weight"])
 
 			totalFees, registry = 0, OrderedDict()
-			for address, weight in sorted(tbw["weight"].items(), key=lambda e:e[-1], reverse=True):
+			for address, weight in sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
 					round(amount*weight, 8), address,
 					config.get("vendorField", "%s reward" % username)
@@ -308,7 +318,7 @@ def dumpRegistry(username):
 
 			if config.get("wallet", False):
 				transaction = dposlib.core.transfer(
-					round(tbw["delegate-share"] + tbw["fees"]-(totalFees if fee_covered else 0), 8),
+					round(data["delegate-share"] + data["fees"]-(totalFees/100000000 if fee_covered else 0), 8),
 					config["wallet"], "%s share" % username
 				)
 				transaction.finalize(fee_included=True)
@@ -316,25 +326,41 @@ def dumpRegistry(username):
 
 			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
-			dumpJson(tbw, name, os.path.join(folder, "history"))
+			data["covered fees"] = totalFees/100000000
+			dumpJson(data, name, os.path.join(folder, "history"))
 			os.remove(os.path.join(folder, name))
 
 		dposlib.core.Transaction.unlink()
 
 
-def broadcast(username, chunk_size=140):
+def broadcast(username, target_delegate=False, chunk_size=15):
+	tbw = loadJson("tbw.json")
+	target_delegate = tbw.get("target_delegate", target_delegate)
+	chunk_size = max(5, tbw.get("chunk_size", chunk_size))
+
 	# proceed all registry file found in username folder
 	sqlite = initDb(username)
 	cursor = sqlite.cursor()
 	folder = os.path.join(zen.DATA, username)
+
 	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
 		registry = loadJson(name, folder=folder)
 		transactions = list(registry.values())
 
-		for chunk in [transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)]:
-			waitFor(transactions[0]["senderPublicKey"])
-			response = rest.POST.api.transactions(transactions=chunk)
-			logMsg("Broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
+		chunks = iter([transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)])
+		unlock = threading.Event()
+		while not unlock.is_set():
+			if target_delegate:
+				waitFor(transactions[0]["senderPublicKey"])
+			limit = time.time() + rest.cfg.blocktime - 1
+			while time.time() < limit:
+				try: chunk = next(chunks)
+				except StopIteration: unlock.set()
+				else:
+					response = rest.POST.api.transactions(transactions=chunk, peer="http://127.0.0.1:4003")
+					logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
+
+		logMsg("waiting %s seconds..." % rest.cfg.blocktime)
 		time.sleep(rest.cfg.blocktime)
 
 		tries = 0

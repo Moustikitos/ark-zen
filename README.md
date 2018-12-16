@@ -10,7 +10,7 @@ for DPOS pool.
 ## Install last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.4.0/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.4.1/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -33,15 +33,15 @@ Usage:
     zen append-custom-peer <peer-list>
 
 Options:
--b --block-delay=<block-delay>   : block amount to wait between payroll
--c --currency=<currency>         : configure the token display on front-end page
+-b --block-delay=<block-delay>   : block amount to wait beetween payroll
+-c --currency=<currency>         : configure token display on front-end page
 -e --excludes=<excludes>         : coma-separated or file address list to exclude from payroll
 -w --wallet=<wallet>             : delegate funds wallet
 -f --fee-level=<fee-level>       : set the fee level for the delegate
 -h --webhook-peer=<webhook-peer> : define the webhook peer to use
 -s --share=<share>               : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>       : minimum amount for a payment
--n --name-list=<name-list>       : *.tbw name list
+-n --name-list=<name-list>       : *.tbw coma-separated name list
 
 Subcommands:
     reset              : initialization starting from ark-core installation
@@ -104,6 +104,11 @@ crontab -e
  - [x] automatic fee coverage
  - [x] transaction history rebuild
  - [x] delegate targetting
+
+### Eridanus (v1.4.1)
+ - [x] fee coverage bugfix
+ - [x] fee coverage is now optioinal
+ - [x] delegate targetting is now optional
 
 ### TODO (dev version)
  - [ ] fork sensor
