@@ -24,7 +24,7 @@ cd ~
 Usage:
     zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
     zen (configure | add-delegate) <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level> -h <webhook-peer>]
-    zen configure [-c <currency>]
+    zen configure [-c <currency> --fee-coverage --target-delegate --chunk-size <chubk-size>]
     zen adjust-forge <username> <value>
     zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
@@ -42,6 +42,9 @@ Options:
 -s --share=<share>               : delegate share rate (0.0<=share<=1.0)
 -t --threshold=<threshold>       : minimum amount for a payment
 -n --name-list=<name-list>       : *.tbw coma-separated name list
+--chunk-size=<chunk-size>        : max transaction per request [default:15]
+--target-delegate                : send transactions to delegate when forging (flag)
+--fee-coverage                   : delegate covers transaction fees (flag)
 
 Subcommands:
     reset              : initialization starting from ark-core installation

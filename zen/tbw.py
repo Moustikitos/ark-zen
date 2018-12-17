@@ -6,7 +6,6 @@ import json
 import sqlite3
 import getpass
 import datetime
-import threading
 
 from collections import OrderedDict
 
@@ -64,22 +63,12 @@ def rebuildDb(username):
 	sqlite.close()
 
 
-def initPeers():
-	root = loadJson("root.json")
-	env = loadEnv(os.path.join(root["env"], ".env"))
-	zen.WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
-
-
 def printNewLine():
 	sys.stdout.write("\n")
 	sys.stdout.flush()
 
 
 def init(**kwargs):
-
-	# initialize peers from .env file
-	if not zen.WEBHOOK_PEER:
-		initPeers()
 	webhook_peer = kwargs.get("webhook_peer", zen.WEBHOOK_PEER)
 
 	# if no options given, initialize forgers set on the node
@@ -122,14 +111,14 @@ def init(**kwargs):
 
 	else:
 		tbw = loadJson("tbw.json")
-		for key in [k for k in ["target_delegate", "fee_coverage"] if k in kwargs]:
+		for key in [k for k in ["target_delegate", "fee_coverage"] if kwargs.get(k, False)]:
 			if tbw.get(key, False):
 				tbw.pop(key)
 				kwargs.pop(key)
 				logMsg("%s disabled" % key)
 			else:
 				logMsg("%s enabled" % key)
-		tbw.update(**kwargs)
+		tbw.update(**kwargs)			
 		dumpJson(tbw, "tbw.json")
 
 
@@ -246,13 +235,12 @@ def extract(username):
 		forgery = loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
 		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contributions", {}).items()], key=lambda e:e[-1], reverse=True))
 		tbw = OrderedDict([a,w*share] for a,w in data.items() if w >= threshold)
-		totalContribution = sum(data.values())
 		totalDistributed = sum(tbw.values())
 
 		dumpJson(
 			{
 				"timestamp": "%s" % now,
-				"delegate-share": round(totalContribution * (1.0 - share), 8),
+				"delegate-share": round(forgery.get("blocks", 0.) * dposlib.rest.cfg.blockreward * (1.0 - share), 8),
 				"undistributed": round(sum(w for w in data.values() if w < threshold), 8),
 				"distributed": round(totalDistributed, 8),
 				"fees": round(forgery.get("fees", 0.), 8),
@@ -326,7 +314,7 @@ def dumpRegistry(username, fee_coverage=False):
 
 			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
-			data["covered fees"] = totalFees/100000000
+			if fee_covered: data["covered fees"] = totalFees/100000000
 			dumpJson(data, name, os.path.join(folder, "history"))
 			os.remove(os.path.join(folder, name))
 
@@ -334,6 +322,7 @@ def dumpRegistry(username, fee_coverage=False):
 
 
 def broadcast(username, target_delegate=False, chunk_size=15):
+	# initialize options
 	tbw = loadJson("tbw.json")
 	target_delegate = tbw.get("target_delegate", target_delegate)
 	chunk_size = max(5, tbw.get("chunk_size", chunk_size))
@@ -348,23 +337,26 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 		transactions = list(registry.values())
 
 		chunks = iter([transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)])
-		unlock = threading.Event()
-		while not unlock.is_set():
+		stop_while = False
+		while not stop_while:
+			nb_blocks = incr = 0
 			if target_delegate:
+				incr = chunk_size
 				waitFor(transactions[0]["senderPublicKey"])
 			limit = time.time() + rest.cfg.blocktime - 1
-			while time.time() < limit:
-				try: chunk = next(chunks)
-				except StopIteration: unlock.set()
+			while time.time() < limit and nb_blocks <= 150: # 150 = max tx/block
+				try:
+					chunk = next(chunks)
+				except StopIteration:
+					stop_while = True
 				else:
-					response = rest.POST.api.transactions(transactions=chunk, peer="http://127.0.0.1:4003")
+					response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
 					logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-
-		logMsg("waiting %s seconds..." % rest.cfg.blocktime)
-		time.sleep(rest.cfg.blocktime)
+					nb_blocks += incr
 
 		tries = 0
 		while len(registry) > 0 and tries < 5:
+			logMsg("[check #%d] waiting %s seconds..." % (tries+1, rest.cfg.blocktime))
 			time.sleep(rest.cfg.blocktime)
 			for tx in [t for t in transactions if t["id"] in registry]:
 				if rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:

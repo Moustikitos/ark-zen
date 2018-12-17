@@ -27,7 +27,9 @@ DATA = os.path.abspath(os.path.join(ROOT, "app", ".data"))
 LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 
 # peers
+API_PEER = None
 WEBHOOK_PEER = None
+#
 PUBLIC_IP = None
 
 
@@ -121,6 +123,17 @@ def logMsg(msg, logname=None, dated=False):
 		return stdout.close()
 
 
+def initPeers():
+	global WEBHOOK_PEER, API_PEER
+	root = loadJson("root.json")
+	try: env = loadEnv(os.path.join(root["env"], ".env"))
+	except: pass
+	try: WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
+	except: pass
+	try: API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+	except: pass
+
+
 def chooseItem(msg, *elem):
 	n = len(elem)
 	if n > 1:
@@ -180,9 +193,7 @@ def chooseMultipleItem(msg, *elem):
 
 
 def init():
-	global WEBHOOK_PEER
 	root = loadJson("root.json")
-	tbw = loadJson("tbw.json")
 
 	# ask node folder if not found in root.json
 	node_folder = root.get("node_folder", "")
@@ -226,21 +237,19 @@ def init():
 	env["ARK_WEBHOOKS_ENABLED"] = "true"
 	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
 	env["ARK_WEBHOOKS_PORT"] = "4004"
-	WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	dumpEnv(env, envfile)
 	logMsg("environement configuration saved in %s" % envfile)
 
 
-root = loadJson("root.json")
-if root.get("config", "").endswith("mainnet.json"):
-	rest.use("ark")
-else:
-	rest.use("dark")
+# initialize zen
+getIp()
+initPeers()
+
+config = loadJson("root.json").get("config", "")
+rest.use("ark" if config.endswith("mainnet.json") else "dark")
 dposlib.core.stop()
 
-_tbw = loadJson("tbw.json")
-if len(_tbw.get("custom_peers", [])) > 0:
-	dposlib.rest.cfg.peers = _tbw["custom_peers"]
-
+custom_peers = loadJson("tbw.json").get("custom_peers", [])
+if len(custom_peers) > 0:
+	dposlib.rest.cfg.peers = custom_peers
 dposlib.rest.cfg.timeout = 10
-getIp()

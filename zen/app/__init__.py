@@ -58,7 +58,7 @@ def zen_history(username, page, n):
 	data = dict([name, zen.loadJson(name+".tbw", folder=history_folder)] for name in selection)
 
 	details = dict(
-		[name, sorted(cursor.execute("SELECT * FROM transactions WHERE filename = ?", (name,)).fetchall(), key=lambda e:e["amount"], reverse=True)] \
+		[name, cursor.execute("SELECT * FROM transactions WHERE filename = ? ORDER BY amount DESC", (name,)).fetchall()] \
 		for name in selection
 	)
 
@@ -79,7 +79,7 @@ def zen_details(username, page, n, item):
 		return "", 400
 
 	cursor = connect(username)
-	details = cursor.execute("SELECT * FROM transactions WHERE filename = ?", (item,)).fetchall()
+	details = cursor.execute("SELECT * FROM transactions WHERE filename = ? ORDER BY amount DESC", (item,)).fetchall()
 
 	return flask.render_template("details.html",
 		username=username,
