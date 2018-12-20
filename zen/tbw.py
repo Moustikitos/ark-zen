@@ -111,13 +111,15 @@ def init(**kwargs):
 
 	else:
 		tbw = loadJson("tbw.json")
-		for key in [k for k in ["target_delegate", "fee_coverage"] if kwargs.get(k, False)]:
-			if tbw.get(key, False):
-				tbw.pop(key)
-				kwargs.pop(key)
-				logMsg("%s disabled" % key)
-			else:
-				logMsg("%s enabled" % key)
+		for key in ["target_delegate", "fee_coverage"]:
+			value = kwargs.pop(key)
+			if value:
+				if key in tbw:
+					tbw.pop(key)
+					logMsg("%s disabled" % key)
+				else:
+					tbw[key] = value
+					logMsg("%s enabled" % key)
 		tbw.update(**kwargs)			
 		dumpJson(tbw, "tbw.json")
 
@@ -295,11 +297,13 @@ def dumpRegistry(username, fee_coverage=False):
 			fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/0.1) > len(data["weight"])
 
 			totalFees, registry = 0, OrderedDict()
+			timestamp = slots.getTime()
 			for address, weight in sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True):
 				transaction = dposlib.core.transfer(
 					round(amount*weight, 8), address,
 					config.get("vendorField", "%s reward" % username)
 				)
+				transaction["timestamp"] = timestamp
 				transaction.finalize(fee_included=not fee_covered)
 				totalFees += transaction["fee"]
 				registry[transaction["id"]] = transaction

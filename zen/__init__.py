@@ -194,7 +194,6 @@ def chooseMultipleItem(msg, *elem):
 
 def init():
 	root = loadJson("root.json")
-
 	# ask node folder if not found in root.json
 	node_folder = root.get("node_folder", "")
 	while not os.path.exists(node_folder):
@@ -244,11 +243,11 @@ def init():
 # initialize zen
 getIp()
 initPeers()
-
+# initialize blockchain network
 config = loadJson("root.json").get("config", "")
 rest.use("ark" if config.endswith("mainnet.json") else "dark")
 dposlib.core.stop()
-
+# customize blockchain network if needed
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
 if len(custom_peers) > 0:
 	dposlib.rest.cfg.peers = custom_peers
