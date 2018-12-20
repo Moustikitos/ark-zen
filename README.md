@@ -25,7 +25,7 @@ Usage:
     zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> -h <webhook-peer>
-    zen configure [-c <currency> --fee-coverage --target-delegate --chunk-size <chubk-size>]
+    zen configure [ --fee-coverage --target-delegate --chunk-size <chubk-size> -c <currency>]
     zen adjust-forge <username> <value>
     zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
@@ -102,7 +102,7 @@ crontab -e
  - [x] custom peer management
 
 ### Cassiopeia (v1.3.1)
- - [x] reward distribution bugfix
+ - [x] reward distribution improvement
 
 ### Delphinus (v1.4.0)
  - [x] automatic fee coverage
@@ -111,7 +111,7 @@ crontab -e
 
 ### Eridanus (v1.4.1)
  - [x] fee coverage bugfix
- - [x] fee coverage is now optioinal
+ - [x] fee coverage is now optional
  - [x] delegate targetting is now optional
 
 ### TODO (dev version)
