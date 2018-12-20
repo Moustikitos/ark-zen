@@ -261,7 +261,7 @@ if __name__ == "__main__":
 			except Exception as error:
 				zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
 				sys.exit(1)
-		return dict((k,v) for k,v in options.items() if v != None)
+		return dict((k,v) for k,v in options.items() if v not in [None, False])
 
 	args = docopt.docopt(__doc__, argv=sys.argv[1:])
 	action = getAction(args)

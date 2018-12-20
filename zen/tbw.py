@@ -111,7 +111,7 @@ def init(**kwargs):
 
 	else:
 		tbw = loadJson("tbw.json")
-		for key in ["target_delegate", "fee_coverage"]:
+		for key in [k for k in ["target_delegate", "fee_coverage"] if k in kwargs]:
 			value = kwargs.pop(key)
 			if value:
 				if key in tbw:
