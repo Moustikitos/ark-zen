@@ -10,9 +10,6 @@
 {%- set public_key = config.pop("publicKey") %}
 	<h1>{{ username }}</h1>
 	<div class="alert alert-info">
-		<strong>&#9878;&nbsp;<a href="/{{username}}/history/0/5">Last payrolls</strong></a>
-	</div>
-	<div class="alert alert-info">
 		<strong>&#9881;&nbsp;Delegate configuration</strong>
 		<hr/>
 		<table class="table table-sm table-striped table-hover table-primary table-responsive">
@@ -25,10 +22,13 @@
 		</table>
 	</div>
 	<div class="alert alert-info">
+		<strong>&#9878;&nbsp;<a href="/{{username}}/history/0/5">Payroll history</strong></a>
+	</div>
+	<div class="alert alert-info">
 {%- if "contributions" in forgery and "share" in config %}
 	{%- set share = config["share"] %}
 	{%- set total = (forgery["contributions"].values() | sum) %}
-		<strong>&#9874;&nbsp;Live forgery :: {{ _currency(total) }} :: {{ forgery["contributions"] | length }} voters </strong>
+		<strong>&#9874;&nbsp;{{ forgery["blocks"] }}&nbsp;blocks :: {{ _currency(total) }} :: {{ _currency(forgery["fees"]) }} :: {{ forgery["contributions"] | length }} voters </strong>
 		<hr/>
 		<table class="table table-sm table-primary table-striped table-hover table-responsive">
 			<thead class="thead-light">
@@ -41,7 +41,7 @@
 			</thead>
 			<tbody>
 			{%- for key,value in forgery["contributions"].items() %}
-				<tr>
+				<tr style="color:{{ 'grey' if value*share < config['threshold'] else 'black' }}">
 					<th>{{ loop.index }}</th>
 					<td>{{ _address(key) }}</td>
 					<td style="text-align:center;">{{ ("%.3f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>

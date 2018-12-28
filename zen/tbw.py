@@ -283,8 +283,13 @@ def dumpRegistry(username, fee_coverage=False):
 		fee_level = config.get("fee_level", False)
 		if fee_level:
 			dposlib.core.Transaction.setDynamicFee(fee_level)
+			if isinstance(fee_level, int):
+				fee_level = ((rest.cfg.doffsets.get("transfer", 0) + 153 + len("%s reward" % username)) * fee_level) / 100000000.0
+			else:
+				fee_level = rest.cfg.feestats[0].get(fee_level, 10000000.0) / 100000000.0
 		else:
 			dposlib.core.Transaction.setStaticFee()
+			fee_level = 0.1
 
 		if config.get("#2", None):
 			secondKeys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))
@@ -294,7 +299,7 @@ def dumpRegistry(username, fee_coverage=False):
 		for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
 			data = loadJson(name, folder) 
 			amount = data["distributed"]
-			fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/0.1) > len(data["weight"])
+			fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/fee_level) > len(data["weight"])
 
 			totalFees, registry = 0, OrderedDict()
 			timestamp = slots.getTime()
@@ -310,7 +315,7 @@ def dumpRegistry(username, fee_coverage=False):
 
 			if config.get("wallet", False):
 				transaction = dposlib.core.transfer(
-					round(data["delegate-share"] + data["fees"]-(totalFees/100000000 if fee_covered else 0), 8),
+					round(data["delegate-share"] + data["fees"]-(totalFees/100000000.0 if fee_covered else 0), 8),
 					config["wallet"], "%s share" % username
 				)
 				transaction.finalize(fee_included=True)
@@ -318,7 +323,7 @@ def dumpRegistry(username, fee_coverage=False):
 
 			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
-			if fee_covered: data["covered fees"] = totalFees/100000000
+			if fee_covered: data["covered fees"] = totalFees/100000000.0
 			dumpJson(data, name, os.path.join(folder, "history"))
 			os.remove(os.path.join(folder, name))
 

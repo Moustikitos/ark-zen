@@ -110,7 +110,6 @@ crontab -e
  - [x] delegate targetting
 
 ### Eridanus (v1.4.1)
- - [x] fee coverage bugfix
  - [x] fee coverage is now optional
  - [x] delegate targetting is now optional
 
