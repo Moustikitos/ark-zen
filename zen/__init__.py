@@ -193,43 +193,56 @@ def chooseMultipleItem(msg, *elem):
 
 
 def init():
+	# try to load root.json configuration file
 	root = loadJson("root.json")
-	# ask node folder if not found in root.json
+	# ask node folder if not found in root.json or if root.json dos not exist
 	node_folder = root.get("node_folder", "")
 	while not os.path.exists(node_folder):
 		try:
 			node_folder = os.path.abspath(input("> enter node folder: "))
 		except KeyboardInterrupt:
 			raise Exception("configuration aborted...")
-	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
 	
+	# ark core v2.0.x
+	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
+	if not os.path.exists(blockchain_folder):
+		# ark core > v2.0.x
+		blockchain_folder = os.path.join(node_folder, "packages", "crypto", "src", "networks")
 	try:
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
 	except IndexError:
 		raise Exception("configuration folder not found")
 		sys.exit(1)
-
 	if not blockchain:
 		logMsg("node configuration skipped (%s)" % blockchain)
 		sys.exit(1)
 	
+	# write root.json file
 	networks_folder = os.path.join(blockchain_folder, blockchain)
-	try:
-		network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
-	except IndexError:
-		raise Exception("network folder not found")
-		sys.exit(1)
+	if os.path.exists(os.path.join(networks_folder, "network.json")):
+		# for ARK core > v2.0.x
+		root["config"] = os.path.join(networks_folder, "network.json")
+		blockchain = "ark"
+	else:
+		# for ark core v2.0.x only
+		try:
+			network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
+		except IndexError:
+			raise Exception("network folder not found")
+			sys.exit(1)
+		if not network:
+			logMsg("node configuration skipped (%s)" % network)
+			sys.exit(1)
+		root["config"] = os.path.join(networks_folder, "%s.json" % network)
 	
-	if not network:
-		logMsg("node configuration skipped (%s)" % network)
-		sys.exit(1)
-
+	p,n = os.path.split(root["config"])
+	root["name"] = loadJson(n,p)["name"]
 	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
-	root["config"] = os.path.join(networks_folder, "%s.json" % network)
 	root["node_folder"] = node_folder
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
+	# edit .env file to enable webhooks
 	envfile = os.path.expanduser(os.path.join("~", ".%s"%blockchain, ".env"))
 	env = loadEnv(envfile)
 	env["ARK_WEBHOOKS_API_ENABLED"] = "true"
@@ -244,8 +257,8 @@ def init():
 getIp()
 initPeers()
 # initialize blockchain network
-config = loadJson("root.json").get("config", "")
-rest.use("ark" if config.endswith("mainnet.json") else "dark")
+root = loadJson("root.json")
+rest.use("ark" if root.get("name", False) == "mainnet" else "dark")
 dposlib.core.stop()
 # customize blockchain network if needed
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
