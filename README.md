@@ -10,7 +10,7 @@ for DPOS pool.
 ## Install last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.4.1/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.4.2/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -95,23 +95,26 @@ crontab -e
  - [x] light weight HTML front-end
  - [x] multiple pool management
 
-### Boötis (v1.3.0)
+###  (v1.3.0)
  - [x] enable remote delegate management
  - [x] blockchain database rebuild
  - [x] snapshot management
  - [x] custom peer management
 
-### Cassiopeia (v1.3.1)
+### Boötis minor tweaks (v1.3.1)
  - [x] reward distribution improvement
 
-### Delphinus (v1.4.0)
+### Cassiopeia (v1.4.0)
  - [x] automatic fee coverage
  - [x] transaction history rebuild
  - [x] delegate targetting
 
-### Eridanus (v1.4.1)
+### Cassiopeia minor tweaks (v1.4.1)
  - [x] fee coverage is now optional
  - [x] delegate targetting is now optional
+
+### Cassiopeia minor tweaks (v1.4.2)
+ - [x] ark-zen runs with both ark-core mainnet and devnet
 
 ### TODO (dev version)
  - [ ] fork sensor
