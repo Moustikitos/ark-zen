@@ -9,7 +9,7 @@ def transactionApplied(id):
 
 def regenerateUnapplied(username, filename):
 	registry = zen.loadJson("%s.registry" % filename, os.path.join(zen.DATA, username))
-	tbw = zen.loadJson("%s.tbw" % filename, os.path.join(zen.TBW, username))
+	tbw = zen.loadJson("%s.tbw" % filename, os.path.join(zen.TBW, username, "history"))
 
 	for tx in registry.values():
 		if not transactionApplied(tx["id"]):
@@ -17,4 +17,4 @@ def regenerateUnapplied(username, filename):
 		else:
 			tbw["weight"].pop(tx["recipientId"], False)
 	
-	zen.dumpJson(tbw,'%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username))		 
+	zen.dumpJson(tbw,'%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username))
