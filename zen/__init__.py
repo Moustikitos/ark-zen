@@ -25,6 +25,7 @@ ROOT = os.path.abspath(os.path.dirname(__file__))
 JSON = os.path.abspath(os.path.join(ROOT, ".json"))
 DATA = os.path.abspath(os.path.join(ROOT, "app", ".data"))
 LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
+ENV = None
 
 # peers
 API_PEER = None
@@ -126,7 +127,7 @@ def logMsg(msg, logname=None, dated=False):
 def initPeers():
 	global WEBHOOK_PEER, API_PEER
 	root = loadJson("root.json")
-	try: env = loadEnv(os.path.join(root["env"], ".env"))
+	try: env = loadEnv(os.path.join(root["env"]))
 	except: pass
 	try: WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
 	except: pass
@@ -193,6 +194,8 @@ def chooseMultipleItem(msg, *elem):
 
 
 def init():
+	global ENV
+
 	# try to load root.json configuration file
 	root = loadJson("root.json")
 	# ask node folder if not found in root.json or if root.json dos not exist
@@ -206,8 +209,9 @@ def init():
 	# ark core v2.0.x
 	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
 	if not os.path.exists(blockchain_folder):
-		# ark core > v2.0.x
+		# ark core v2.1.x
 		blockchain_folder = os.path.join(node_folder, "packages", "crypto", "src", "networks")
+
 	try:
 		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
 	except IndexError:
@@ -220,11 +224,11 @@ def init():
 	# write root.json file
 	networks_folder = os.path.join(blockchain_folder, blockchain)
 	if os.path.exists(os.path.join(networks_folder, "network.json")):
-		# for ARK core > v2.0.x
+		# ark core v2.1.x
 		root["config"] = os.path.join(networks_folder, "network.json")
-		blockchain = "ark"
+		ENV = os.path.expanduser(os.path.join("~", ".config", "ark-core", blockchain, ".env"))
 	else:
-		# for ark core v2.0.x only
+		# ark core v2.0.x
 		try:
 			network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
 		except IndexError:
@@ -234,23 +238,29 @@ def init():
 			logMsg("node configuration skipped (%s)" % network)
 			sys.exit(1)
 		root["config"] = os.path.join(networks_folder, "%s.json" % network)
-	
+		ENV = os.path.expanduser(os.path.join("~", ".%s"%blockchain, ".env"))
+
 	p,n = os.path.split(root["config"])
 	root["name"] = loadJson(n,p)["name"]
-	root["env"] = os.path.expanduser(os.path.join("~", ".%s" % blockchain))
+	root["env"] = ENV
 	root["node_folder"] = node_folder
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
 	# edit .env file to enable webhooks
-	envfile = os.path.expanduser(os.path.join("~", ".%s"%blockchain, ".env"))
-	env = loadEnv(envfile)
+	env = loadEnv(ENV)
+	# ark core v2.0.x
 	env["ARK_WEBHOOKS_API_ENABLED"] = "true"
 	env["ARK_WEBHOOKS_ENABLED"] = "true"
 	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
 	env["ARK_WEBHOOKS_PORT"] = "4004"
-	dumpEnv(env, envfile)
-	logMsg("environement configuration saved in %s" % envfile)
+	# ark core v2.1.x
+	env["CORE_WEBHOOKS_API_ENABLED"] = "true"
+	env["CORE_WEBHOOKS_ENABLED"] = "true"
+	env["CORE_WEBHOOKS_HOST"] = "0.0.0.0"
+	env["CORE_WEBHOOKS_PORT"] = "4004"
+	dumpEnv(env, ENV)
+	logMsg("environement configuration saved in %s" % ENV)
 
 
 # initialize zen

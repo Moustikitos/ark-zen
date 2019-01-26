@@ -28,7 +28,12 @@
 {%- if "contributions" in forgery and "share" in config %}
 	{%- set share = config["share"] %}
 	{%- set total = (forgery["contributions"].values() | sum) %}
-		<strong>&#9874;&nbsp;{{ forgery["blocks"] }}&nbsp;blocks :: {{ _currency(total) }} :: {{ _currency(forgery["fees"]) }} :: {{ forgery["contributions"] | length }} voters </strong>
+		<strong>&#9874;&nbsp;Forgery details</strong>
+		<p>voters:&nbsp;{{ forgery["contributions"] | length }}<br/>
+		blocks:&nbsp;{{ forgery["blocks"] }}<br/>
+		rewards:&nbsp;{{ _currency(total) }}<br/>
+		fees:&nbsp;{{ _currency(forgery["fees"]) }}</p>
+		
 		<hr/>
 		<table class="table table-sm table-primary table-striped table-hover table-responsive">
 			<thead class="thead-light">

@@ -104,7 +104,7 @@ def spread():
 		contributions = zen.tbw.distributeRewards(
 			rewards,
 			generatorPublicKey,
-			minvote=forger.get("minimum_vote", 0)*100000000,
+			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
 

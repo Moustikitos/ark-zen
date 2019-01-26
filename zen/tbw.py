@@ -16,7 +16,8 @@ import dposlib
 from dposlib import rest
 from dposlib.blockchain import slots
 from dposlib.util.bin import unhexlify
-from zen import loadJson, dumpJson, logMsg, loadEnv, getPublicKeyFromUsername
+from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
+from zen import misc
 
 
 def initDb(username):
@@ -75,7 +76,13 @@ def init(**kwargs):
 	if not len(kwargs):
 		root = loadJson("root.json")
 		# find delegates secrets and generate publicKeys
-		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
+		env_folder = os.path.dirname(root["env"])
+		if os.path.exists(os.path.join(env_folder, "delegates.json")):
+			# ark core v2.1.x
+			delegates = loadJson("delegates.json", env_folder)
+		else:
+			# ark core v2.0.x
+			delegates = loadJson("delegates.json", os.path.join(env_folder, "config"))
 		pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
 		for pkey in set(pkeys):
@@ -141,6 +148,7 @@ def setDelegate(pkey, webhook_peer, public=False):
 		# create a webhook if no one is set
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook.get("token", False):
+			print(webhook_peer, "http://%s:5000/block/forged" % (zen.PUBLIC_IP if public else "127.0.0.1"))
 			data = rest.POST.api.webhooks(
 				peer=webhook_peer,
 				event="block.forged",
@@ -194,15 +202,8 @@ def askSecondSecret(account):
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
-	count, pageCount, voters = 0, 1, []
-	while count < pageCount:
-		req = rest.GET.api.v2.delegates(pkey, "voters", page=count+1)
-		if req.get("error", False):
-			raise Exception("Api error occured: %r" % req)
-		pageCount = req["meta"]["pageCount"]
-		voters.extend(req.get("data", []))
-		count += 1
-		
+	minvote *= 100000000
+	voters = misc.loadPages(rest.GET.api.v2.delegates.__getattr__(pkey).voters)
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
 	total_balance = sum(voters.values())
 	return OrderedDict(sorted([[a, b/total_balance*rewards] for a,b in voters.items()], key=lambda e:e[-1], reverse=True))
