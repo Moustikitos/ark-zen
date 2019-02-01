@@ -108,9 +108,6 @@ def spread():
 			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
-		# last check on results
-		if len(contributions) == 0:
-			raise Exception("No voter found during webhook call...")
 		# from here, all blochain call are finished so
 		# dump the last block forged provided by webhook
 		dumpJson(block, filename, folder=folder)
