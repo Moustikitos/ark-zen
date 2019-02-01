@@ -1,5 +1,6 @@
 # -*- encoding:utf-8 -*-
 import os
+import math
 import json
 import flask
 import dposlib
@@ -36,7 +37,7 @@ app.config.update(
 def check():
 	if flask.request.method == "POST":
 		data = json.loads(flask.request.data).get("data", False)
-		logMsg(">>> missing block :\n%s" % json.dumps(data, indent=2))
+		logMsg("missing block :\n%s" % json.dumps(data, indent=2))
 
 	return json.dumps({"zen-tbw::block/missed":True}, indent=2)
 
@@ -107,7 +108,9 @@ def spread():
 			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
-
+		# last check on results
+		if len(contributions) == 0:
+			raise Exception("No voter found during webhook call...")
 		# from here, all blochain call are finished so
 		# dump the last block forged provided by webhook
 		dumpJson(block, filename, folder=folder)
@@ -123,6 +126,13 @@ def spread():
 			"%s.forgery" % username,
 			folder=folder
 		)
+
+		# check vote movements
+		logMsg("checking vote changes...")
+		for wallet in [w for w in _ctrb if w not in contributions]:
+			logMsg("    %s downvoted %s... it may distribute %.8f Arks" % (wallet, username, _ctrb[wallet]))
+		for wallet in [w for w in contributions if w not in _ctrb]:
+			logMsg("    %s upvoted %s... it gets %.8f Arks vote more" % (wallet, username, _ctrb[wallet]))
 
 		# launch payroll if block delay reach
 		block_delay = forger.get("block_delay", False)
@@ -148,10 +158,18 @@ def tweak():
 		url_for=dated_url_for,
 		tbw_config=tbw_config,
 		_currency=lambda value: flask.Markup("%.8f&nbsp;%s" % (value, token)),
+		_dhm = lambda value: "%d days %02d hours %02d minutes" % dhm(value),
 		_address=lambda address: flask.Markup(
 			'<span class="not-ellipsed">%s</span><span class="ellipsed">%s</span>' % 
 			(address, "%s&nbsp;&#x2026;&nbsp;%s" % (address[:5],address[-5:])))
 	)
+
+def dhm(last_blocks):
+	days = last_blocks * zen.rest.cfg.blocktime * zen.rest.cfg.delegate / (3600.*24)
+	hours = (days - math.floor(days)) * 24
+	minutes = (hours - math.floor(hours)) * 60
+	return math.floor(days), math.floor(hours), math.floor(minutes)
+
 
 def dated_url_for(endpoint, **values):
 	if endpoint == 'static':

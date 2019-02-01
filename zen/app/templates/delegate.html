@@ -29,12 +29,18 @@
 	{%- set share = config["share"] %}
 	{%- set total = (forgery["contributions"].values() | sum) %}
 		<strong>&#9874;&nbsp;Forgery details</strong>
-		<p>voters:&nbsp;{{ forgery["contributions"] | length }}<br/>
+		<p>
+		voters:&nbsp;{{ forgery["contributions"] | length }}<br/>
 		blocks:&nbsp;{{ forgery["blocks"] }}<br/>
 		rewards:&nbsp;{{ _currency(total) }}<br/>
-		fees:&nbsp;{{ _currency(forgery["fees"]) }}</p>
-		
+		fees:&nbsp;{{ _currency(forgery["fees"]) }}<br/>
+		</p>
 		<hr/>
+		{%- if "block_delay" in config %}
+		<div class="badge badge-info">
+			next payroll in about {{ _dhm(config["block_delay"]-forgery["blocks"]) }}
+		</div>
+		{%- endif %}
 		<table class="table table-sm table-primary table-striped table-hover table-responsive">
 			<thead class="thead-light">
 				<tr>

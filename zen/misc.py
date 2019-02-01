@@ -42,3 +42,17 @@ def loadPages(endpoint, pages=None, quiet=True, nb_tries=10):
 			data.extend(req.get("data", []))
 			count += 1
 	return data
+
+
+def loadCryptoCompareYearData(year, reference, interest):
+	req = zen.rest.GET.data.histoday(
+		peer="https://min-api.cryptocompare.com",
+		fsym=reference,
+		tsym=interest,
+		limit=365,
+		toTs=int(datetime.datetime(year, 12, 31, 23, 59).timestamp())
+		)
+	if req["Response"] == "Success":
+		return req["Data"]
+	else:
+		raise Exception("can not reach data")

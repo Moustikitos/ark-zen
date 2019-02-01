@@ -368,7 +368,7 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 		while len(registry) > 0 and tries < 5:
 			logMsg("[check #%d] waiting %s seconds..." % (tries+1, rest.cfg.blocktime))
 			time.sleep(rest.cfg.blocktime)
-			for tx in [t for t in transactions if t["id"] in registry]:
+			for tx in [t for t in transactions if t["id"] in registry and "share" not in t["vendorField"]]:
 				if rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 					cursor.execute(
