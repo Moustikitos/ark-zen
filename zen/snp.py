@@ -15,24 +15,24 @@ def createSnapshot():
 	root = zen.loadJson("root.json")
 	os.system('''
 cd %(workdir)s
-yarn create:%(network)s''' % {
+yarn dump:%(network)s''' % {
 	"workdir": os.path.join(root["node_folder"], "packages", "core-snapshots-cli"),
-	"network": os.path.basename(root["config"]).replace(".json", "")
+	"network": os.path.basename(os.path.split(root["config"])[0])
 })
 
 
 def updateSnapshot():
 	root = zen.loadJson("root.json")
 	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(root["config"]).replace(".json", "")
-	snapdir = os.path.expanduser(os.path.join("~", ".ark", "snapshots", network))
+	network = os.path.basename(os.path.split(root["config"])[0])
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
 	if not os.system('''
 cd %(workdir)s
-yarn create:%(network)s -b %(snapshot)s''' % {
+yarn dump:%(network)s --blocks %(snapshot)s''' % {
 	"workdir": workdir,
-	"network": os.path.basename(root["config"]).replace(".json", ""),
+	"network": network,
 	"snapshot": snapshots[-1]
 }):
 		for snapshot in snapshots:
@@ -42,8 +42,8 @@ yarn create:%(network)s -b %(snapshot)s''' % {
 def rebuildFromZero():
 	root = zen.loadJson("root.json")
 	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(root["config"]).replace(".json", "")
-	snapdir = os.path.expanduser(os.path.join("~", ".ark", "snapshots", network))
+	network = os.path.basename(os.path.split(root["config"])[0])
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
 
@@ -51,7 +51,7 @@ def rebuildFromZero():
 cd %(workdir)s
 pm2 stop ark-core-relay
 pm2 stop ark-core-forger
-yarn import:%(network)s -b %(snapshot)s --truncate
+yarn restore:%(network)s --blocks %(snapshot)s --truncate
 pm2 start ark-core-relay
 pm2 start ark-core-forger
 ''' % {
@@ -64,8 +64,8 @@ pm2 start ark-core-forger
 def rollbackAndRebuild():
 	root = zen.loadJson("root.json")
 	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(root["config"]).replace(".json", "")
-	snapdir = os.path.expanduser(os.path.join("~", ".ark", "snapshots", network))
+	network = os.path.basename(os.path.split(root["config"])[0])
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
 	blockstop = int(snapshots[-1].split("-")[-1]) - 500
@@ -74,8 +74,8 @@ def rollbackAndRebuild():
 cd %(workdir)s
 pm2 stop ark-core-relay
 pm2 stop ark-core-forger
-yarn rollback:%(network)s -b %(blockstop)s
-yarn import:%(network)s -b %(snapshot)s
+yarn rollback:%(network)s --blocks %(blockstop)s
+yarn restore:%(network)s --blocks %(snapshot)s
 pm2 start ark-core-relay
 pm2 start ark-core-forger
 ''' % {

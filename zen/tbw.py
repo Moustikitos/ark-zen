@@ -271,7 +271,7 @@ def dumpRegistry(username, fee_coverage=False):
 	else:
 		pkey = getPublicKeyFromUsername(username)
 		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
-		if delegates = {}:
+		if delegates == {}:
 			delegates = loadJson("delegates.json", os.path.dirname(root["env"]))
 		for secret in delegates["secrets"]:
 			keys = dposlib.core.crypto.getKeys(secret)
