@@ -129,7 +129,7 @@ def spread():
 		for wallet in [w for w in _ctrb if w not in contributions]:
 			logMsg("    %s downvoted %s... it may distribute %.8f Arks" % (wallet, username, _ctrb[wallet]))
 		for wallet in [w for w in contributions if w not in _ctrb]:
-			logMsg("    %s upvoted %s... it gets %.8f Arks vote more" % (wallet, username, _ctrb[wallet]))
+			logMsg("    %s upvoted %s... it gets %.8f Arks vote more" % (wallet, username, contributions[wallet]))
 
 		# launch payroll if block delay reach
 		block_delay = forger.get("block_delay", False)

@@ -11,14 +11,14 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if ! (git clone --branch 1.4.2 https://github.com/Moustikitos/ark-zen.git) then
+if ! (git clone --branch 1.5.0 https://github.com/Moustikitos/ark-zen.git) then
     cd ~/ark-zen
 else
     cd ~/ark-zen
     git reset --hard
 fi
 git fetch --all
-git checkout tags/1.4.2 -f
+git checkout tags/1.5.0 -f
 
 # install python dependencies
 echo

@@ -271,6 +271,8 @@ def dumpRegistry(username, fee_coverage=False):
 	else:
 		pkey = getPublicKeyFromUsername(username)
 		delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
+		if delegates = {}:
+			delegates = loadJson("delegates.json", os.path.dirname(root["env"]))
 		for secret in delegates["secrets"]:
 			keys = dposlib.core.crypto.getKeys(secret)
 			if keys["publicKey"] == pkey: break
@@ -370,13 +372,14 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 		while len(registry) > 0 and tries < 5:
 			logMsg("[check #%d] waiting %s seconds..." % (tries+1, rest.cfg.blocktime))
 			time.sleep(rest.cfg.blocktime)
-			for tx in [t for t in transactions if t["id"] in registry and "share" not in t["vendorField"]]:
+			for tx in [t for t in transactions if t["id"] in registry]:
 				if rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
 					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-					cursor.execute(
-						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
-					)
+					if "reward" in tx["vendorField"]:
+						cursor.execute(
+							"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+							(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
+						)
 			tries += 1
 
 		if tries >=5:

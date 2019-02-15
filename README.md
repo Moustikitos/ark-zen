@@ -15,7 +15,7 @@ for DPOS pool.
 ## Install last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.4.2/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.5.0/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -120,6 +120,10 @@ crontab -e
 
 ### Cassiopeia minor tweaks (v1.4.2)
  - [x] ark-zen runs with both ark-core mainnet and devnet
+
+### Delphinus (v1.5.0)
+ - [x] ark-zen runs with ark-core 2.1.x
+ - [x] html front-end improvement
 
 ### TODO (dev version)
  - [ ] fork sensor
