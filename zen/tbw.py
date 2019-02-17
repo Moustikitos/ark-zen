@@ -357,7 +357,7 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 			if target_delegate:
 				incr = chunk_size
 				waitFor(transactions[0]["senderPublicKey"])
-			limit = time.time() + rest.cfg.blocktime - 1
+			limit = time.time() + rest.cfg.blocktime - 2
 			while time.time() < limit and nb_blocks <= 150: # 150 = max tx/block
 				try:
 					chunk = next(chunks)
@@ -387,6 +387,7 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 		else:
 			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
 			os.remove(os.path.join(folder, name))
+			misc.notify("Payroll successfully broadcasted !")
 
 		sqlite.commit()
 

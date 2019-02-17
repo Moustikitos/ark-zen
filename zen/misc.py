@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 
+import os
 import zen
-# from zen import tbw
 
 
 def transactionApplied(id):
@@ -56,3 +56,48 @@ def loadCryptoCompareYearData(year, reference, interest):
 		return req["Data"]
 	else:
 		raise Exception("can not reach data")
+
+
+def notify(body):
+	network = zen.dposlib.core.cfg.network
+
+	pushover = zen.loadJson("pushover.json")
+	if pushover != {}:
+		pushover["body"] = body
+		pushover["network"] = network
+		os.system('''
+curl -s -F "token=%(token)s" \
+	-F "user=%(user)s" \
+	-F "title=ark-zen@%(network)s" \
+	-F "message=%(body)s" \
+	--silent --output /dev/null \
+	https://api.pushover.net/1/messages.json
+''' % pushover)
+		return
+
+	pushbullet = zen.loadJson("pushbullet.json")
+	if pushbullet != {}:
+		pushbullet["body"] = body
+		pushbullet["network"] = network
+		os.system('''
+curl --header 'Access-Token: %(token)s' \
+	--header 'Content-Type: application/json' \
+	--data-binary '{"body":"%(body)s","title":"ark-zen@%(network)s","type":"note"}' \
+	--request POST \
+	--silent --output /dev/null \
+	https://api.pushbullet.com/v2/pushes
+''' % pushbullet)
+		return
+
+	twilio = zen.loadJson("twilio.json")
+	if twilio != {}:
+		twilio["body"] = body
+		os.system('''
+curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json" \
+	--data-urlencode "From=%(sender)s" \
+	--data-urlencode "Body=%(body)s" \
+	--data-urlencode "To=%(receiver)s" \
+	--silent --output /dev/null \
+	-u "%(sid)s:%(auth)s"
+''' % twilio)
+		return
