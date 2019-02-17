@@ -5,7 +5,7 @@ import zen
 
 
 def transactionApplied(id):
-	return zen.tbw.rest.GET.api.v2.transactions(id).get("data",{}).get("confirmations", 0) >= 1
+	return zen.rest.GET.api.v2.transactions(id).get("data",{}).get("confirmations", 0) >= 1
 
 
 def regenerateUnapplied(username, filename):
@@ -100,4 +100,10 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 	--silent --output /dev/null \
 	-u "%(sid)s:%(auth)s"
 ''' % twilio)
+		return
+
+	freemobile = zen.loadJson("freemobile.json")
+	if freemobile != {}:
+		freemobile["msg"] = body
+		zen.rest.GET.sendmsg(peer="https://smsapi.free-mobile.fr", **freemobile)
 		return
