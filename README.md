@@ -69,18 +69,63 @@ Subcommands:
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
 
-## crontab use case
+## Notification system
+
+4 notification types are available. Notification service is activated if a json configuration file is present in `.json` folder.
+
+**freemobile (french only)**
+Notification option must be enabled in your Free mobile account. Then, copy your parameters in `freemobile.json` file&nbsp;:
+```json
+{
+    "user": "12345678", 
+    "pass": "..."
+}
+```
+
+**twilio**
+Copy your parameters in `twilio.json` file&nbsp;:
+```json
+{
+    "sid": "...",
+    "auth": "...", 
+    "receiver": "+1234567890", 
+    "sender": "+0987654321"
+}
+```
+
+**Pushover**
+Copy your parameters in `pushover.json` file&nbsp;:
+```json
+{
+    "user": "...",
+    "token": "..."
+}
+```
+
+**Pushbullet**
+Copy your API token in `pushbullet.json` file&nbsp;:
+```json
+{
+    "token": "..."
+}
+```
+
+## `crontab` use case
 
 Edit the crontab file
-```bash
+```shell
 crontab -e
 ```
+
 **create a snapshot and update it every 12 hours**
-```
+```shell
 0 */12 *   *   *     /home/{username}/zen snap-blockchain
 ```
-**automatic startup on server restart**
-```
+
+**Automatic startup on server restart**
+
+This tweak does not works with BIP38 encrypted passphrase.
+```shell
 @reboot /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-relay >> /home/{username}/core-commander/logs/commander.log 2>&1
 @reboot sleep 30 && /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-forger >> /home/{username}/core-commander/logs/commander.log 2>&1
 @reboot cd /home/{username}/ark-zen && /usr/bin/pm2 start app.json
@@ -126,5 +171,6 @@ crontab -e
  - [x] html front-end improvement
 
 ### TODO (dev version)
+ - [x] notification system added (SMS or push)
  - [ ] fork sensor
  - [ ] auto-rollback

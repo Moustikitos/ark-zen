@@ -3,8 +3,9 @@
 import os
 import zen
 
+
 def shorten(address, chunk=5):
-	return address[:5]+"..."+address[-5:]
+	return address[:chunk]+"..."+address[-chunk:]
 
 
 def transactionApplied(id):
