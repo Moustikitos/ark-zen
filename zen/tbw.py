@@ -387,7 +387,10 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 		else:
 			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
 			os.remove(os.path.join(folder, name))
-			misc.notify("Payroll successfully broadcasted !")
+			misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
+				sum([tx["amount"] for tx in transactions])/100000000.,
+				len(transactions)
+			))
 
 		sqlite.commit()
 

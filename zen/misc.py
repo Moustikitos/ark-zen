@@ -3,6 +3,9 @@
 import os
 import zen
 
+def shorten(address, chunk=5):
+	return address[:5]+"..."+address[-5:]
+
 
 def transactionApplied(id):
 	return zen.rest.GET.api.v2.transactions(id).get("data",{}).get("confirmations", 0) >= 1
@@ -73,7 +76,6 @@ curl -s -F "token=%(token)s" \
 	--silent --output /dev/null \
 	https://api.pushover.net/1/messages.json
 ''' % pushover)
-		return
 
 	pushbullet = zen.loadJson("pushbullet.json")
 	if pushbullet != {}:
@@ -87,7 +89,6 @@ curl --header 'Access-Token: %(token)s' \
 	--silent --output /dev/null \
 	https://api.pushbullet.com/v2/pushes
 ''' % pushbullet)
-		return
 
 	twilio = zen.loadJson("twilio.json")
 	if twilio != {}:
@@ -100,10 +101,8 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 	--silent --output /dev/null \
 	-u "%(sid)s:%(auth)s"
 ''' % twilio)
-		return
 
 	freemobile = zen.loadJson("freemobile.json")
 	if freemobile != {}:
-		freemobile["msg"] = body
+		freemobile["msg"] = network + ":\n" + body
 		zen.rest.GET.sendmsg(peer="https://smsapi.free-mobile.fr", **freemobile)
-		return
