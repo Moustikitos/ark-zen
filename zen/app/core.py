@@ -125,15 +125,12 @@ def spread():
 			folder=folder
 		)
 
-		# notify vote movements
-		msg = "\n".join([
-			"%s downvoted %s [%.8f Arks to spread]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) \
-			for wallet in [w for w in _ctrb if w not in contributions]
-		]) + "\n".join([
-			"\n%s upvoted %s" % (zen.misc.shorten(wallet), username) \
-			for wallet in [w for w in contributions if w not in _ctrb]
-		])
+		msg = "\n".join(
+			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
+			["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
+		)
 		logMsg("checking vote changes..." + msg)
+		# notify vote movements
 		if msg != "": zen.misc.notify(msg)
 
 		# launch payroll if block delay reach

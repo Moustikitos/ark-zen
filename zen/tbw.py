@@ -239,7 +239,7 @@ def extract(username):
 
 		forgery = loadJson("%s.forgery" % username, os.path.join(zen.DATA, username))
 		data = OrderedDict(sorted([[a,w] for a,w in forgery.get("contributions", {}).items()], key=lambda e:e[-1], reverse=True))
-		tbw = OrderedDict([a,w*share] for a,w in data.items() if w >= threshold)
+		tbw = OrderedDict([a,w*share] for a,w in data.items() if w*share >= threshold)
 		totalDistributed = sum(tbw.values())
 
 		dumpJson(
@@ -255,6 +255,7 @@ def extract(username):
 			folder=os.path.join(zen.ROOT, "app", ".tbw", username)
 		)
 
+		# reset forgery keeping unpaind voters
 		forgery["contributions"] = OrderedDict([a, 0. if a in tbw else w] for a,w in data.items())
 		forgery["blocks"] = 0
 		forgery["fees"] = 0.
