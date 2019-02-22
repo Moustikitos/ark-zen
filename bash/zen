@@ -55,6 +55,7 @@ import base58
 import docopt
 import zen.tbw
 import zen.snp
+import zen.misc
 
 from dposlib import rest
 
@@ -213,6 +214,7 @@ def snap_blockchain(args={}, **options):
 	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots")))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
+	zen.misc.notify("Blockchain snapped !")
 
 
 def append_custom_peer(args={}, **options):

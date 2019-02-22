@@ -39,7 +39,7 @@ def check():
 	if flask.request.method == "POST":
 		data = json.loads(flask.request.data).get("data", False)
 		logMsg("missing block :\n%s" % json.dumps(data, indent=2))
-
+		zen.misc.notify("missed a block !\n%s" % json.dumps(data, indent=2))
 	return json.dumps({"zen-tbw::block/missed":True}, indent=2)
 
 
@@ -105,7 +105,7 @@ def spread():
 			excludes.append(address)
 		contributions = zen.tbw.distributeRewards(
 			rewards,
-			generatorPublicKey,
+			username,
 			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
@@ -146,9 +146,6 @@ def spread():
 	return json.dumps({"zen-tbw::block/forged":True}, indent=2)
 
 
-########################
-# css reload bugfix... #
-########################
 @app.context_processor
 def tweak():
 	tbw_config = zen.loadJson("tbw.json")
@@ -163,6 +160,7 @@ def tweak():
 			(address, "%s&nbsp;&#x2026;&nbsp;%s" % (address[:5],address[-5:])))
 	)
 
+
 def dhm(last_blocks):
 	days = last_blocks * zen.rest.cfg.blocktime * zen.rest.cfg.delegate / (3600.*24)
 	hours = (days - math.floor(days)) * 24
@@ -170,6 +168,9 @@ def dhm(last_blocks):
 	return math.floor(days), math.floor(hours), math.floor(minutes)
 
 
+########################
+# css reload bugfix... #
+########################
 def dated_url_for(endpoint, **values):
 	if endpoint == 'static':
 		filename = values.get("filename", False)
