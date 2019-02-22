@@ -170,7 +170,12 @@ This tweak does not works with BIP38 encrypted passphrase.
  - [x] ark-zen runs with ark-core 2.1.x
  - [x] html front-end improvement
 
-### TODO (dev version)
+### Eridanus (v1.6.0)
  - [x] notification system added (SMS or push)
+ - [x] ark-zen runs with ark-core 2.2.x
+ - [x] added node checker
+
+
+### TODO (dev version)
  - [ ] fork sensor
  - [ ] auto-rollback

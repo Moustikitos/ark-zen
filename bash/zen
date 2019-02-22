@@ -233,7 +233,7 @@ def adjust_forge(args={}, **options):
 
 def snap_blockchain(args={}, **options):
 	root = zen.loadJson("root.json")
-	network = root["name"] #os.path.basename(os.path.split(root["config"])[0])
+	network = root["name"]
 	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots")))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
