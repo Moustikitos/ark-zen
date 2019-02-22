@@ -30,7 +30,7 @@ Options:
     --fee-coverage                   : delegate covers transaction fees (flag)
 
 Subcommands:
-    reset              : initialization starting from ark-core installation
+    reset              : initialization starting from ark-core config folder
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
@@ -39,7 +39,7 @@ Subcommands:
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add remote <username> (ie ark-core-forger running on remote node)
+    add-delegate       : add remote <username> (ie ark-forger running on remote node)
     remove-delegate    : remove delegate from list or specified by <username>
     snap-blockchain    : update snapshot or create it if no snapshot initialized yet
     append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
@@ -48,6 +48,7 @@ Subcommands:
 
 import os
 import sys
+import time
 
 sys.path.append(os.path.abspath(os.path.expanduser("~/ark-zen")))
 
@@ -149,8 +150,15 @@ def reset(args={}, **options):
 
 def initialize(args={}, **options):
 	zen.init()
+	os.system('''
+if [ "$(pm2 id ark-relay) " != "[] " ]; then
+	pm2 restart ark-relay
+fi
+''')
+	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
+	while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
+		time.sleep(5)
 	zen.tbw.init()
-
 	zen.tbw.printNewLine()
 	if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
 		snap_blockchain()
@@ -234,7 +242,7 @@ def adjust_forge(args={}, **options):
 def snap_blockchain(args={}, **options):
 	root = zen.loadJson("root.json")
 	network = root["name"]
-	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots")))
+	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark", network, "snapshots")))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
 	zen.misc.notify("Blockchain snapped !")

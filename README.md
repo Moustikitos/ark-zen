@@ -15,7 +15,7 @@ for DPOS pool.
 ## Install last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.5.0/bash/zen-install.sh
+wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.6.0/bash/zen-install.sh
 bash zen-install.sh
 ```
 
@@ -27,7 +27,8 @@ cd ~
 ```
 ```
 Usage:
-    zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
+    zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
+    zen (start-srv | stop-srv | start-chk | stop-chk )
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> -h <webhook-peer>
     zen configure [ --fee-coverage --target-delegate --chunk-size <chubk-size> -c <currency>]
@@ -57,8 +58,8 @@ Subcommands:
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
-    start-tbw          : start the true block weight process
-    stop-tbw           : stop the true block weight process
+    start-srv/chk      : start the true block weight server/node checker
+    stop-srv/chk       : stop the true block weight server/node checker
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
@@ -175,7 +176,5 @@ This tweak does not works with BIP38 encrypted passphrase.
  - [x] ark-zen runs with ark-core 2.2.x
  - [x] added node checker
 
-
 ### TODO (dev version)
- - [ ] fork sensor
  - [ ] auto-rollback
