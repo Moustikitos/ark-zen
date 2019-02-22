@@ -3,7 +3,8 @@
 
 """
 Usage:
-    zen (reset | initialize | rebuild | start-tbw | stop-tbw | snap-blockchain | remove-custom-peer)
+    zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
+    zen (start-srv | stop-srv | start-chk | stop-chk )
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> -h <webhook-peer>
     zen configure [ --fee-coverage --target-delegate --chunk-size <chubk-size> -c <currency>]
@@ -33,8 +34,8 @@ Subcommands:
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
-    start-tbw          : start the true block weight process
-    stop-tbw           : stop the true block weight process
+    start-srv/chk      : start the true block weight server/node checker
+    stop-srv/chk       : stop the true block weight server/node checker
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
@@ -92,23 +93,45 @@ def _addresses(value):
 		return result
 
 
-def start_tbw(args={}, **options):
+def start_chk(args={}, **options):
 	os.system('''
-if [ "$(pm2 id zen-tbw) " = "[] " ]; then
+if [ "$(pm2 id zen-chk) " = "[] " ]; then
 	cd %(abspath)s
-    pm2 start app.json
+    pm2 start chk.json
 else
-    pm2 restart zen-tbw
+    pm2 restart zen-chk
 fi
 ''' % {"abspath": os.path.dirname(zen.__path__[0])}
 )
 
 
-def stop_tbw(args={}, **options):
+def stop_chk(args={}, **options):
 	os.system('''
-if [ "$(pm2 id zen-tbw) " != "[] " ]; then
+if [ "$(pm2 id zen-chk) " != "[] " ]; then
 	cd %(abspath)s
-    pm2 stop zen-tbw
+    pm2 stop zen-chk
+fi
+''' % {"abspath": os.path.dirname(zen.__path__[0])}
+)
+
+
+def start_srv(args={}, **options):
+	os.system('''
+if [ "$(pm2 id zen-srv) " = "[] " ]; then
+	cd %(abspath)s
+    pm2 start srv.json
+else
+    pm2 restart zen-srv
+fi
+''' % {"abspath": os.path.dirname(zen.__path__[0])}
+)
+
+
+def stop_srv(args={}, **options):
+	os.system('''
+if [ "$(pm2 id zen-srv) " != "[] " ]; then
+	cd %(abspath)s
+    pm2 stop zen-srv
 fi
 ''' % {"abspath": os.path.dirname(zen.__path__[0])}
 )
@@ -210,7 +233,7 @@ def adjust_forge(args={}, **options):
 
 def snap_blockchain(args={}, **options):
 	root = zen.loadJson("root.json")
-	network = network = os.path.basename(os.path.split(root["config"])[0])
+	network = root["name"] #os.path.basename(os.path.split(root["config"])[0])
 	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots")))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()

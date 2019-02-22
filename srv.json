@@ -1,6 +1,6 @@
 {
 	"apps": [{
-		"name": "zen-tbw",
+		"name": "zen-srv",
 		"script": "srv.py",
 		"instances": 1,
 		"exec_mode": "fork",

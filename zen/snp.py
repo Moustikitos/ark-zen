@@ -3,6 +3,7 @@ import os
 import sys
 import zen
 
+WORKDIR = os.path.expanduser("~/.config/yarn/global/node_modules/@arkecosystem/core-snapshots-cli")
 
 def getSnapshots(snapdir):
 	snapshots = sorted([name for name in os.listdir(snapdir) if os.path.isdir(os.path.join(snapdir, name)) and name.startswith("1-")])
@@ -16,22 +17,21 @@ def createSnapshot():
 	os.system('''
 cd %(workdir)s
 yarn dump:%(network)s''' % {
-	"workdir": os.path.join(root["node_folder"], "packages", "core-snapshots-cli"),
-	"network": os.path.basename(os.path.split(root["config"])[0])
+	"workdir": WORKDIR,
+	"network": root["name"]
 })
 
 
 def updateSnapshot():
 	root = zen.loadJson("root.json")
-	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(os.path.split(root["config"])[0])
+	network = root["name"]
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
 	if not os.system('''
 cd %(workdir)s
 yarn dump:%(network)s --blocks %(snapshot)s''' % {
-	"workdir": workdir,
+	"workdir": WORKDIR,
 	"network": network,
 	"snapshot": snapshots[-1]
 }):
@@ -41,8 +41,7 @@ yarn dump:%(network)s --blocks %(snapshot)s''' % {
 
 def rebuildFromZero():
 	root = zen.loadJson("root.json")
-	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(os.path.split(root["config"])[0])
+	network = root["name"]
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
@@ -55,7 +54,7 @@ yarn restore:%(network)s --blocks %(snapshot)s --truncate
 pm2 start ark-core-relay
 pm2 start ark-core-forger
 ''' % {
-	"workdir": workdir,
+	"workdir": WORKDIR,
 	"network": network,
 	"snapshot": snapshots[-1]
 })
@@ -63,8 +62,7 @@ pm2 start ark-core-forger
 
 def rollbackAndRebuild():
 	root = zen.loadJson("root.json")
-	workdir = os.path.join(root["node_folder"], "packages", "core-snapshots-cli")
-	network = os.path.basename(os.path.split(root["config"])[0])
+	network = root["name"]
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
 
 	snapshots = getSnapshots(snapdir)
@@ -79,7 +77,7 @@ yarn restore:%(network)s --blocks %(snapshot)s
 pm2 start ark-core-relay
 pm2 start ark-core-forger
 ''' % {
-	"workdir": workdir,
+	"workdir": WORKDIR,
 	"network": network,
 	"blockstop": blockstop,
 	"snapshot": snapshots[-1]

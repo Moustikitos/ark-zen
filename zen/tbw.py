@@ -26,8 +26,8 @@ def initDb(username):
 	cursor = sqlite.cursor()
 	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
 	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
-	cursor.execute("CREATE TABLE IF NOT EXISTS avw(timestamp REAL, value REAL);")
-	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS avw_index ON avw(timestamp);")
+	cursor.execute("CREATE TABLE IF NOT EXISTS dilution(timestamp REAL, value REAL);")
+	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS d_index ON dilution(timestamp);")
 	sqlite.commit()
 	return sqlite
 
@@ -150,7 +150,6 @@ def setDelegate(pkey, webhook_peer, public=False):
 		# create a webhook if no one is set
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook.get("token", False):
-			print(webhook_peer, "http://%s:5000/block/forged" % (zen.PUBLIC_IP if public else "127.0.0.1"))
 			data = rest.POST.api.webhooks(
 				peer=webhook_peer,
 				event="block.forged",
@@ -210,9 +209,9 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 		raise Exception("No voter found during distribution computation...")
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
 	total_balance = sum(voters.values())
-	# ARK Vote Weight
+	# ARK Vote Dilution
 	sqlite = initDb(pkey)
-	sqlite.execute("INSERT OR REPLACE INTO avw(timestamp, value) VALUES(?,?);", (time.time(), 100000000.0 / total_balance))
+	sqlite.execute("INSERT OR REPLACE INTO dilution(timestamp, value) VALUES(?,?);", (time.time(), 100000000.0 / total_balance))
 	sqlite.commit()
 	sqlite.close()
 	return OrderedDict(sorted([[a, b/total_balance*rewards] for a,b in voters.items()], key=lambda e:e[-1], reverse=True))

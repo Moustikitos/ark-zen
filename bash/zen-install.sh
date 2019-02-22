@@ -12,14 +12,14 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if ! (git clone --branch 1.5.0 https://github.com/Moustikitos/ark-zen.git) then
+if ! (git clone --branch 1.6.0 https://github.com/Moustikitos/ark-zen.git) then
     cd ~/ark-zen
 else
     cd ~/ark-zen
     git reset --hard
 fi
 git fetch --all
-git checkout tags/1.5.0 -f
+git checkout tags/1.6.0 -f
 
 # install python dependencies
 echo
@@ -39,16 +39,16 @@ if ! (./zen initialize) then
     echo setup aborted
 else
 
-    # launch zen-tbw or reload it
+    # launch zen-srv or reload it
     # reload ark-core-relay if launched
     echo
     echo launching/restarting pm2 tasks
     echo ==============================
-    if [ "$(pm2 id zen-tbw) " = "[] " ]; then
+    if [ "$(pm2 id zen-srv) " = "[] " ]; then
         cd ~/ark-zen
-        pm2 start app.json
+        pm2 start srv.json
     else
-        pm2 restart zen-tbw
+        pm2 restart zen-srv
     fi
 
     if [ "$(pm2 id ark-core-relay) " != "[] " ]; then

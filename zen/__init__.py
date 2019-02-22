@@ -12,7 +12,6 @@ import shutil
 import socket
 import datetime
 
-# https://docs.ark.io/guidebook/core/events.html#available-events
 
 # register python familly
 PY3 = True if sys.version_info[0] >= 3 else False
@@ -129,9 +128,9 @@ def initPeers():
 	root = loadJson("root.json")
 	try: env = loadEnv(os.path.join(root["env"]))
 	except: pass
-	try: WEBHOOK_PEER = "http://127.0.0.1:%(ARK_WEBHOOKS_PORT)s" % env
+	try: WEBHOOK_PEER = "http://127.0.0.1:%(CORE_WEBHOOKS_PORT)s" % env
 	except: pass
-	try: API_PEER = "http://127.0.0.1:%(ARK_API_PORT)s" % env
+	try: API_PEER = "http://127.0.0.1:%(CORE_API_PORT)s" % env
 	except: pass
 
 
@@ -196,65 +195,33 @@ def chooseMultipleItem(msg, *elem):
 def init():
 	global ENV
 
-	# try to load root.json configuration file
+	# load root.json configuration file
 	root = loadJson("root.json")
-	# ask node folder if not found in root.json or if root.json dos not exist
-	node_folder = root.get("node_folder", "")
-	while not os.path.exists(node_folder):
+	# all is in ~/.config/ark-core folder but let set it manually
+	config_folder = root.get("config_folder", "")
+	while not os.path.exists(config_folder):
 		try:
-			node_folder = os.path.abspath(input("> enter node folder: "))
+			config_folder = os.path.abspath(input("> enter configuration folder: "))
 		except KeyboardInterrupt:
 			raise Exception("configuration aborted...")
-	
-	# ark core v2.0.x
-	blockchain_folder = os.path.join(node_folder, "packages", "crypto", "lib", "networks")
-	if not os.path.exists(blockchain_folder):
-		# ark core v2.1.x
-		blockchain_folder = os.path.join(node_folder, "packages", "crypto", "src", "networks")
-
 	try:
-		blockchain = chooseItem("select blockchain:", *list(os.walk(blockchain_folder))[0][1])
+		network = chooseItem("select network:", *list(os.walk(config_folder))[0][1])
 	except IndexError:
 		raise Exception("configuration folder not found")
 		sys.exit(1)
-	if not blockchain:
-		logMsg("node configuration skipped (%s)" % blockchain)
+	if not network:
+		logMsg("node configuration skipped (%s)" % network)
 		sys.exit(1)
-	
-	# write root.json file
-	networks_folder = os.path.join(blockchain_folder, blockchain)
-	if os.path.exists(os.path.join(networks_folder, "network.json")):
-		# ark core v2.1.x
-		root["config"] = os.path.join(networks_folder, "network.json")
-		ENV = os.path.expanduser(os.path.join("~", ".config", "ark-core", blockchain, ".env"))
-	else:
-		# ark core v2.0.x
-		try:
-			network = chooseItem("select network:", *[os.path.splitext(f)[0] for f in list(os.walk(networks_folder))[0][-1] if f.endswith(".json")])
-		except IndexError:
-			raise Exception("network folder not found")
-			sys.exit(1)
-		if not network:
-			logMsg("node configuration skipped (%s)" % network)
-			sys.exit(1)
-		root["config"] = os.path.join(networks_folder, "%s.json" % network)
-		ENV = os.path.expanduser(os.path.join("~", ".%s"%blockchain, ".env"))
 
-	p,n = os.path.split(root["config"])
-	root["name"] = loadJson(n,p)["name"]
-	root["env"] = ENV
-	root["node_folder"] = node_folder
+	root["config_folder"] = config_folder
+	root["name"] = network
+	root["env"] = os.path.expanduser(os.path.join(config_folder, network, ".env"))
 	dumpJson(root, "root.json")
 	logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
 	# edit .env file to enable webhooks
+	ENV = root["env"]
 	env = loadEnv(ENV)
-	# ark core v2.0.x
-	env["ARK_WEBHOOKS_API_ENABLED"] = "true"
-	env["ARK_WEBHOOKS_ENABLED"] = "true"
-	env["ARK_WEBHOOKS_HOST"] = "0.0.0.0"
-	env["ARK_WEBHOOKS_PORT"] = "4004"
-	# ark core v2.1.x
 	env["CORE_WEBHOOKS_API_ENABLED"] = "true"
 	env["CORE_WEBHOOKS_ENABLED"] = "true"
 	env["CORE_WEBHOOKS_HOST"] = "0.0.0.0"
