@@ -24,7 +24,7 @@ kw = {
 	"description": "Tool for ARK delegate",
 	"long_description": LONG_DESCRIPTION,
 	"packages": ["zen", "zen.app"],
-	"install_requires": ["docopt", "dposlib>=0.1.7", "flask", "virtualenv"],
+	"install_requires": ["docopt", "dposlib>=0.1.7", "flask", "gunicorn"],
 	"license": "Copyright 2016-2018 Toons",
 	"classifiers": [
 		"Development Status :: 6 - Mature",

@@ -6,6 +6,8 @@ sudo apt-get -qq install curl
 sudo apt-get -qq install python
 sudo apt-get -qq install python-setuptools
 sudo apt-get -qq install python-pip
+sudo apt-get -qq install virtualenv
+sudo apt-get -qq install nginx
 
 # download zen package
 echo
@@ -19,38 +21,33 @@ else
     git reset --hard
 fi
 git fetch --all
-git checkout master -f
+git checkout tags/1.6.0 -f
+
+echo
+echo creating virtual environement
+echo =============================
+mkdir ~/.local/share/ark-zen/venv -p
+virtualenv ~/.local/share/ark-zen/venv -q
+. ~/.local/share/ark-zen/venv/bin/activate
 
 # install python dependencies
 echo
 echo installing python dependencies
 echo ==============================
-pip install --user -r requirements.txt -q
+pip install -r requirements.txt -q
 
-# initialize zen
+# installing zen command
 echo
-echo initializing zen
-echo ================
+echo installing zen command
+echo ======================
+sudo rm /etc/nginx/sites-enabled/*
+sudo cp nginx-zen /etc/nginx/sites-available
+sudo ln -sf /etc/nginx/sites-available/nginx-zen /etc/nginx/sites-enabled
+sudo service nginx restart
+
+cp bash/activate ~
 cp bash/zen ~
 cd ~
 chmod +x zen
-if ! (./zen initialize) then
-    echo
-    echo setup aborted
-else
-    # launch zen-srv or reload it
-    # reload ark-forger if launched
-    echo
-    echo launching/restarting pm2 tasks
-    echo ==============================
-    if [ "$(pm2 id zen-srv) " = "[] " ]; then
-        cd ~/ark-zen
-        pm2 start srv.json
-    else
-        pm2 restart zen-srv
-    fi
-
-    if [ "$(pm2 id ark-forger) " != "[] " ]; then
-        pm2 restart ark-forger
-    fi
-fi
+chmod +x activate
+./zen initialize
