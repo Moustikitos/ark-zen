@@ -126,7 +126,7 @@ def logMsg(msg, logname=None, dated=False):
 def initPeers():
 	global WEBHOOK_PEER, API_PEER
 	root = loadJson("root.json")
-	try: env = loadEnv(os.path.join(root["env"]))
+	try: env = loadEnv(root["env"])
 	except: pass
 	try: WEBHOOK_PEER = "http://127.0.0.1:%(CORE_WEBHOOKS_PORT)s" % env
 	except: pass

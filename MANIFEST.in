@@ -3,5 +3,5 @@ recursive-include zen *.html
 recursive-include bash *
 include LICENSE
 include VERSION
-include app.json
-include srv.py
+includechk.json
+include srv.json

@@ -75,11 +75,11 @@ def spread():
 		if last_block.get("id", False):
 			# get last forged block from blockchain
 			req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
-			if req.get("error", False):
+			if req.get("error", False) != False: # or len(last_blocks) == 0:
 				# dposlib.core.rotate_peers()
 				raise Exception("Api error : %r" % req)
 			# compute fees, blocs and rewards from the last saved block
-			last_blocks = req.get("data", {})
+			last_blocks = req.get("data", [])
 			logMsg("%s forged %s, last known forged: %s" % (username, block["id"], last_block["id"]))
 			for blk in last_blocks:
 				# if bc is not synch and response is too bad, also check timestamp

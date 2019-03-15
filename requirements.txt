@@ -2,3 +2,4 @@ wheel
 docopt
 git+https://github.com/Moustikitos/dpos.git@0.1.7#egg=dposlib
 flask
+gunicorn

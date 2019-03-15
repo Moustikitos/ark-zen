@@ -14,20 +14,21 @@ def getSnapshots(snapdir):
 
 def createSnapshot():
 	root = zen.loadJson("root.json")
-	os.system('''
+	if not os.system('''
 cd %(workdir)s
 yarn dump:%(network)s''' % {
 	"workdir": WORKDIR,
 	"network": root["name"]
-})
+}):
+		zen.misc.notify("Blockchain snapped !")
 
 
 def updateSnapshot():
 	root = zen.loadJson("root.json")
 	network = root["name"]
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
-
 	snapshots = getSnapshots(snapdir)
+
 	if not os.system('''
 cd %(workdir)s
 yarn dump:%(network)s --blocks %(snapshot)s''' % {
@@ -37,6 +38,16 @@ yarn dump:%(network)s --blocks %(snapshot)s''' % {
 }):
 		for snapshot in snapshots:
 			os.system('rm -rf "%s"' % os.path.join(snapdir, snapshot))
+		zen.misc.notify("Blockchain snapped !")
+
+	os.system('''
+cd ~
+tar cf ~/last-snapshot.tar .local/share/ark-core/%(network)s/snapshots/1-*
+''' % {
+	"snapdir":snapdir,
+	"network": network
+
+})
 
 
 def rebuildFromZero():

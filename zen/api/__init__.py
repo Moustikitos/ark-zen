@@ -17,7 +17,7 @@ def connect():
 			dbname=zen.ENV["CORE_DB_DATABASE"],
 			host=zen.ENV["CORE_DB_HOST"],
 			port=zen.ENV["CORE_DB_PORT"],
-			user=zen.ENV["CORE_DB_USER"],
+			user=zen.ENV["CORE_DB_USERNAME"],
 			password=zen.ENV["CORE_DB_PASSWORD"]
 		))
 	return getattr(flask.g, database).cursor(cursor_factory=psycopg2.extras.DictCursor)

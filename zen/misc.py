@@ -25,12 +25,12 @@ def regenerateUnapplied(username, filename):
 	zen.dumpJson(tbw,'%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username))
 
 
-def loadPages(endpoint, pages=None, quiet=True, nb_tries=10):
+def loadPages(endpoint, pages=None, quiet=True, nb_tries=10, peer=None):
 	if not isinstance(endpoint, zen.rest.EndPoint):
 		raise Exception("Invalid endpoint class")
 	count, pageCount, data = 0, 1, []
 	while count < pageCount:
-		req = endpoint.__call__(page=count+1)
+		req = endpoint.__call__(page=count+1, peer=peer)
 		if req.get("error", False):
 			nb_tries -= 1
 			if not quiet:
