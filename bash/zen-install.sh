@@ -14,7 +14,7 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if ! (git clone --branch 1.7.0 https://github.com/Moustikitos/ark-zen.git) then
+if (git clone --branch 1.7.0 https://github.com/Moustikitos/ark-zen.git) then
     cd ~/ark-zen
 else
     cd ~/ark-zen
@@ -30,6 +30,7 @@ mkdir ~/.local/share/ark-zen/venv -p
 virtualenv ~/.local/share/ark-zen/venv -q
 . ~/.local/share/ark-zen/venv/bin/activate
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+cd ~/ark-zen
 
 # install python dependencies
 echo
