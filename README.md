@@ -130,15 +130,6 @@ crontab -e
 0 */12 *   *   *     /home/{username}/zen snap-blockchain
 ```
 
-**Automatic startup on server restart**
-
-This tweak does not works with BIP38 encrypted passphrase.
-```shell
-@reboot /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-relay >> /home/{username}/core-commander/logs/commander.log 2>&1
-@reboot sleep 30 && /usr/bin/pm2 start /home/{username}/core-commander/ecosystem.config.js --only ark-core-forger >> /home/{username}/core-commander/logs/commander.log 2>&1
-@reboot cd /home/{username}/ark-zen && /usr/bin/pm2 start app.json
-```
-
 ## `zen` front-end
 
 ![zen front-end](https://raw.githubusercontent.com/Moustikitos/zen/master/app.png)
