@@ -12,11 +12,18 @@ for DPOS pool.
 
  * [X] Ark-core v2
 
-## Install last release
+## Install
+
+### last release
 
 ```bash
-wget https://raw.githubusercontent.com/Moustikitos/ark-zen/1.6.0/bash/zen-install.sh
-bash zen-install.sh
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/1.7.0/bash/zen-install.sh)
+```
+
+### developpement version
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install-dev.sh)
 ```
 
 ## `zen` command

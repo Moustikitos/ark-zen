@@ -2,4 +2,4 @@
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
 python chk.py
 deactivate
-
+exit

@@ -8,7 +8,7 @@ APPS = {
 	"ark-forger": "ark forger:start",
 	"ark-forger": "ark forger:start",
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json",
-	"zen-chk": "cd ~/ark-zen && pm2 start srv.json"
+	"zen-chk": "cd ~/ark-zen && pm2 start chk.json"
 }
 
 
