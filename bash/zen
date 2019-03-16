@@ -95,47 +95,19 @@ def _addresses(value):
 
 
 def start_chk(args={}, **options):
-	os.system('''
-if [ "$(pm2 id zen-chk) " = "[] " ]; then
-	cd %(abspath)s
-    pm2 start chk.json
-else
-    pm2 restart zen-chk
-fi
-''' % {"abspath": os.path.dirname(zen.__path__[0])}
-)
+	zen.misc.start_pm2_app("zen-chk")
 
 
 def stop_chk(args={}, **options):
-	os.system('''
-if [ "$(pm2 id zen-chk) " != "[] " ]; then
-	cd %(abspath)s
-    pm2 stop zen-chk
-fi
-''' % {"abspath": os.path.dirname(zen.__path__[0])}
-)
+	zen.misc.stop_pm2_app("zen-chk")
 
 
 def start_srv(args={}, **options):
-	os.system('''
-if [ "$(pm2 id zen-srv) " = "[] " ]; then
-	cd %(abspath)s
-    pm2 start srv.json
-else
-    pm2 restart zen-srv
-fi
-''' % {"abspath": os.path.dirname(zen.__path__[0])}
-)
+	zen.misc.start_pm2_app("zen-srv")
 
 
 def stop_srv(args={}, **options):
-	os.system('''
-if [ "$(pm2 id zen-srv) " != "[] " ]; then
-	cd %(abspath)s
-    pm2 stop zen-srv
-fi
-''' % {"abspath": os.path.dirname(zen.__path__[0])}
-)
+	zen.misc.stop_pm2_app("zen-srv")
 
 
 def rebuild(args={}, **options):
@@ -150,11 +122,7 @@ def reset(args={}, **options):
 
 def initialize(args={}, **options):
 	zen.init()
-	os.system('''
-if [ "$(pm2 id ark-relay) " != "[] " ]; then
-	pm2 restart ark-relay
-fi
-''')
+	zen.misc.start_pm2_app("ark-relay")
 	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
 	while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
 		time.sleep(5)
@@ -164,6 +132,7 @@ fi
 		snap_blockchain()
 	else:
 		zen.logMsg("snapshot creation skipped")		
+	zen.misc.start_pm2_app("zen-srv")
 
 
 def add_delegate(args={}, **options):

@@ -176,5 +176,10 @@ This tweak does not works with BIP38 encrypted passphrase.
  - [x] ark-zen runs with ark-core 2.2.x
  - [x] added node checker
 
+### Fornax (v1.7.0)
+ - [x] ark-zen now runs in virtualenv
+ - [x] server auto-configuration using gunicorn and nginx 
+ - [x] minor bugfixes and improvements
+
 ### TODO (dev version)
  - [ ] auto-rollback

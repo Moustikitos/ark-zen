@@ -1,2 +1,4 @@
 #!/bin/bash
 /bin/bash --rcfile ~/.local/share/ark-zen/venv/bin/activate
+export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+export PATH=$(yarn global bin):$PATH

@@ -74,6 +74,7 @@ def spread():
 		blocks = 0
 		if last_block.get("id", False):
 			# get last forged block from blockchain
+			# TODO : get all blocks till the last forged (not the 100 last ones)
 			req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
 			if req.get("error", False) != False: # or len(last_blocks) == 0:
 				# dposlib.core.rotate_peers()
@@ -84,7 +85,8 @@ def spread():
 			for blk in last_blocks:
 				# if bc is not synch and response is too bad, also check timestamp
 				if blk["id"] == last_block["id"] or blk["timestamp"]["epoch"] < last_block["timestamp"]:
-					break
+					dumpJson(block, filename, folder=folder)
+					break #raise Exception("Missmatch in block identification")
 				else:
 					logMsg("    getting rewards and fees from block %s..." % blk["id"])
 					rewards += float(blk["forged"]["reward"])/100000000.
@@ -109,9 +111,6 @@ def spread():
 			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
-		# from here, all blochain call are finished so
-		# dump the last block forged provided by webhook
-		dumpJson(block, filename, folder=folder)
 
 		# dump true block weight data
 		_ctrb = forgery.get("contributions", {})

@@ -3,6 +3,14 @@
 import os
 import zen
 
+APPS = {
+	"ark-relay": "ark relay:start",
+	"ark-forger": "ark forger:start",
+	"ark-forger": "ark forger:start",
+	"zen-srv": "cd ~/ark-zen && pm2 start srv.json",
+	"zen-chk": "cd ~/ark-zen && pm2 start srv.json"
+}
+
 
 def shorten(address, chunk=5):
 	return address[:chunk]+"..."+address[-chunk:]
@@ -107,3 +115,25 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 	if freemobile != {}:
 		freemobile["msg"] = network + ":\n" + body
 		zen.rest.GET.sendmsg(peer="https://smsapi.free-mobile.fr", **freemobile)
+
+
+def start_pm2_app(appname):
+	os.system('''
+if [ "$(pm2 id %(appname)s) " = "[] " ]; then
+	%(pm2_app_cmd)s
+else
+    pm2 restart %(appname)s
+fi
+''' % {
+	"appname": appname,
+	"pm2_app_cmd": APPS.get(appname, "echo pm2 cmd line not defined in zen script")
+}
+)
+
+def stop_pm2_app(appname):
+	os.system('''
+if [ "$(pm2 id %(appname)s) " != "[] " ]; then
+    pm2 stop %(appname)s
+fi
+''' % {"appname": appname}
+)
