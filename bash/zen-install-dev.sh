@@ -21,7 +21,7 @@ else
     git reset --hard
 fi
 git fetch --all
-git checkout tags/1.6.0 -f
+git checkout master -f
 
 echo
 echo creating virtual environement
