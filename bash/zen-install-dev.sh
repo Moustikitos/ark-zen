@@ -29,6 +29,7 @@ echo =============================
 mkdir ~/.local/share/ark-zen/venv -p
 virtualenv ~/.local/share/ark-zen/venv -q
 . ~/.local/share/ark-zen/venv/bin/activate
+export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
 cd ~/ark-zen
 
 # install python dependencies

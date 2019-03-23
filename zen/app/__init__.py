@@ -23,7 +23,8 @@ def connect(username):
 def index():
 	usernames = [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
-	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)])
+	charts = dict([u,""] for u in usernames)
+	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)], charts=charts)
 
 
 @app.route("/<string:username>")

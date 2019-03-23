@@ -44,5 +44,8 @@
 		{%- endif %}
 	</table>
 </div>
+<div id="chart_{{ username }}">
+   <embed type="image/svg+xml" src="{{ charts[username]|safe }}" />
+</div>
 {%- endfor %}
 {%- endblock body %}
