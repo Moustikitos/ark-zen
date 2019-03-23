@@ -209,9 +209,10 @@ def init():
 	except IndexError:
 		raise Exception("configuration folder not found")
 		sys.exit(1)
-	if not network:
-		logMsg("node configuration skipped (%s)" % network)
-		sys.exit(1)
+	else:
+		if not network:
+			logMsg("node configuration skipped (%s)" % network)
+			sys.exit(1)
 	try:
 		blockchain = chooseItem(
 			"select blockchain you are running the network with:", 
@@ -219,6 +220,10 @@ def init():
 		)
 	except KeyboardInterrupt:
 		raise Exception("configuration aborted...")
+	else:
+		if not blockchain:
+			logMsg("node configuration skipped (%s)" % network)
+			sys.exit(1)
 
 	root["config_folder"] = config_folder
 	root["blockchain"] = blockchain

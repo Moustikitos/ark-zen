@@ -1,3 +1,4 @@
+#!/bin/bash
 # install system dependencies
 clear
 echo installing system dependencies
@@ -22,6 +23,7 @@ else
 fi
 git fetch --all
 git checkout master -f
+git pull
 
 echo
 echo creating virtual environement
