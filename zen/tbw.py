@@ -27,7 +27,6 @@ def initDb(username):
 	cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
 	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
 	cursor.execute("CREATE TABLE IF NOT EXISTS dilution(timestamp REAL, value REAL);")
-	cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS d_index ON dilution(timestamp);")
 	sqlite.commit()
 	return sqlite
 
@@ -210,9 +209,17 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
 	total_balance = sum(voters.values())
 	# ARK Vote Dilution
+	dilution_value = 100000000.0 / total_balance
 	sqlite = initDb(pkey)
-	sqlite.execute("INSERT OR REPLACE INTO dilution(timestamp, value) VALUES(?,?);", (time.time(), 100000000.0 / total_balance))
-	sqlite.commit()
+	req = sqlite.execute("SELECT * FROM dilution ORDER BY timestamp DESC LIMIT 1").fetchall()
+	if len(req):
+		value = req[0]["value"]
+		if value != dilution_value:
+			sqlite.execute("INSERT INTO dilution(timestamp, value) VALUES(?,?);", (time.time(), dilution_value))
+			sqlite.commit()
+	else:
+		sqlite.execute("INSERT INTO dilution(timestamp, value) VALUES(?,?);", (time.time(), dilution_value))
+		sqlite.commit()
 	sqlite.close()
 	return OrderedDict(sorted([[a, b/total_balance*rewards] for a,b in voters.items()], key=lambda e:e[-1], reverse=True))
 

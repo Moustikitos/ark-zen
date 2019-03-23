@@ -4,9 +4,8 @@ import os
 import zen
 
 APPS = {
-	"ark-relay": "ark relay:start",
-	"ark-forger": "ark forger:start",
-	"ark-forger": "ark forger:start",
+	"ark-relay": "yarn exec ark relay:start",
+	"ark-forger": "yarn exec ark forger:start",
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json",
 	"zen-chk": "cd ~/ark-zen && pm2 start chk.json"
 }
@@ -119,8 +118,8 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 
 def start_pm2_app(appname):
 	os.system('''
-if [ "$(pm2 id %(appname)s) " = "[] " ]; then
-	%(pm2_app_cmd)s
+if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
+    %(pm2_app_cmd)s
 else
     pm2 restart %(appname)s
 fi
@@ -130,10 +129,20 @@ fi
 }
 )
 
+
 def stop_pm2_app(appname):
 	os.system('''
-if [ "$(pm2 id %(appname)s) " != "[] " ]; then
+if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     pm2 stop %(appname)s
+fi
+''' % {"appname": appname}
+)
+
+
+def del_pm2_app(appname):
+	os.system('''
+if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
+    pm2 delete %(appname)s
 fi
 ''' % {"appname": appname}
 )

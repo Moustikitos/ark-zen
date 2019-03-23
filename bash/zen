@@ -121,6 +121,7 @@ def reset(args={}, **options):
 
 
 def initialize(args={}, **options):
+	zen.misc.del_pm2_app("ark-relay")
 	zen.init()
 	zen.misc.start_pm2_app("ark-relay")
 	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
