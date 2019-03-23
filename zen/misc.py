@@ -6,8 +6,8 @@ import zen
 APPS = {
 	"ark-relay": "yarn exec ark relay:start",
 	"ark-forger": "yarn exec ark forger:start",
-	"zen-srv": "cd ~/ark-zen && pm2 start srv.json",
-	"zen-chk": "cd ~/ark-zen && pm2 start chk.json"
+	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
+	"zen-chk": "cd ~/ark-zen && pm2 start chk.json -s"
 }
 
 
@@ -121,7 +121,8 @@ def start_pm2_app(appname):
 if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     %(pm2_app_cmd)s
 else
-    pm2 restart %(appname)s
+	echo "(re)starting %(appname)s..."
+    pm2 restart %(appname)s -s
 fi
 ''' % {
 	"appname": appname,
@@ -133,7 +134,8 @@ fi
 def stop_pm2_app(appname):
 	os.system('''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    pm2 stop %(appname)s
+	echo stoping %(appname)s...
+    pm2 stop %(appname)s -s
 fi
 ''' % {"appname": appname}
 )
@@ -142,7 +144,8 @@ fi
 def del_pm2_app(appname):
 	os.system('''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    pm2 delete %(appname)s
+	echo deleting %(appname)s...
+    pm2 delete %(appname)s -s
 fi
 ''' % {"appname": appname}
 )

@@ -121,7 +121,9 @@ def reset(args={}, **options):
 
 
 def initialize(args={}, **options):
-	zen.misc.del_pm2_app("ark-relay")
+	zen.misc.del_pm2_app("zen-tbw")
+	zen.misc.del_pm2_app("zen-srv")
+	zen.misc.del_pm2_app("zen-chk")
 	zen.init()
 	zen.misc.start_pm2_app("ark-relay")
 	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
@@ -134,6 +136,8 @@ def initialize(args={}, **options):
 	else:
 		zen.logMsg("snapshot creation skipped")		
 	zen.misc.start_pm2_app("zen-srv")
+	zen.misc.start_pm2_app("zen-chk")
+	os.system("pm2 list")
 
 
 def add_delegate(args={}, **options):

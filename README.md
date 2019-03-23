@@ -17,7 +17,7 @@ for DPOS pool.
 ### last release
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/1.7.0/bash/zen-install.sh)
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/1.7.1/bash/zen-install.sh)
 ```
 
 ### developpement version
@@ -30,6 +30,7 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 
 ```bash
 cd ~
+./activate
 ./zen --help
 ```
 ```
@@ -61,7 +62,7 @@ Options:
     --fee-coverage                   : delegate covers transaction fees (flag)
 
 Subcommands:
-    reset              : initialization starting from ark-core installation
+    reset              : initialization starting from ark-core config folder
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
@@ -70,7 +71,7 @@ Subcommands:
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add remote <username> (ie ark-core-forger running on remote node)
+    add-delegate       : add remote <username> (ie ark-forger running on remote node)
     remove-delegate    : remove delegate from list or specified by <username>
     snap-blockchain    : update snapshot or create it if no snapshot initialized yet
     append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
@@ -144,7 +145,7 @@ crontab -e
  - [x] light weight HTML front-end
  - [x] multiple pool management
 
-###  (v1.3.0)
+### Boötis (v1.3.0)
  - [x] enable remote delegate management
  - [x] blockchain database rebuild
  - [x] snapshot management
@@ -178,6 +179,10 @@ crontab -e
  - [x] ark-zen now runs in virtualenv
  - [x] server auto-configuration using gunicorn and nginx 
  - [x] minor bugfixes and improvements
+
+### Fornax (v1.7.1)
+ - [x] setup script improvement
+ - [x] initialization improvement
 
 ### TODO (dev version)
  - [ ] auto-rollback

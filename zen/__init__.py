@@ -212,8 +212,16 @@ def init():
 	if not network:
 		logMsg("node configuration skipped (%s)" % network)
 		sys.exit(1)
+	try:
+		blockchain = chooseItem(
+			"select blockchain you are running the network with:", 
+			*sorted([n.replace(".net", "") for n in os.listdir(os.path.join(dposlib.ROOT, "network"))])
+		)
+	except KeyboardInterrupt:
+		raise Exception("configuration aborted...")
 
 	root["config_folder"] = config_folder
+	root["blockchain"] = blockchain
 	root["name"] = network
 	root["env"] = os.path.expanduser(os.path.join(config_folder, network, ".env"))
 	dumpJson(root, "root.json")
@@ -235,7 +243,7 @@ getIp()
 initPeers()
 # initialize blockchain network
 root = loadJson("root.json")
-rest.use("ark" if root.get("name", False) == "mainnet" else "dark")
+rest.use(root.get("blockchain", "dark"))
 dposlib.core.stop()
 # customize blockchain network if needed
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
