@@ -151,7 +151,7 @@ crontab -e
  - [x] snapshot management
  - [x] custom peer management
 
-### Boötis minor tweaks (v1.3.1)
+### Boötis - minor tweaks (v1.3.1)
  - [x] reward distribution improvement
 
 ### Cassiopeia (v1.4.0)
@@ -159,11 +159,11 @@ crontab -e
  - [x] transaction history rebuild
  - [x] delegate targetting
 
-### Cassiopeia minor tweaks (v1.4.1)
+### Cassiopeia - minor tweaks (v1.4.1)
  - [x] fee coverage is now optional
  - [x] delegate targetting is now optional
 
-### Cassiopeia minor tweaks (v1.4.2)
+### Cassiopeia - minor tweaks (v1.4.2)
  - [x] ark-zen runs with both ark-core mainnet and devnet
 
 ### Delphinus (v1.5.0)
@@ -180,9 +180,10 @@ crontab -e
  - [x] server auto-configuration using gunicorn and nginx 
  - [x] minor bugfixes and improvements
 
-### Fornax (v1.7.1)
+### Fornax - zen script improvement (v1.7.1)
  - [x] setup script improvement
  - [x] initialization improvement
+ - [x] added relay checker
 
 ### TODO (dev version)
  - [ ] auto-rollback
