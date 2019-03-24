@@ -30,7 +30,7 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 
 ```bash
 cd ~
-./activate
+$HOME/ark-zen/bash/activate
 ./zen --help
 ```
 ```

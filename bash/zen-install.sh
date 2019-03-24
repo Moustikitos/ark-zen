@@ -32,6 +32,7 @@ mkdir ~/.local/share/ark-zen/venv -p
 virtualenv ~/.local/share/ark-zen/venv -q
 . ~/.local/share/ark-zen/venv/bin/activate
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+export PATH=$(yarn global bin):$PATH
 cd ~/ark-zen
 
 # install python dependencies
@@ -49,11 +50,10 @@ sudo cp nginx-zen /etc/nginx/sites-available
 sudo ln -sf /etc/nginx/sites-available/nginx-zen /etc/nginx/sites-enabled
 sudo service nginx restart
 
-cp bash/activate ~
+chmod +x bash/snp
+chmod +x bash/activate
 cp bash/zen ~
 cd ~
 chmod +x zen
-chmod +x activate
-chmod +x bash/snp
 
 ./zen initialize
