@@ -54,4 +54,6 @@ cp bash/zen ~
 cd ~
 chmod +x zen
 chmod +x activate
+chmod +x bash/snp
+
 ./zen initialize

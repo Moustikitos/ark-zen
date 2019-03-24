@@ -215,11 +215,9 @@ def adjust_forge(args={}, **options):
 
 def snap_blockchain(args={}, **options):
 	root = zen.loadJson("root.json")
-	network = root["name"]
-	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark", network, "snapshots")))
+	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", root["name"], "snapshots")))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
-	zen.misc.notify("Blockchain snapped !")
 
 
 def append_custom_peer(args={}, **options):

@@ -126,9 +126,16 @@ Edit the crontab file
 crontab -e
 ```
 
-**create a snapshot and update it every 12 hours**
+This crontab create a snapshot every 4 hours and automatically starts relay,
+forger, zen server and zen checker.
+
 ```shell
-0 */12 *   *   *     /home/{username}/zen snap-blockchain
+PATH=/usr/bin:/bin:/usr/bin/env
+
+0 */4  *   *   *     $HOME/ark-zen/bash/snp
+@reboot sleep 10 && yarn exec ark relay:start
+@reboot sleep 30 && yarn exec ark forger:start
+@reboot cd $HOME/ark-zen && /usr/bin/pm2 start srv.json && /usr/bin/pm2 start chk.json
 ```
 
 ## `zen` front-end
