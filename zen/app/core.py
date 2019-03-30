@@ -61,40 +61,47 @@ def spread():
 		# check autorization and exit if bad one
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
-			raise Exception("not autorized here")
+			raise Exception("Not autorized here")
 
-		# at start there is no *.last.block file so must check first 
-		filename = "%s.last.block" % username
-		folder = os.path.join(zen.DATA, username)
-		last_block = loadJson(filename, folder=folder)
 		# Because sometime network is not in good health, the spread function
 		# can exit with exception. So compare the ids of last forged blocks
 		# to compute rewards and fees... 
 		rewards = fees = 0.
 		blocks = 0
+		filename = "%s.last.block" % username
+		folder = os.path.join(zen.DATA, username)
+		last_block = loadJson(filename, folder=folder)
+		# if there is a <username>.last.block
 		if last_block.get("id", False):
-			# get last forged block from blockchain
+			# get last forged blocks from blockchain
 			# TODO : get all blocks till the last forged (not the 100 last ones)
 			req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
-			if req.get("error", False) != False: # or len(last_blocks) == 0:
-				# dposlib.core.rotate_peers()
-				raise Exception("Api error : %r" % req)
-			# compute fees, blocs and rewards from the last saved block
 			last_blocks = req.get("data", [])
-			logMsg("%s forged %s, last known forged: %s" % (username, block["id"], last_block["id"]))
+
+			# raise Exceptions if issues with API call
+			if not len(last_blocks):
+				raise Exception("No new block found in peer response")
+			elif req.get("error", False) != False:
+				raise Exception("Api error : %r" % req.get("error", "?"))
+	
+			# compute fees, blocs and rewards from the last saved block
+			logMsg("%s forged %s" % (username, block["id"]))
+			logMsg("last known forged: %s" % last_block["id"])
 			for blk in last_blocks:
 				# if bc is not synch and response is too bad, also check timestamp
-				if blk["id"] == last_block["id"] or blk["timestamp"]["epoch"] < last_block["timestamp"]:
-					dumpJson(block, filename, folder=folder)
-					break #raise Exception("Missmatch in block identification")
-				else:
+				if blk["id"] == last_block["id"]:
+					break
+				elif blk["timestamp"]["epoch"] > last_block["timestamp"]:
 					logMsg("    getting rewards and fees from block %s..." % blk["id"])
 					rewards += float(blk["forged"]["reward"])/100000000.
 					fees += float(blk["forged"]["fee"])/100000000.
 					blocks += 1
+				else:
+					logMsg("    ignoring block %s (previously forged)" % blk["id"])
+		# else initiate <username>.last.block
 		else:
 			dumpJson(block, filename, folder=folder)
-			raise Exception("first iteration for %s" % username)
+			raise Exception("First iteration for %s" % username)
 
 		# find forger information using username
 		forger = loadJson("%s.json" % username)
@@ -111,7 +118,6 @@ def spread():
 			minvote=forger.get("minimum_vote", 0),
 			excludes=excludes
 		)
-
 		# dump true block weight data
 		_ctrb = forgery.get("contributions", {})
 		dumpJson(
@@ -123,6 +129,8 @@ def spread():
 			"%s.forgery" % username,
 			folder=folder
 		)
+		# dump curent forged block as <username>.last.block 
+		dumpJson(block, filename, folder=folder)
 
 		msg = "\n".join(
 			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \

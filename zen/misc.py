@@ -2,6 +2,9 @@
 
 import os
 import zen
+import pygal
+import datetime
+import pygal.style
 
 APPS = {
 	"ark-relay": "yarn exec ark relay:start",
@@ -32,7 +35,7 @@ def regenerateUnapplied(username, filename):
 	zen.dumpJson(tbw,'%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username))
 
 
-def loadPages(endpoint, pages=None, quiet=True, nb_tries=10, peer=None):
+def loadPages(endpoint, pages=None, quiet=True, nb_tries=10, peer=None, condition=[]):
 	if not isinstance(endpoint, zen.rest.EndPoint):
 		raise Exception("Invalid endpoint class")
 	count, pageCount, data = 0, 1, []
@@ -149,3 +152,19 @@ if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
 fi
 ''' % {"appname": appname}
 )
+
+
+def chartTimedData(data):
+
+	chart = pygal.DateTimeLine(
+		fill=True,
+		show_legend=False,
+		show_x_labels=False,
+		show_y_labels=False,
+		width=1024,
+		x_label_rotation=25, truncate_label=-1,
+		x_value_formatter=lambda dt: dt.strftime('%m/%d/%y-%Hh%M'),
+		style=pygal.style.LightStyle
+	)
+	chart.add("block weight % / Ѧ1000 vote", [(d,round(1000*100*v, 3)) for d,v in data])
+	return chart.render_data_uri()

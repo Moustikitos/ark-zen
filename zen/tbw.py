@@ -212,6 +212,9 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	dilution_value = 100000000.0 / total_balance
 	sqlite = initDb(pkey)
 	req = sqlite.execute("SELECT * FROM dilution ORDER BY timestamp DESC LIMIT 1").fetchall()
+	# this sql command remove double values in value column keeping the first one 
+	# DELETE FROM dilution WHERE timestamp NOT IN
+	# (SELECT MIN(timestamp) as timestamp FROM dilution GROUP BY value)
 	if len(req):
 		value = req[0]["value"]
 		if value != dilution_value:

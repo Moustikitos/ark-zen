@@ -3,9 +3,11 @@ import os
 import zen
 import math
 import json
+import time
 import flask
 import dposlib
 import datetime
+import zen.misc
 
 from collections import OrderedDict
 
@@ -19,11 +21,20 @@ def connect(username):
 	return getattr(flask.g, username).cursor()
 
 
+def generateChart(username):
+	cursor = connect(username)
+	timestamp = time.time() - (30*24*60*60)
+	return zen.misc.chartTimedData((
+		[datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
+		cursor.execute("SELECT * FROM dilution ORDER BY timestamp DESC").fetchall() if row["timestamp"] >= timestamp
+	))
+
+
 @app.route("/")
 def index():
 	usernames = [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
-	charts = dict([u,""] for u in usernames)
+	charts = dict([u,generateChart(u)] for u in usernames)
 	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)], charts=charts)
 
 
