@@ -149,6 +149,9 @@ def spread():
 				zen.tbw.extract(username)
 				zen.tbw.dumpRegistry(username)
 				zen.tbw.broadcast(username)
+		
+		# systematically check applied transactions
+		zen.tbw.checkApplied(username)
 
 	return json.dumps({"zen-tbw::block/forged":True}, indent=2)
 

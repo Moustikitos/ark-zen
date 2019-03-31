@@ -352,56 +352,40 @@ def dumpRegistry(username, fee_coverage=False):
 		dposlib.core.Transaction.unlink()
 
 
-def broadcast(username, target_delegate=False, chunk_size=15):
+def broadcast(username, chunk_size=15):
 	# initialize options
 	tbw = loadJson("tbw.json")
-	target_delegate = tbw.get("target_delegate", target_delegate)
 	chunk_size = max(5, tbw.get("chunk_size", chunk_size))
+	folder = os.path.join(zen.DATA, username)
 
 	# proceed all registry file found in username folder
+	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
+		registry = loadJson(name, folder=folder)
+		transactions = list(registry.values())
+		for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
+			response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
+			logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
+
+
+def checkApplied(username):
+	folder = os.path.join(zen.DATA, username)
 	sqlite = initDb(username)
 	cursor = sqlite.cursor()
-	folder = os.path.join(zen.DATA, username)
 
 	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
 		registry = loadJson(name, folder=folder)
 		transactions = list(registry.values())
+		logMsg("checking applied transaction of registry %s..." % name)
+		for tx in [t for t in transactions if t["id"] in registry]:
+			if misc.transactionApplied(tx["id"]):
+				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
+				if "reward" in tx["vendorField"]:
+					cursor.execute(
+						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
+					)
 
-		chunks = iter([transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)])
-		stop_while = False
-		while not stop_while:
-			nb_blocks = incr = 0
-			if target_delegate:
-				incr = chunk_size
-				waitFor(transactions[0]["senderPublicKey"])
-			limit = time.time() + rest.cfg.blocktime - 2
-			while time.time() < limit and nb_blocks <= 150: # 150 = max tx/block
-				try:
-					chunk = next(chunks)
-				except StopIteration:
-					stop_while = True
-				else:
-					response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
-					logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-					nb_blocks += incr
-
-		tries = 0
-		while len(registry) > 0 and tries < 5:
-			logMsg("[check #%d] waiting %s seconds..." % (tries+1, rest.cfg.blocktime))
-			time.sleep(rest.cfg.blocktime)
-			for tx in [t for t in transactions if t["id"] in registry]:
-				if rest.GET.api.v2.transactions(tx["id"]).get("data", {}).get("confirmations", 0) >= 1:
-					logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-					if "reward" in tx["vendorField"]:
-						cursor.execute(
-							"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-							(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
-						)
-			tries += 1
-
-		if tries >=5:
-			logMsg("action finished, network was too bad or the fees are to high")
-		else:
+		if len(registry) == 0:
 			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
 			os.remove(os.path.join(folder, name))
 			misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
@@ -409,15 +393,4 @@ def broadcast(username, target_delegate=False, chunk_size=15):
 				len(transactions)
 			))
 
-		sqlite.commit()
-
-
-def waitFor(pkey):
-	logMsg("waiting for forger...")
-	rank = rest.cfg.delegate
-	while rank > 0:
-		time.sleep(2*rest.cfg.blocktime if rank > 3 else 1)
-		try: forging_queue = rest.GET.api.v1.delegates.getNextForgers(limit=rest.cfg.delegate).get("delegates", [])
-		except: break
-		try: rank = forging_queue.index(pkey)
-		except ValueError: break
+	sqlite.commit()

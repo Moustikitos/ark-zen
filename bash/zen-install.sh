@@ -1,6 +1,14 @@
 #!/bin/bash
 # install system dependencies
 clear
+
+if [ $# = 0 ]; then
+    B="master"
+else
+    B=$1
+fi
+echo "branch selected = $B"
+
 echo installing system dependencies
 echo ==============================
 sudo apt-get -qq install curl
@@ -15,14 +23,18 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if (git clone --branch 1.7.1 https://github.com/Moustikitos/ark-zen.git) then
+if (git clone --branch $B https://github.com/Moustikitos/ark-zen.git) then
     cd ~/ark-zen
 else
     cd ~/ark-zen
     git reset --hard
 fi
 git fetch --all
-git checkout tags/1.7.1 -f
+if [ "$B" == "master" ]; then
+    git checkout $B -f
+else
+    git checkout tags/$B -f
+fi
 git pull
 
 echo

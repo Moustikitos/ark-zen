@@ -19,7 +19,7 @@ def shorten(address, chunk=5):
 
 
 def transactionApplied(id):
-	return zen.rest.GET.api.v2.transactions(id).get("data",{}).get("confirmations", 0) >= 1
+	return zen.rest.GET.api.v2.transactions(id).get("data",{}).get("confirmations", 0) >= 10
 
 
 def regenerateUnapplied(username, filename):
