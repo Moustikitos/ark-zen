@@ -18,6 +18,7 @@ sudo apt-get -qq install python-setuptools
 sudo apt-get -qq install python-pip
 sudo apt-get -qq install virtualenv
 sudo apt-get -qq install nginx
+echo "done"
 
 # download zen package
 echo
@@ -54,6 +55,7 @@ fi
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
 export PATH=$(yarn global bin):$PATH
 cd ~/ark-zen
+echo "done"
 
 # install python dependencies
 echo
