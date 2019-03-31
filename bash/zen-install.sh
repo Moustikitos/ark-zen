@@ -24,11 +24,12 @@ echo downloading zen package
 echo =======================
 cd ~
 if (git clone --branch $B https://github.com/Moustikitos/ark-zen.git) then
-    cd ~/ark-zen
+    echo "cloning ark-zen..."
 else
-    cd ~/ark-zen
-    git reset --hard
+    echo "ark-zen already cloned"
 fi
+cd ~/ark-zen
+git reset --hard
 git fetch --all
 if [ "$B" == "master" ]; then
     git checkout $B -f
@@ -63,9 +64,11 @@ sudo ln -sf /etc/nginx/sites-available/nginx-zen /etc/nginx/sites-enabled
 sudo service nginx restart
 
 chmod +x bash/snp
-chmod +x bash/activate
+cp bash/activate ~
 cp bash/zen ~
+
 cd ~
 chmod +x zen
+chmod +x activate
 
 ./zen initialize

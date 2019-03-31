@@ -60,6 +60,12 @@ import zen.misc
 
 from dposlib import rest
 
+ROOT_JSON = zen.loadJson("root.json")
+program_name = os.path.split(ROOT_JSON["config_folder"])[-1]
+CONFIG = ROOT_JSON["config_folder"]
+LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", program_name))
+CACHE = os.path.expanduser(os.path.join("~", ".cache", program_name))
+
 
 def _fee(value):
 	if value in ["minFee", "avgFee", "maxFee"]:
@@ -170,7 +176,6 @@ def retry_payroll(args={}, **options):
 
 
 def remove_delegate(args={}, **options):
-	root = zen.loadJson("root.json")
 	username = args["<username>"]
 
 	if not username:
@@ -213,8 +218,7 @@ def adjust_forge(args={}, **options):
 
 
 def snap_blockchain(args={}, **options):
-	root = zen.loadJson("root.json")
-	try: zen.snp.getSnapshots(os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", root["name"], "snapshots")))
+	try: zen.snp.getSnapshots(os.path.join(LOCAL, "devnet", "snapshots"))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
 
