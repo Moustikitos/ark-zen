@@ -70,3 +70,4 @@ cp bash/zen ~
 cd ~
 chmod +x zen
 chmod +x activate
+echo "done"
