@@ -41,7 +41,7 @@ git pull -q
 echo
 echo creating virtual environement
 echo =============================
-if [ ! -d "~/.local/share/ark-zen/venv" ]; then
+if [ ! -d "$HOME/.local/share/ark-zen/venv" ]; then
     mkdir ~/.local/share/ark-zen/venv -p
     virtualenv ~/.local/share/ark-zen/venv -q
 else
