@@ -38,6 +38,7 @@ else
     git checkout tags/$B -fq
 fi
 git pull -q
+echo "done"
 
 echo
 echo creating virtual environement
