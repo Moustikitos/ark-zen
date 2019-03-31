@@ -3,5 +3,6 @@ recursive-include zen *.html
 recursive-include bash *
 include LICENSE
 include VERSION
-includechk.json
+include chk.*
 include srv.json
+include nginx-zen

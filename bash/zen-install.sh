@@ -41,8 +41,12 @@ git pull -q
 echo
 echo creating virtual environement
 echo =============================
-mkdir ~/.local/share/ark-zen/venv -p
-virtualenv ~/.local/share/ark-zen/venv -q
+if [ ! -d "~/.local/share/ark-zen/venv" ]; then
+    mkdir ~/.local/share/ark-zen/venv -p
+    virtualenv ~/.local/share/ark-zen/venv -q
+else
+    echo "virtual environement already there"
+fi
 . ~/.local/share/ark-zen/venv/bin/activate
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
 export PATH=$(yarn global bin):$PATH
