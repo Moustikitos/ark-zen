@@ -9,6 +9,7 @@ else
 fi
 echo "github branch to use : $B"
 
+echo
 echo installing system dependencies
 echo ==============================
 sudo apt-get -qq install curl
@@ -44,8 +45,9 @@ echo =============================
 if [ ! -d "$HOME/.local/share/ark-zen/venv" ]; then
     mkdir ~/.local/share/ark-zen/venv -p
     virtualenv ~/.local/share/ark-zen/venv -q
+    echo "done"
 else
-    echo "virtual environement already there"
+    echo "virtual environement already there !"
 fi
 . ~/.local/share/ark-zen/venv/bin/activate
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
@@ -57,6 +59,7 @@ echo
 echo installing python dependencies
 echo ==============================
 pip install -r requirements.txt -q
+echo "done"
 
 # installing zen command
 echo
