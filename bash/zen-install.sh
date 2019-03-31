@@ -7,7 +7,7 @@ if [ $# = 0 ]; then
 else
     B=$1
 fi
-echo "branch selected = $B"
+echo "github branch to use : $B"
 
 echo installing system dependencies
 echo ==============================
@@ -23,20 +23,20 @@ echo
 echo downloading zen package
 echo =======================
 cd ~
-if (git clone --branch $B https://github.com/Moustikitos/ark-zen.git) then
+if (git clone -q --branch $B https://github.com/Moustikitos/ark-zen.git) then
     echo "cloning ark-zen..."
 else
-    echo "ark-zen already cloned"
+    echo "ark-zen already cloned !"
 fi
 cd ~/ark-zen
-git reset --hard
-git fetch --all
+git reset -q --hard
+git fetch -q --all
 if [ "$B" == "master" ]; then
-    git checkout $B -f
+    git checkout $B -fq
 else
-    git checkout tags/$B -f
+    git checkout tags/$B -fq
 fi
-git pull
+git pull -q
 
 echo
 echo creating virtual environement
@@ -70,5 +70,3 @@ cp bash/zen ~
 cd ~
 chmod +x zen
 chmod +x activate
-
-./zen initialize
