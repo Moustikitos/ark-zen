@@ -164,7 +164,7 @@ def tweak():
 		url_for=dated_url_for,
 		tbw_config=tbw_config,
 		_currency=lambda value: flask.Markup("%.8f&nbsp;%s" % (value, token)),
-		_dhm = lambda value: "%d days %02d hours %02d minutes" % dhm(value),
+		_dhm = lambda value: human_dhm(*dhm(value)),
 		_address=lambda address: flask.Markup(
 			'<span class="not-ellipsed">%s</span><span class="ellipsed">%s</span>' % 
 			(address, "%s&nbsp;&#x2026;&nbsp;%s" % (address[:5],address[-5:])))
@@ -176,6 +176,12 @@ def dhm(last_blocks):
 	hours = (days - math.floor(days)) * 24
 	minutes = (hours - math.floor(hours)) * 60
 	return math.floor(days), math.floor(hours), math.floor(minutes)
+
+
+def human_dhm(d, h, m):
+	return ("%d day"%d) + ("s " if d>1 else " ") + \
+		   ("%02d hour"%h) + ("s " if h>1 else " ") + \
+		   ("%02d minute"%m) + ("s" if m>1 else "")
 
 
 ########################

@@ -352,7 +352,7 @@ def dumpRegistry(username, fee_coverage=False):
 		dposlib.core.Transaction.unlink()
 
 
-def broadcast(username, chunk_size=15):
+def broadcast(username, chunk_size=30):
 	# initialize options
 	tbw = loadJson("tbw.json")
 	chunk_size = max(5, tbw.get("chunk_size", chunk_size))
@@ -393,4 +393,4 @@ def checkApplied(username):
 				len(transactions)
 			))
 
-	sqlite.commit()
+		sqlite.commit()

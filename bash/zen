@@ -6,7 +6,7 @@ Usage:
     zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
     zen (start-srv | stop-srv | start-chk | stop-chk )
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
-    zen add-delegate <username> -h <webhook-peer>
+    zen add-delegate <username> [-h <webhook-peer>]
     zen configure [ --fee-coverage --chunk-size <chubk-size> -c <currency>]
     zen adjust-forge <username> <value>
     zen launch-payroll <username>
@@ -25,7 +25,7 @@ Options:
     -s --share=<share>               : delegate share rate (0.0<=share<=1.0)
     -t --threshold=<threshold>       : minimum amount for a payment
     -n --name-list=<name-list>       : *.tbw coma-separated name list
-    --chunk-size=<chunk-size>        : max transaction per request [default:15]
+    --chunk-size=<chunk-size>        : max transaction per request [default:30]
     --fee-coverage                   : delegate covers transaction fees (flag)
 
 Subcommands:
