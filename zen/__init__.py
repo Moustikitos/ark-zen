@@ -49,12 +49,12 @@ def getIp():
 
 
 def getPublicKeyFromUsername(username):
-	req = dposlib.rest.GET.api.v2.delegates(username)
+	req = dposlib.rest.GET.api.delegates(username)
 	return req.get("data", {}).get("publicKey", False)
 
 
 def getUsernameFromPublicKey(publicKey):
-	req = dposlib.rest.GET.api.v2.delegates(publicKey)
+	req = dposlib.rest.GET.api.delegates(publicKey)
 	return req.get("data", {}).get("username", False)
 
 

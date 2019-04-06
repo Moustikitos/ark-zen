@@ -33,7 +33,7 @@ def generateChart(username):
 @app.route("/")
 def index():
 	usernames = [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
-	accounts = [dposlib.rest.GET.api.v2.delegates(username, returnKey="data") for username in usernames]
+	accounts = [dposlib.rest.GET.api.delegates(username, returnKey="data") for username in usernames]
 	charts = dict([u,generateChart(u)] for u in usernames)
 	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)], charts=charts)
 

@@ -75,7 +75,7 @@ def spread():
 		if last_block.get("id", False):
 			# get last forged blocks from blockchain
 			# TODO : get all blocks till the last forged (not the 100 last ones)
-			req = rest.GET.api.v2.delegates(generatorPublicKey, "blocks")
+			req = rest.GET.api.delegates(generatorPublicKey, "blocks")
 			last_blocks = req.get("data", [])
 
 			# raise Exceptions if issues with API call

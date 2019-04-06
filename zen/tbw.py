@@ -35,14 +35,14 @@ def rebuildDb(username):
 	sqlite = initDb(username)
 	cursor = sqlite.cursor()
 
-	account = rest.GET.api.v2.delegates(username, returnKey="data")
+	account = rest.GET.api.delegates(username, returnKey="data")
 	address =  account.get("address", False)
 	if address:
 
 		# transactions = []
 		count, pageCount = 0, 1
 		while count < pageCount:
-			req = rest.GET.api.v2.wallets(address, "transactions", page=count+1)
+			req = rest.GET.api.wallets(address, "transactions", page=count+1)
 			if req.get("error", False):
 				raise Exception("Api error occured: %r" % req)
 			pageCount = req["meta"]["pageCount"]
@@ -92,7 +92,7 @@ def init(**kwargs):
 	elif "usernames" in kwargs:
 		pkeys = []
 		for username in kwargs.pop("usernames", []):
-			req = rest.GET.api.v2.delegates(username).get("data", {})
+			req = rest.GET.api.delegates(username).get("data", {})
 			if len(req):
 				pkeys.append(req["publicKey"])
 
@@ -135,8 +135,8 @@ def init(**kwargs):
 def setDelegate(pkey, webhook_peer, public=False):
 	printNewLine()
 	# for each publicKey, get account data (merge delegate and wallet info)
-	req = rest.GET.api.v2.delegates(pkey).get("data", {})
-	account = rest.GET.api.v2.wallets(pkey).get("data", {})
+	req = rest.GET.api.delegates(pkey).get("data", {})
+	account = rest.GET.api.wallets(pkey).get("data", {})
 	account.update(req)
 
 	if account != {}:
@@ -203,7 +203,7 @@ def askSecondSecret(account):
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	minvote *= 100000000
-	voters = misc.loadPages(rest.GET.api.v2.delegates.__getattr__(pkey).voters)
+	voters = misc.loadPages(rest.GET.api.delegates.__getattr__(pkey).voters)
 	if len(voters) == 0:
 		raise Exception("No voter found during distribution computation...")
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
