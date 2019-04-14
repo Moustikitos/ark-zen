@@ -88,9 +88,10 @@ def spread():
 			logMsg("%s forged %s" % (username, block["id"]))
 			logMsg("last known forged: %s" % last_block["id"])
 			for blk in last_blocks:
-				# if bc is not synch and response is too bad, also check timestamp
+				# stop the loop when last forged block is reach in the last blocks list
 				if blk["id"] == last_block["id"]:
 					break
+				# if bc is not synch and response is too bad, also check timestamp
 				elif blk["timestamp"]["epoch"] > last_block["timestamp"]:
 					logMsg("    getting rewards and fees from block %s..." % blk["id"])
 					rewards += float(blk["forged"]["reward"])/100000000.
@@ -129,8 +130,9 @@ def spread():
 			"%s.forgery" % username,
 			folder=folder
 		)
-		# dump curent forged block as <username>.last.block 
-		dumpJson(block, filename, folder=folder)
+		# dump current forged block as <username>.last.block 
+		if rewards > 0:
+			dumpJson(block, filename, folder=folder)
 
 		msg = "\n".join(
 			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
@@ -179,9 +181,9 @@ def dhm(last_blocks):
 
 
 def human_dhm(d, h, m):
-	return ("%d day"%d) + ("s " if d>1 else " ") + \
-		   ("%02d hour"%h) + ("s " if h>1 else " ") + \
-		   ("%02d minute"%m) + ("s" if m>1 else "")
+	return ("" if d<1 else ("%d day"%d + ("s " if d>1 else " "))) + \
+		   ("" if h<1 else ("%d hour"%h + ("s " if h>1 else " "))) + \
+		   ("" if m<1 else ("%d minute"%m + ("s" if m>1 else "")))
 
 
 ########################

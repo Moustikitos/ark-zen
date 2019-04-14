@@ -147,6 +147,9 @@ $RECYCLE.BIN/
 
 # misceleanous
 .vscode/
+.json/
+.data/
+.tbw/
 test/
 v1/
 *.bat

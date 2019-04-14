@@ -20,7 +20,8 @@ def createSnapshot():
 def updateSnapshot():
 	root = zen.loadJson("root.json")
 	network = root["name"]
-	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", network, "snapshots"))
+	appname = os.path.basename(root["config_folder"])
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", appname, network, "snapshots"))
 	snapshots = getSnapshots(snapdir)
 
 	if not os.system('ark snapshot:dump --blocks %(snapshot)s' % {"snapshot": snapshots[-1]}):
@@ -32,9 +33,10 @@ def updateSnapshot():
 
 def rebuildFromZero():
 	root = zen.loadJson("root.json")
-	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", root["name"], "snapshots"))
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", appname, root["name"], "snapshots"))
 	snapshots = getSnapshots(snapdir)
 
+	zen.misc.stop_pm2_app("ark-core")
 	zen.misc.stop_pm2_app("ark-forger")
 	zen.misc.stop_pm2_app("ark-relay")
 	os.system('ark snapshot:restore --blocks %(snapshot)s --truncate' % {"snapshot": snapshots[-1]})
@@ -44,10 +46,11 @@ def rebuildFromZero():
 
 def rollbackAndRebuild():
 	root = zen.loadJson("root.json")
-	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", "ark-core", root["name"], "snapshots"))
+	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", appname, root["name"], "snapshots"))
 	snapshots = getSnapshots(snapdir)
 	blockstop = int(snapshots[-1].split("-")[-1]) - 500
 
+	zen.misc.stop_pm2_app("ark-core")
 	zen.misc.stop_pm2_app("ark-forger")
 	zen.misc.stop_pm2_app("ark-relay")
 	os.system('''

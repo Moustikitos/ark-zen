@@ -61,10 +61,10 @@ import zen.misc
 from dposlib import rest
 
 ROOT_JSON = zen.loadJson("root.json")
-program_name = os.path.split(ROOT_JSON["config_folder"])[-1]
+app_name = os.path.basename(ROOT_JSON["config_folder"])
 CONFIG = ROOT_JSON["config_folder"]
-LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", program_name))
-CACHE = os.path.expanduser(os.path.join("~", ".cache", program_name))
+LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", app_name, ROOT_JSON["name"]))
+CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON["name"]))
 
 
 def _fee(value):
@@ -218,7 +218,7 @@ def adjust_forge(args={}, **options):
 
 
 def snap_blockchain(args={}, **options):
-	try: zen.snp.getSnapshots(os.path.join(LOCAL, "devnet", "snapshots"))
+	try: zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
 	except: zen.snp.createSnapshot()
 	else: zen.snp.updateSnapshot()
 

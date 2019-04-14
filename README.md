@@ -125,7 +125,7 @@ Edit the crontab file
 crontab -e
 ```
 
-This crontab create a snapshot every 4 hours and automatically starts relay,
+This crontab tasks create a snapshot every 4 hours and automatically start relay,
 forger, zen server and zen checker.
 
 ```shell
