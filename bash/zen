@@ -8,10 +8,9 @@ Usage:
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [ --fee-coverage --chunk-size <chubk-size> -c <currency>]
+    zen (launch-payroll | check-applied | resume-payroll) <username>
     zen adjust-forge <username> <value>
-    zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
-    zen resume-payroll <username>
     zen remove-delegate [<username>]
     zen append-custom-peer <peer-list>
 
@@ -238,6 +237,10 @@ def remove_custom_peer(args={}, **options):
 		for item in items:
 			tbw["custom_peers"].remove(item)
 	zen.dumpJson(tbw, "tbw.json")
+
+
+def check_applied(args={}, **options):
+	zen.tbw.checkApplied(args["<username>"])
 
 
 if __name__ == "__main__":

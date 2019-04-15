@@ -57,7 +57,7 @@ def spread():
 		username = getUsernameFromPublicKey(generatorPublicKey)
 		if not username:
 			raise Exception("Error: can not reach username")
-		
+
 		# check autorization and exit if bad one
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):

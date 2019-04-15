@@ -8,7 +8,7 @@
 	.ellipsed { display: none; }
 }
 
-@media (min-width: 972px) {
+@media screen and (min-width: 972px) {
 	.container {
 		width: 800px;
 		margin-left:auto;

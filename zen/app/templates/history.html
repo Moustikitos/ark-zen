@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 
 {%- block title %}
-<title>History</title>
+<title>Payroll history</title>
 {%- endblock title %}
 
+{%- block nav %}
+<ul class="navbar-nav mr-auto">
+	<li class="nav-item">
+		<a class="nav-link" href="/">Home</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link disabled" href="/faq">FAQ</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="/{{ username }}">Back to forgery</a>
+	</li>
+</ul>
+{%- endblock nav %}
+
 {%- block body %}
-		
 {%- if page_number > 0 %}
 <div class="container">
-	<h1><a href="/{{username}}">{{ username }} delegate</a></h1>
+	<h1>{{ username }} payrolls</h1>
 	<nav aria-label="payroll navigation">
 		<ul class="pagination">
 			<li class="page-item{{' disabled' if curent_page == 0 else ''}}">

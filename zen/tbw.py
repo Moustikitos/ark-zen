@@ -365,6 +365,7 @@ def broadcast(username, chunk_size=30):
 		for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
 			response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
 			logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
+	misc.notify("New payroll started : %d transactions broadcasted..." % len(transactions))
 
 
 def checkApplied(username):
@@ -373,9 +374,18 @@ def checkApplied(username):
 	cursor = sqlite.cursor()
 
 	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
-		registry = loadJson(name, folder=folder)
+		# try to lad a milestone first, if no one exists
+		registry = loadJson(name+".milestone", folder=folder)
+		# if void dict returned by loadJson, then load registry file
+		if not len(registry):
+			registry = loadJson(name, folder=folder)
+			logMsg("starting transaction check from %s..." % name)
+		else:
+			misc.notify("Transactions are still to be checked (%d)..." % len(registry))
+			logMsg("resuming transaction check from %s..." % (name+".milestone"))
+
+		start = time.time()
 		transactions = list(registry.values())
-		logMsg("checking applied transaction of registry %s..." % name)
 		for tx in [t for t in transactions if t["id"] in registry]:
 			if misc.transactionApplied(tx["id"]):
 				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
@@ -384,10 +394,20 @@ def checkApplied(username):
 						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
 						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
 					)
+			# set a milestone every 20 seconds
+			if (time.time() - start) > 20.:
+				sqlite.commit()
+				dumpJson(registry, name+".milestone", folder=folder)
+				logMsg("milestone set (%d transaction left to check)" % len(registry))
+				start = time.time()
 
 		if len(registry) == 0:
 			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
-			os.remove(os.path.join(folder, name))
+			try:
+				os.remove(os.path.join(folder, name))
+				os.remove(os.path.join(folder, name+".milestone"))
+			except:
+				pass
 			misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
 				sum([tx["amount"] for tx in transactions])/100000000.,
 				len(transactions)

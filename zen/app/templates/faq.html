@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{%- block title %}
+<title>Frequently asked questions</title>
+{%- endblock title %}
+
+{%- block nav %}
+<ul class="navbar-nav mr-auto">
+	<li class="nav-item">
+		<a class="nav-link" href="/">Home</a>
+	</li>
+	<li class="nav-item active">
+		<a class="nav-link disabled" href="/faq">FAQ<span class="sr-only">(current)</span></a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="/{{ username }}">Back to forgery</a>
+	</li>
+</ul>
+{%- endblock nav %}
