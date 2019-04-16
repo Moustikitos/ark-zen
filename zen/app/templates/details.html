@@ -4,11 +4,25 @@
 <title>Payroll details</title>
 {%- endblock title %}
 
-{%- block body %}
+{%- block nav %}
 {%- set name = "_"+item.replace(".", "").replace("-","") %}
+<ul class="navbar-nav mr-auto">
+	<li class="nav-item">
+		<a class="nav-link" href="/">Home</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link disabled" href="/faq">FAQ</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" href="/{{username}}/history/{{curent_page}}/{{entry_number}}#{{name}}">Back to history</a>
+	</li>
+</ul>
+{%- endblock nav %}
+
+{%- block body %}
 
 <div class="container">
-    <h1><a href="/{{username}}/history/{{curent_page}}/{{entry_number}}#{{name}}">{{ username }}::history</a></h1>
+    <h1>Payroll details</h1>
     <div class="alert alert-info">&#9878; Payroll id&nbsp;:&nbsp;<strong>{{ item }}</strong></div>
 </div>
 
