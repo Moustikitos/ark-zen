@@ -5,26 +5,24 @@
 {%- endblock title %}
 
 {%- block nav %}
-<ul class="navbar-nav mr-auto">
-	<li class="nav-item active">
-		<a class="nav-link disabled" href="#">Home<span class="sr-only">(current)</span></a>
-	</li>
-	<li class="nav-item">
-		<a class="nav-link disabled" href="/faq">FAQ</a>
-	</li>
-	<li class="nav-item dropdown">
-		<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Delegate info</a>
-		<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-		{%- for account in accounts %}
-			<a class="dropdown-item" href="/{{account['username']}}">{{account["username"]}} forgery</a>
-		{%- endfor %}
-			<div class="dropdown-divider"></div>
-		{%- for account in accounts %}
-		<a class="dropdown-item" href="/{{account['username']}}/history/0/5">{{account["username"]}} payrolls</a>
-		{%- endfor %}
-		</div>
-	</li>
-</ul>
+<li class="nav-item active">
+	<a class="nav-link disabled" href="#">Home<span class="sr-only">(current)</span></a>
+</li>
+<li class="nav-item">
+	<a class="nav-link disabled" href="/faq">FAQ</a>
+</li>
+<li class="nav-item dropdown">
+	<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Delegate info</a>
+	<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+	{%- for account in accounts %}
+		<a class="dropdown-item" href="/{{account['username']}}">{{account["username"]}} forgery</a>
+	{%- endfor %}
+		<div class="dropdown-divider"></div>
+	{%- for account in accounts %}
+	<a class="dropdown-item" href="/{{account['username']}}/history/0/5">{{account["username"]}} payrolls</a>
+	{%- endfor %}
+	</div>
+</li>
 {%- endblock nav %}
 
 {%- block body %}

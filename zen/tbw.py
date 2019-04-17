@@ -365,7 +365,7 @@ def broadcast(username, chunk_size=30):
 		for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
 			response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
 			logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-	misc.notify("New payroll started : %d transactions broadcasted..." % len(transactions))
+	misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
 
 
 def checkApplied(username):
@@ -381,7 +381,7 @@ def checkApplied(username):
 			registry = loadJson(name, folder=folder)
 			logMsg("starting transaction check from %s..." % name)
 		else:
-			misc.notify("Transactions are still to be checked (%d)..." % len(registry))
+			misc.notify("Transactions are about to be checked (%d)..." % len(registry))
 			logMsg("resuming transaction check from %s..." % (name+".milestone"))
 
 		start = time.time()
@@ -394,8 +394,8 @@ def checkApplied(username):
 						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
 						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
 					)
-			# set a milestone every 20 seconds
-			if (time.time() - start) > 20.:
+			# set a milestone every 5 seconds
+			if (time.time() - start) > 5.:
 				sqlite.commit()
 				dumpJson(registry, name+".milestone", folder=folder)
 				logMsg("milestone set (%d transaction left to check)" % len(registry))

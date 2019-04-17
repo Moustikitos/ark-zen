@@ -10,8 +10,8 @@
 	<!-- Custom styles -->
 	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 	<link rel="shortcut icon" href="https://ark.io/favicon.png">
-	{%- block title %}
-	{%- endblock title %}
+{%- block title %}
+{%- endblock title %}
 </head>
 
 <body>
@@ -25,21 +25,24 @@
 		<span class="navbar-toggler-icon"></span>
 	</button>
 	<div class="collapse navbar-collapse" id="navbarSupportedContent">
-	{%- block nav %}
 		<ul class="navbar-nav mr-auto">
+{%- block nav %}
 			<li class="nav-item">
 				<a class="nav-link" href="/">Home</a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link disabled" href="/faq">FAQ</a>
 			</li>
+{%- endblock nav %}
 		</ul>
-	{%- endblock nav %}
 		<!-- <form class="form-inline my-2 my-lg-0">
 			<input class="form-control mr-sm-2" id="walletAddress" type="text" placeholder="Address" aria-label="Address" required>
 			<button class="btn btn-outline-info my-2 my-sm-0" type="submit">Compute</button>
 		</form> -->
 	</div>
+		<span class="navbar-text">
+			<a href="https://github.com/Moustikitos/ark-zen" class="badge badge-light text-dark not-ellipsed" target="_">Check core code</a>
+		</span>
 </div>
 </nav>
 
