@@ -161,7 +161,7 @@ def spread():
 @app.context_processor
 def tweak():
 	tbw_config = zen.loadJson("tbw.json")
-	token = tbw_config.get("currency", "t")
+	token = dposlib.core.cfg.symbol
 	return dict(
 		url_for=dated_url_for,
 		tbw_config=tbw_config,

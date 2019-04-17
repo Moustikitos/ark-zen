@@ -11,7 +11,86 @@
 <li class="nav-item active">
 	<a class="nav-link disabled" href="/faq">FAQ<span class="sr-only">(current)</span></a>
 </li>
-<li class="nav-item">
-	<a class="nav-link" href="/{{ username }}">Back to forgery</a>
-</li>
 {%- endblock nav %}
+
+{%- block body %}
+{%- set tph = 3600/(info.blocktime * info.delegate)*info.blockreward %}
+
+<div class="container">
+	<h1>FAQ</h1>
+<div class="alert alert-info"><strong>How does vote-reward work ?</strong></div>
+<p>
+Voting for a delegate helps to push it within the top {{ info.delegate }} to be
+allowed to forge blocks. Then, its associated node can puts transactions
+in a block, signs it and inserts it into the blockchain. For each forged block,
+the delegate wallet receives {{ "%d"%info.blockreward }}&nbsp;{{ info.symbol | safe }}
+plus the fees of forged transaction(s).
+</p>
+<p>
+The one runing this delegate may decide to share his reward to his voters. The
+most common way is to distribute rewards according to individual vote weight.
+</p>
+<p>
+Here, the share is computed and distributed according to vote weight each
+time a block is forged. It is the True Block Weight mechanism.
+</p>
+
+<div class="alert alert-info"><strong>How much may I get ?</strong></div>
+<p>
+Within {{ info.network }} network, block delay is {{ info.blocktime }}&nbsp;seconds.
+A delegate forges a block every {{ info.blocktime * info.delegate }} seconds
+that makes {{  _currency(tph) }} per hour. So on a daily basis, the maximum a
+delegate could distribute is {{  _currency(tph*24) }}.
+Important thing to notify here is that your vote weight might fluctuate between
+two forged block according to total vote variation.
+</p>
+<ul class="alert-warning">
+{%- for username in delegates %}
+<li>If you voted for {{ username }} and your vote weight is 1%, you will get
+{{ _currency(tph*24 *delegates[username].share*0.01) }} per day.</li>
+{%- endfor %}
+</ul>
+<!-- 
+<div class="alert alert-info">How secure is the payroll system ?</div>
+<p>	
+</p> -->
+
+<div class="alert alert-info"><strong>Can I withdraw part of my voting wallet ?</strong></div>
+<p>
+Yes. Because sometime it is interesting to trade {{ info.symbol | safe }}, it is
+allowed to withdraw part of the wallet but your relative vote weight will decrease.
+<ul class="alert-warning">
+{%- for username in delegates %}
+<li>If you voted for {{ username }}
+{%- if delegates[username].minimum_vote %}
+you will have to keep a minimum of {{ _currency(delegates[username].minimum_vote) }}.</li>
+{%- else %}
+you will have to keep a minimum of {{ _currency(1) }}.</li>
+{%- endif %}
+{%- endfor %}
+</ul>
+</p>
+
+<div class="alert alert-info"><strong>Do I need to register somewhere ?</strong></div>
+<p>
+No. You only have to vote for the delegate using
+<a href="https://docs.ark.io/tutorials/usage-guides/how-to-use-ark-desktop-wallet.html#voting-for-a-registered-delegate-and-unvoting" target="_">Ark Desktop Wallet</a>.
+<ul class="alert-warning">
+{%- for username in delegates %}
+{%- if delegates[username].minimum_vote %}
+<li>
+If you voted for {{ username }} you will need a minimum of
+{{ _currency(delegates[username].minimum_vote) }}.
+</li>
+{%- endif %}
+{%- endfor %}
+</ul>
+</p>
+
+<div class="alert alert-info"><strong>Will I get my pending reward if I unvote delegate ?</strong></div>
+<p>
+No. Once the delegate is unvoted, the undistributed share is redistributed to
+the other voters.
+</p>
+</div>
+{%- endblock body %}
