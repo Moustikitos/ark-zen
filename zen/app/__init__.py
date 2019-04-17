@@ -38,6 +38,16 @@ def index():
 	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)], charts=charts)
 
 
+@app.route("/faq")
+def faq():
+	data = dict((k,v) for k,v in dposlib.core.cfg.__dict__.items() if not k.startswith('_'))
+	data["begintime"] = data["begintime"].strftime("%Y-%m-%dT%H:%M:%S.000Z")
+	return flask.render_template("faq.html", info=data, delegates=dict(
+		[username, zen.loadJson(username+".json", zen.JSON)] for username in \
+		[name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
+	))
+
+
 @app.route("/<string:username>")
 def delegate_index(username):
 	if username not in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]:
