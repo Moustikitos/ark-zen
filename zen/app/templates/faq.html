@@ -18,7 +18,7 @@
 
 <div class="container">
 	<h1>FAQ</h1>
-<div class="alert alert-info"><strong>How does vote-reward work ?</strong></div>
+<div class="alert alert-info"><strong>How does vote-reward work&nbsp;?</strong></div>
 <p>
 Voting for a delegate helps to push it within the top {{ info.delegate }} to be
 allowed to forge blocks. Then, its associated node can puts transactions
@@ -35,7 +35,7 @@ Here, the share is computed and distributed according to vote weight each
 time a block is forged. It is the True Block Weight mechanism.
 </p>
 
-<div class="alert alert-info"><strong>How much may I get ?</strong></div>
+<div class="alert alert-info"><strong>How much may I get&nbsp;?</strong></div>
 <p>
 Within {{ info.network }} network, block delay is {{ info.blocktime }}&nbsp;seconds.
 A delegate forges a block every {{ info.blocktime * info.delegate }} seconds
@@ -50,22 +50,22 @@ two forged block according to total vote variation.
 	<div class="input-group-prepend">
 		<span class="input-group-text">
 			<input id="voted_{{ username }}" type="checkbox" 
-			       title="Select if you already voted up {{ username }}"
+			       title="Select if you already up voted {{ username }}"
 			       onclick="computeReward('{{ username }}', {{ delegates[username].votes }}, {{ tph*24 }})" />
 		</span>
 		<span class="input-group-text">{{ username }}</span>
 	</div>
-	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="Voting wallet balance" 
+	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="Wallet balance" 
 	       onkeyup="computeReward('{{ username }}', {{ delegates[username].votes }}, {{ tph*24 }})"/>
-	<input id="estimate_{{ username }}" type="number" class="form-control" placeholder="Estimated share" />
+	<input id="estimate_{{ username }}" readonly type="number" class="form-control" placeholder="Estimated share" />
 	<div class="input-group-append">
-		<span class="input-group-text">{{ info.symbol | safe }} per day</span>
+		<span class="input-group-text">{{ info.symbol | safe }}/day</span>
 	</div>
 </span>
 </div>
 {%- endfor %}
 
-<div class="alert alert-info"><strong>Can I withdraw part of my voting wallet ?</strong></div>
+<div class="alert alert-info"><strong>Can I withdraw part of my voting wallet&nbsp;?</strong></div>
 <p>
 Yes. Because sometime it is interesting to trade {{ info.symbol | safe }}, it is
 allowed to withdraw part of the wallet but your relative vote weight will decrease.
@@ -81,7 +81,7 @@ you will have to keep a minimum of {{ _currency(1) }}.</li>
 </ul>
 </p>
 
-<div class="alert alert-info"><strong>Do I need to register somewhere ?</strong></div>
+<div class="alert alert-info"><strong>Do I need to register somewhere&nbsp;?</strong></div>
 <p>
 No. You only have to vote for the delegate using
 <a href="https://docs.ark.io/tutorials/usage-guides/how-to-use-ark-desktop-wallet.html#voting-for-a-registered-delegate-and-unvoting" target="_">Ark Desktop Wallet</a>.
@@ -97,9 +97,9 @@ If you voted for {{ username }} you will need a minimum of
 </ul>
 </p>
 
-<div class="alert alert-info"><strong>Will I get my pending reward if I unvote delegate ?</strong></div>
+<div class="alert alert-info"><strong>Will I get my pending reward if I down vote delegate&nbsp;?</strong></div>
 <p>
-No. Once the delegate is unvoted, the undistributed share is redistributed to
+No. Once the delegate is down voted, the undistributed share is redistributed to
 the other voters.
 </p>
 </div>
