@@ -43,7 +43,7 @@ def faq():
 	data = dict((k,v) for k,v in dposlib.core.cfg.__dict__.items() if not k.startswith('_'))
 	data["begintime"] = data["begintime"].strftime("%Y-%m-%dT%H:%M:%S.000Z")
 	return flask.render_template("faq.html", info=data, delegates=dict(
-		[username, zen.loadJson(username+".json", zen.JSON)] for username in \
+		[username, dict(zen.loadJson(username+".json", zen.JSON), **dposlib.rest.GET.api.delegates(username, returnKey="data"))] for username in \
 		[name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	))
 
