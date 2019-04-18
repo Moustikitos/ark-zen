@@ -168,3 +168,54 @@ def chartTimedData(data):
 	)
 	chart.add("block weight % / Ѧ1000 vote", [(d,round(1000*100*v, 3)) for d,v in data])
 	return chart.render_data_uri()
+
+
+def chartAir(share, nb_points=100, username=None):
+	info = zen.dposlib.rest.cfg
+	delegates = zen.dposlib.rest.GET.api.delegates()["data"]
+	min_vote, max_vote = [int(d["votes"]/100000000.) for d in sorted(zen.dposlib.rest.GET.api.delegates()["data"][:info.delegate][::info.delegate-1], key=lambda d:d["rank"], reverse=True)]
+	yearly_share = 365 * share * 24 * info.blockreward * 3600./(info.delegate * info.blocktime)
+
+	style = pygal.style.DefaultStyle(
+		label_font_size=15,
+		major_label_font_size=15,
+		value_label_font_size=15,
+		legend_font_size=15,
+		title_font_size=20
+	)
+	chart = pygal.XY(
+		title=u'Annual Interest Rate (AIR) for a %d%% sharing delegate' % (share*100),
+		legend_at_bottom=True,
+		show_legend=True,
+		show_x_labels=True,
+		x_title="The vote range for the 51 top ranked delegates",
+		y_title="Annual Interest Rate in %",
+		show_y_labels=True,
+		fill=True,
+		style=style,
+		human_readable=True
+	)
+
+	step = (max_vote-min_vote)/nb_points
+	x_lst = [min_vote + i*step for i in range(0,nb_points,1)]
+	chart.x_labels = x_lst[::10]
+	chart.add(
+		"%d%% sharing delegate AIR in %%" % (share*100),
+		[(v, 100.0*yearly_share/v) for v in x_lst],
+		show_dots=False,
+		stroke_style={'width': 5, 'linecap': 'round', 'linejoin': 'round'}
+	)
+
+	try:
+		if username:
+			delegate = [d for d in delegates if d["username"] == username][0]
+			votes = int(delegate["votes"]/100000000.)
+			chart.add(
+				"%s AIR in %%" % username,
+				[(votes, 100.0*yearly_share/votes)],
+				dots_size=8,
+			)
+	except:
+		pass
+
+	return chart.render_data_uri()

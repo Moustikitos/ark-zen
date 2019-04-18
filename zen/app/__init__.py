@@ -42,9 +42,12 @@ def index():
 def faq():
 	data = dict((k,v) for k,v in dposlib.core.cfg.__dict__.items() if not k.startswith('_'))
 	data["begintime"] = data["begintime"].strftime("%Y-%m-%dT%H:%M:%S.000Z")
-	return flask.render_template("faq.html", info=data, delegates=dict(
-		[username, dict(zen.loadJson(username+".json", zen.JSON), **dposlib.rest.GET.api.delegates(username, returnKey="data"))] for username in \
-		[name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
+	delegates = dict(
+		[username, dict(zen.loadJson(username+".json", zen.JSON), **dposlib.rest.GET.api.delegates(username, returnKey="data"))] for \
+		username in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
+	)
+	return flask.render_template("faq.html", info=data, delegates=delegates, charts=dict(
+		[username, zen.misc.chartAir(delegates[username]["share"], 50, username)] for username in delegates
 	))
 
 
