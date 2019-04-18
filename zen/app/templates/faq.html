@@ -45,21 +45,21 @@ Important thing to notify here is that your vote weight might fluctuate between
 two forged block according to total vote variation.
 </p>
 {%- for username in delegates %}
-<div class="form-column" style="padding:20px;padding-top:0px;">
+<div style="padding:0px;padding-bottom:20px;">
 <span class="input-group input-group-sm">
 	<div class="input-group-prepend">
 		<span class="input-group-text">
 			<input id="voted_{{ username }}" type="checkbox" 
 			       title="Select if you already up voted {{ username }}"
-			       onclick="computeReward('{{ username }}', {{ delegates[username].votes }}, {{ tph*24 }})" />
+			       onclick="computeReward('{{ username }}', {{ delegates[username].share }}, {{ delegates[username].votes }}, {{ tph*24 }}, '{{ info.symbol | safe }}')" />
 		</span>
-		<span class="input-group-text">{{ username }}</span>
+		<span class="input-group-text not-ellipsed">{{ username }}</span>
 	</div>
-	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="Wallet balance" 
-	       onkeyup="computeReward('{{ username }}', {{ delegates[username].votes }}, {{ tph*24 }})"/>
-	<input id="estimate_{{ username }}" readonly type="number" class="form-control" placeholder="Estimated share" />
+	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="balance" 
+	       onkeyup="computeReward('{{ username }}', {{ delegates[username].share }}, {{ delegates[username].votes }}, {{ tph*24 }}, '{{ info.symbol | safe }}')"/>
+	<input id="estimate_{{ username }}" readonly type="text" class="form-control" placeholder="share" />
 	<div class="input-group-append">
-		<span class="input-group-text">{{ info.symbol | safe }}/day</span>
+		<span id="AIR_{{ username }}" class="input-group-text" title="Annual interest rate">%</span>
 	</div>
 </span>
 </div>
@@ -105,12 +105,17 @@ the other voters.
 </div>
 
 <script>
-function computeReward(username, totalvote, daily_forged){
+function computeReward(username, share, totalvote, daily_forged, symbol){
 	var balance = parseInt(document.getElementById("vote_"+username).value);
-	totalvote += document.getElementById("voted_"+username).checked?0:balance;
-	var ratio = 1.0 * balance / totalvote;
-	var share = ratio*daily_forged;
-	document.getElementById("estimate_"+username).value = share>0?(share).toFixed(8):"";
+	if (document.getElementById("voted_"+username).checked){
+		if (balance > totalvote){share = 0}
+		else {share *= daily_forged * balance / totalvote}
+	}
+	else {
+		share *= daily_forged * balance / (totalvote+balance);
+	}
+	document.getElementById("estimate_"+username).value = share>0?(share).toFixed(3) + " "+symbol+"/day":"";
+	document.getElementById("AIR_"+username).innerText = share>0?(share*365/balance*100).toFixed(1)+"%":"%";
 }
 </script>
 {%- endblock body %}
