@@ -27,7 +27,7 @@ def generateChart(username):
 	timestamp = time.time() - (30*24*60*60)
 	return zen.misc.chartTimedData((
 		[datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
-		cursor.execute("SELECT * FROM dilution ORDER BY timestamp DESC").fetchall() if row["timestamp"] >= timestamp
+		cursor.execute("SELECT * FROM dilution WHERE timestamp > ? ORDER BY timestamp DESC", (timestamp,)).fetchall()
 	))
 
 
