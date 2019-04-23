@@ -1,3 +1,7 @@
+@media screen and (min-width: 0px) and (max-width: 301px) {
+	.container { width: 310px; }
+}
+
 @media screen and (min-width: 0px) and (max-width: 500px) {
 	.not-ellipsed { display: none; }
 	.ellipsed { display: inline; }

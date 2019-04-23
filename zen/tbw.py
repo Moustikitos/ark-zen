@@ -72,10 +72,10 @@ def printNewLine():
 
 def init(**kwargs):
 	webhook_peer = kwargs.get("webhook_peer", zen.WEBHOOK_PEER)
+	root = loadJson("root.json")
 
 	# if no options given, initialize forgers set on the node
 	if not len(kwargs):
-		root = loadJson("root.json")
 		# find delegates secrets and generate publicKeys
 		env_folder = os.path.dirname(root["env"])
 		if os.path.exists(os.path.join(env_folder, "delegates.json")):
@@ -128,7 +128,15 @@ def init(**kwargs):
 				else:
 					tbw[key] = value
 					logMsg("%s enabled" % key)
-		tbw.update(**kwargs)			
+
+		max_per_sender = int(kwargs.pop("max_per_sender", False))
+		if max_per_sender != False:
+			env = zen.loadEnv(root["env"])
+			env["CORE_TRANSACTION_POOL_MAX_PER_SENDER"] = max_per_sender
+			zen.dumpEnv(env, root["env"])
+			zen.logMsg("env parameter CORE_TRANSACTION_POOL_MAX_PER_SENDER set to %d \n    ark-core-relay have to be restarted" %(max_per_sender))
+
+		tbw.update(**kwargs)
 		dumpJson(tbw, "tbw.json")
 
 
@@ -374,14 +382,15 @@ def checkApplied(username):
 	cursor = sqlite.cursor()
 
 	for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
+		full_registry = loadJson(name, folder=folder)
 		# try to lad a milestone first, if no one exists
 		registry = loadJson(name+".milestone", folder=folder)
 		# if void dict returned by loadJson, then load registry file
 		if not len(registry):
-			registry = loadJson(name, folder=folder)
+			registry = dict(full_registry) #loadJson(name, folder=folder)
 			logMsg("starting transaction check from %s..." % name)
 		else:
-			misc.notify("Transactions are about to be checked (%d)..." % len(registry))
+			# misc.notify("Transactions are about to be checked (%d)..." % len(registry))
 			logMsg("resuming transaction check from %s..." % (name+".milestone"))
 
 		start = time.time()
@@ -408,9 +417,12 @@ def checkApplied(username):
 				os.remove(os.path.join(folder, name+".milestone"))
 			except:
 				pass
+			checked_tx = full_registry.values()
 			misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
-				sum([tx["amount"] for tx in transactions])/100000000.,
-				len(transactions)
+				sum([tx["amount"] for tx in checked_tx])/100000000.,
+				len(checked_tx)
 			))
+		else:
+			misc.notify("Transactions are still to be checked (%d)..." % len(registry))
 
 		sqlite.commit()

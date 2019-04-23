@@ -33,6 +33,7 @@ def updateSnapshot():
 
 def rebuildFromZero():
 	root = zen.loadJson("root.json")
+	appname = os.path.basename(root["config_folder"])
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", appname, root["name"], "snapshots"))
 	snapshots = getSnapshots(snapdir)
 
@@ -46,6 +47,7 @@ def rebuildFromZero():
 
 def rollbackAndRebuild():
 	root = zen.loadJson("root.json")
+	appname = os.path.basename(root["config_folder"])
 	snapdir = os.path.expanduser(os.path.join("~", ".local", "share", appname, root["name"], "snapshots"))
 	snapshots = getSnapshots(snapdir)
 	blockstop = int(snapshots[-1].split("-")[-1]) - 500

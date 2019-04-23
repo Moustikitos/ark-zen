@@ -172,27 +172,35 @@ def chartTimedData(data):
 
 def chartAir(share, nb_points=100, username=None):
 	info = zen.dposlib.rest.cfg
-	delegates = zen.dposlib.rest.GET.api.delegates()["data"]
-	min_vote, max_vote = [int(d["votes"]/100000000.) for d in sorted(zen.dposlib.rest.GET.api.delegates()["data"][:info.delegate][::info.delegate-1], key=lambda d:d["rank"], reverse=True)]
-	yearly_share = 365 * share * 24 * info.blockreward * 3600./(info.delegate * info.blocktime)
+	_get = zen.dposlib.rest.GET
+	try:
+		delegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+	except:
+		delegates = _get.api.delegates()["data"][:51]
 
-	style = pygal.style.DefaultStyle(
-		label_font_size=15,
-		major_label_font_size=15,
-		value_label_font_size=15,
-		legend_font_size=15,
-		title_font_size=20
-	)
+	min_vote, max_vote = [int(d.get("voting_power", d.get("votes")))/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["rank"], reverse=True)]
+	yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * info.blocktime)
+
 	chart = pygal.XY(
 		title=u'Annual Interest Rate (AIR) for a %d%% sharing delegate' % (share*100),
 		legend_at_bottom=True,
-		show_legend=True,
+		show_legend=False,
 		show_x_labels=True,
-		x_title="The vote range for the 51 top ranked delegates",
-		y_title="Annual Interest Rate in %",
 		show_y_labels=True,
-		fill=True,
-		style=style,
+		x_value_formatter=lambda x:"%.3f m%s" % (x/1000000, info.symbol),
+		y_value_formatter=lambda y:"%d%%" % y,
+		x_label_rotation=20,
+		x_title="Delegate vote power",
+		y_title="Annual Interest Rate in %",
+		style=pygal.style.DefaultStyle(
+			label_font_size=15,
+			major_label_font_size=15,
+			value_label_font_size=15,
+			value_font_size=15,
+			tooltip_font_size=10,
+			legend_font_size=15,
+			title_font_size=20
+		),
 		human_readable=True
 	)
 
@@ -201,21 +209,38 @@ def chartAir(share, nb_points=100, username=None):
 	chart.x_labels = x_lst[::10]
 	chart.add(
 		"%d%% sharing delegate AIR in %%" % (share*100),
-		[(v, 100.0*yearly_share/v) for v in x_lst],
+		[(v, 100.0*share*yearly_share/v) for v in x_lst],
 		show_dots=False,
-		stroke_style={'width': 5, 'linecap': 'round', 'linejoin': 'round'}
+		stroke_style={'width': 4, 'linecap': 'round', 'linejoin': 'round'}
 	)
 
 	try:
-		if username:
-			delegate = [d for d in delegates if d["username"] == username][0]
-			votes = int(delegate["votes"]/100000000.)
+		for name, votes, _share in [
+			(d["name"], float(d["voting_power"])/100000000., d['payout_percent']) for d in delegates \
+			if not d["is_private"] and d["payout_percent"] != None and d["name"] != username
+		]:
 			chart.add(
-				"%s AIR in %%" % username,
-				[(votes, 100.0*yearly_share/votes)],
-				dots_size=8,
+				name,
+				[(votes, _share*yearly_share/votes)],
+				dots_size=3,
+				fill=False,
+				stroke=False,
+				show_legend=False
 			)
 	except:
 		pass
+
+	if username:
+		try:
+			delegate = [d for d in delegates if d.get("name", d.get("username")) == username][0]
+			votes = int(delegate.get("voting_power", delegate.get("votes")))/100000000.
+			chart.add(
+				username,
+				[(votes, delegate.get("payout_percent", share*100)*yearly_share/votes)],
+				dots_size=8,
+				fill=True,
+			)
+		except:
+			pass
 
 	return chart.render_data_uri()

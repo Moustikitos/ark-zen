@@ -36,8 +36,8 @@
 <tbody>
 {%- for reccord in details %}
 <tr>
-	<td>{{ loop.index }}</td>
-	<th width="100%">{{ _address(reccord["address"]) }}</th>
+	<th>{{ loop.index }}</th>
+	<td width="100%">{{ _address(reccord["address"]) }}</td>
 	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
 </tr>
 {%- endfor %}

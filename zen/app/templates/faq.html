@@ -23,22 +23,25 @@
 Voting for a delegate helps to push it within the top {{ info.delegate }} to be
 allowed to forge blocks. Then, its associated node can puts transactions
 in a block, signs it and inserts it into the blockchain. For each forged block,
-the delegate wallet receives {{ "%d"%info.blockreward }}&nbsp;{{ info.symbol | safe }}
+the delegate wallet receives {{ _currency(2, "d") }}
 plus the fees of forged transaction(s).
 </p>
 <p>
 The one runing this delegate may decide to share his reward to his voters. The
-most common way is to distribute rewards according to individual vote weight.
-</p>
-<p>
-Here, the share is computed and distributed according to vote weight each
+most common way is to distribute rewards according to individual vote weight. With
+{%- for username in delegates %}{%- if loop.first %}{%- elif loop.last %} or {%- else %}, {%- endif %} {{ username }}{%- endfor %}
+, the share is computed and distributed according to vote weight each
 time a block is forged. It is the True Block Weight mechanism.
 </p>
-
+<p>
+Important thing to notify here is that your vote weight might fluctuate between
+two forged block according to total vote variation.
+</p>
+	
 <div class="alert alert-info"><strong>How much may I get&nbsp;?</strong></div>
 <p>
-Within {{ info.network }} network, real delay between two blocks is {{ "%.3f" % info.blocktime }}&nbsp;seconds.
-A delegate forges a block every {{ "%.3f" % (info.blocktime*info.delegate) }}&nbsp;seconds (blocktime x delegate number)
+Since {{ info.network }} network is running, the average delay between two blocks is {{ "%.3f" % info.blocktime }}&nbsp;seconds.
+A delegate forges a block every {{ "%.3f" % (info.blocktime*info.delegate) }}&nbsp;seconds (average blocktime x delegate number)
 that makes {{  _currency(tph) }} per hour. So on a daily basis, the maximum a
 delegate could distribute is {{  _currency(tph*24) }}.
 </p>
@@ -52,19 +55,20 @@ delegate could distribute is {{  _currency(tph*24) }}.
 				   title="Select if you already up voted {{ username }}"
 				   data-toggle="tooltip" data-placement="bottom"
 			       onclick="computeReward('{{ username }}', {{ delegates[username].share }}, {{ delegates[username].votes }}, {{ tph*24 }}, '{{ info.symbol | safe }}')" />
+			<label for="voted_{{ username }}" class="form-check-label">&nbsp;<span class="not-ellipsed">Already </span>voted</label>
 		</span>
 		<span class="input-group-text not-ellipsed">{{ username }}</span>
 	</div>
-	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="wallet balance" 
+	<input id="vote_{{ username }}" type="number" class="form-control" placeholder="your balance" 
 	       onkeyup="computeReward('{{ username }}', {{ delegates[username].share }}, {{ delegates[username].votes }}, {{ tph*24 }}, '{{ info.symbol | safe }}')"/>
-	<input id="estimate_{{ username }}" readonly type="text" class="form-control" placeholder="estimated share" />
+	<input id="estimate_{{ username }}" readonly type="text" class="form-control" placeholder="your share" />
 	<div class="input-group-append">
 		<span id="AIR_{{ username }}" class="input-group-text" title="Annual interest rate"
 			  data-toggle="tooltip" data-placement="bottom"
 			  onmouseover="this.tooltip('show')">%</span>
 	</div>
 </span>
-<a href="#" data-toggle="modal" data-target="#details_{{ username }}">more detailed info about {{ username }} AIR</a>
+<input type="button" value="Check out the chart about {{ username }} AIR" class="btn btn-primary btn-sm" style="margin-top:2px;" data-toggle="modal" data-target="#details_{{ username }}" />
 </div>
 <!-- Modal -->
 <div class="modal fade" id="details_{{ username }}" tabindex="-1" role="dialog" aria-labelledby="modal_{{ username }}" aria-hidden="true">
@@ -81,10 +85,6 @@ delegate could distribute is {{  _currency(tph*24) }}.
 </div>
 <!-- Modal -->
 {%- endfor %}
-<p>
-Important thing to notify here is that your vote weight might fluctuate between
-two forged block according to total vote variation.
-</p>
 
 <div class="alert alert-info"><strong>Can I withdraw part of my voting wallet&nbsp;?</strong></div>
 <p>
@@ -94,9 +94,9 @@ allowed to withdraw part of the wallet but your relative vote weight will decrea
 {%- for username in delegates %}
 <li>If you voted for {{ username }}
 {%- if delegates[username].minimum_vote %}
-you will have to keep a minimum of {{ _currency(delegates[username].minimum_vote) }}.</li>
+you will have to keep a minimum of {{ _currency(delegates[username].minimum_vote, ".2f") }}.</li>
 {%- else %}
-you will have to keep a minimum of {{ _currency(1) }}.</li>
+you will have to keep a minimum of {{ _currency(1, ".2f") }}.</li>
 {%- endif %}
 {%- endfor %}
 </ul>
@@ -104,10 +104,6 @@ you will have to keep a minimum of {{ _currency(1) }}.</li>
 
 <div class="alert alert-info"><strong>Do I need to register somewhere&nbsp;?</strong></div>
 <p>
-		<!-- {% for entry in array %}
-		User {{ entry.attribute1 }} has id {{ entry.attribute2 }}
-		{% if not loop.last %}, {% endif %}
-		{% endfor %} -->
 No. You only have to vote for
 {%- for username in delegates %}{%- if loop.first %}{%- elif loop.last %} or {%- else %}, {%- endif %} {{ username }}{%- endfor %}
 using
@@ -117,7 +113,7 @@ using
 {%- if delegates[username].minimum_vote %}
 <li>
 If you voted for {{ username }} you will need a minimum of
-{{ _currency(delegates[username].minimum_vote) }}.
+{{ _currency(delegates[username].minimum_vote, ".2f") }}.
 </li>
 {%- endif %}
 {%- endfor %}
