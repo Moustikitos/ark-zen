@@ -50,23 +50,19 @@
 		</tr>
 		{%- endfor %}
 		<tr>
-			<th>productivity</th>
-			<td>{{ "%s %%" % productivity["productivity"] }}</td>
-		</tr>
-		<tr>
-			<th>total forged</th>
+			<th>total&nbsp;forged</th>
 			<td>{{ _currency(forged["total"]/100000000.0) }}</td>
 		</tr>
 		{%- if "last" in blocks %}
 		<tr>
-			<th>last block</th>
+			<th>last&nbsp;block</th>
 			<td>{{ blocks["last"]["timestamp"]["human"].replace("T", " ") }}</td>
 		</tr>
 		{%- endif %}
 	</table>
 </div>
 <div class="container" id="chart_{{ username }}">
-   <embed type="image/svg+xml" src="{{ charts[username]|safe }}" width="100%"/>
+	<embed type="image/svg+xml" src="{{ url_for('static', filename='ctd_%s.svg' % username) }}" width="100%"/>
 </div>
 {%- endfor %}
 {%- endblock body %}

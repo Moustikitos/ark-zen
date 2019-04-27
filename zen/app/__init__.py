@@ -4,14 +4,14 @@ import zen
 import math
 import json
 import time
-import flask
-import dposlib
-import dposlib.util.misc
 import datetime
-import zen.misc
-
+import threading
 from collections import OrderedDict
 
+import flask
+import zen.misc
+import dposlib
+import dposlib.util.misc
 from zen.app.core import app
 from zen.tbw import initDb
 
@@ -22,21 +22,11 @@ def connect(username):
 	return getattr(flask.g, username).cursor()
 
 
-def generateChart(username):
-	cursor = connect(username)
-	timestamp = time.time() - (30*24*60*60)
-	return zen.misc.chartTimedData((
-		[datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
-		cursor.execute("SELECT * FROM dilution WHERE timestamp > ? ORDER BY timestamp DESC", (timestamp,)).fetchall()
-	))
-
-
 @app.route("/")
 def index():
 	usernames = [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	accounts = [dposlib.rest.GET.api.delegates(username, returnKey="data") for username in usernames]
-	charts = dict([u,generateChart(u)] for u in usernames)
-	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)], charts=charts)
+	return flask.render_template("index.html", accounts=[a for a in accounts if a.get("username", False)])
 
 
 @app.route("/faq")
@@ -51,9 +41,7 @@ def faq():
 		[username, dict(zen.loadJson(username+".json", zen.JSON), **dposlib.rest.GET.api.delegates(username, returnKey="data"))] for \
 		username in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
 	)
-	return flask.render_template("faq.html", info=data, delegates=delegates, charts=dict(
-		[username, zen.misc.chartAir(delegates[username]["share"], 50, username)] for username in delegates
-	))
+	return flask.render_template("faq.html", info=data, delegates=delegates)
 
 
 @app.route("/<string:username>")

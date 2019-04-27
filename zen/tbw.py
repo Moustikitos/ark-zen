@@ -12,12 +12,12 @@ from collections import OrderedDict
 import zen
 import pytz
 import dposlib
+import zen.misc
 
 from dposlib import rest
 from dposlib.blockchain import slots
 from dposlib.util.bin import unhexlify
 from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
-from zen import misc
 
 
 def initDb(username):
@@ -211,7 +211,7 @@ def askSecondSecret(account):
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	minvote *= 100000000
-	voters = misc.loadPages(rest.GET.api.delegates.__getattr__(pkey).voters)
+	voters = zen.misc.loadPages(rest.GET.api.delegates.__getattr__(pkey).voters)
 	if len(voters) == 0:
 		raise Exception("No voter found during distribution computation...")
 	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
@@ -373,7 +373,7 @@ def broadcast(username, chunk_size=30):
 		for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
 			response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
 			logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-	misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
+	zen.misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
 
 
 def checkApplied(username):
@@ -396,7 +396,7 @@ def checkApplied(username):
 		start = time.time()
 		transactions = list(registry.values())
 		for tx in [t for t in transactions if t["id"] in registry]:
-			if misc.transactionApplied(tx["id"]):
+			if zen.misc.transactionApplied(tx["id"]):
 				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
 				if "reward" in tx["vendorField"]:
 					cursor.execute(
@@ -418,11 +418,11 @@ def checkApplied(username):
 			except:
 				pass
 			checked_tx = full_registry.values()
-			misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
+			zen.misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
 				sum([tx["amount"] for tx in checked_tx])/100000000.,
 				len(checked_tx)
 			))
 		else:
-			misc.notify("Transactions are still to be checked (%d)..." % len(registry))
+			zen.misc.notify("Transactions are still to be checked (%d)..." % len(registry))
 
 		sqlite.commit()

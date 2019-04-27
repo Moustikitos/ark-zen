@@ -75,7 +75,7 @@ delegate could distribute is {{  _currency(tph*24) }}.
 	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
 			<div class="modal-body">
-				<embed type="image/svg+xml" src="{{ charts[username]|safe }}" style="padding:0px;" />
+				<embed type="image/svg+xml" src="{{ url_for('static', filename='air_%s.svg' % username) }}" style="padding:0px;" />
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

@@ -1,16 +1,20 @@
 # -*- coding:utf-8 -*-
 
 import os
-import zen
-import pygal
+import time
 import datetime
+
+import zen
+import zen.tbw
+import pygal
 import pygal.style
 
 APPS = {
 	"ark-relay": "yarn exec ark relay:start",
 	"ark-forger": "yarn exec ark forger:start",
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
-	"zen-chk": "cd ~/ark-zen && pm2 start chk.json -s"
+	"zen-chk": "cd ~/ark-zen && pm2 start chk.json -s",
+	"zen-svg": "cd ~/ark-zen && pm2 start svg.json -s"
 }
 
 
@@ -154,7 +158,19 @@ fi
 )
 
 
-def chartTimedData(data):
+def generateChart(username):
+	cursor = zen.tbw.initDb(username)
+	timestamp = time.time() - (30*24*60*60)
+	return zen.misc.chartTimedData(
+		(
+			[datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
+			cursor.execute("SELECT * FROM dilution WHERE timestamp > ? ORDER BY timestamp DESC", (timestamp,)).fetchall()
+		),
+		username
+	)
+
+
+def chartTimedData(data, username=""):
 
 	chart = pygal.DateTimeLine(
 		fill=True,
@@ -166,23 +182,33 @@ def chartTimedData(data):
 		x_value_formatter=lambda dt: dt.strftime('%m/%d/%y-%Hh%M'),
 		style=pygal.style.LightStyle
 	)
-	chart.add("block weight % / Ѧ1000 vote", [(d,round(1000*100*v, 3)) for d,v in data])
-	return chart.render_data_uri()
+	chart.add(
+		"block weight % / Ѧ1000 vote",
+		[(d,round(1000*100*v, 3)) for d,v in data]
+	)
+
+	chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "ctd_%s.svg" % username))
+	# return chart.render_data_uri()
 
 
-def chartAir(share, nb_points=100, username=None):
+def chartAir(share, nb_points=100, username="", blocktime=None):
 	info = zen.dposlib.rest.cfg
 	_get = zen.dposlib.rest.GET
+	blocktime = info.blocktime if not blocktime else blocktime
+	
+	delegates = _get.api.delegates()["data"][:51]
+	min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["votes"], reverse=True)]
 	try:
-		delegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+		arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+		data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
+		delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
 	except:
-		delegates = _get.api.delegates()["data"][:51]
+		pass
 
-	min_vote, max_vote = [int(d.get("voting_power", d.get("votes")))/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["rank"], reverse=True)]
-	yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * info.blocktime)
+	yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * blocktime)
 
 	chart = pygal.XY(
-		title=u'Annual Interest Rate (AIR) for a %d%% sharing delegate' % (share*100),
+		title=u'Public delegates Annual Interest Rate (AIR)',
 		legend_at_bottom=True,
 		show_legend=False,
 		show_x_labels=True,
@@ -216,8 +242,8 @@ def chartAir(share, nb_points=100, username=None):
 
 	try:
 		for name, votes, _share in [
-			(d["name"], float(d["voting_power"])/100000000., d['payout_percent']) for d in delegates \
-			if not d["is_private"] and d["payout_percent"] != None and d["name"] != username
+			(d["username"], float(d["votes"])/100000000., d['payout_percent']) for d in delegates \
+			if d["username"] != username
 		]:
 			chart.add(
 				name,
@@ -230,7 +256,7 @@ def chartAir(share, nb_points=100, username=None):
 	except:
 		pass
 
-	if username:
+	if username not in ["", None]:
 		try:
 			delegate = [d for d in delegates if d.get("name", d.get("username")) == username][0]
 			votes = int(delegate.get("voting_power", delegate.get("votes")))/100000000.
@@ -243,4 +269,5 @@ def chartAir(share, nb_points=100, username=None):
 		except:
 			pass
 
-	return chart.render_data_uri()
+	chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "air_%s.svg" % username))
+	# return chart.render_data_uri()
