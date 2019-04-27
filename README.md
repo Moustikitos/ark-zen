@@ -38,27 +38,27 @@ Usage:
     zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
     zen (start-srv | stop-srv | start-chk | stop-chk )
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
-    zen add-delegate <username> -h <webhook-peer>
-    zen configure [ --fee-coverage --chunk-size <chubk-size> -c <currency>]
+    zen add-delegate <username> [-h <webhook-peer>]
+    zen configure [ --fee-coverage --max-per-sender <max-per-sender> --chunk-size <chubk-size>]
+    zen (launch-payroll | check-applied | resume-payroll) <username>
     zen adjust-forge <username> <value>
-    zen launch-payroll <username>
     zen retry-payroll <username> -n <name-list>
-    zen resume-payroll <username>
     zen remove-delegate [<username>]
     zen append-custom-peer <peer-list>
 
 Options:
-    -b --block-delay=<block-delay>   : block amount to wait beetween payroll
-    -c --currency=<currency>         : configure token display on front-end pages
-    -e --excludes=<excludes>         : coma-separated or file address list to exclude from payroll
-    -w --wallet=<wallet>             : delegate funds wallet
-    -f --fee-level=<fee-level>       : set the fee level for the delegate
-    -h --webhook-peer=<webhook-peer> : define the webhook peer to use
-    -s --share=<share>               : delegate share rate (0.0<=share<=1.0)
-    -t --threshold=<threshold>       : minimum amount for a payment
-    -n --name-list=<name-list>       : *.tbw coma-separated name list
-    --chunk-size=<chunk-size>        : max transaction per request [default:15]
-    --fee-coverage                   : delegate covers transaction fees (flag)
+    -b --block-delay=<block-delay>    : block amount to wait beetween payroll
+    -c --currency=<currency>          : configure token display on front-end pages
+    -e --excludes=<excludes>          : coma-separated or file address list to exclude from payroll
+    -w --wallet=<wallet>              : delegate funds wallet
+    -f --fee-level=<fee-level>        : set the fee level for the delegate
+    -h --webhook-peer=<webhook-peer>  : define the webhook peer to use
+    -s --share=<share>                : delegate share rate (0.0<=share<=1.0)
+    -t --threshold=<threshold>        : minimum amount for a payment
+    -n --name-list=<name-list>        : *.tbw coma-separated name list
+    --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
+    --chunk-size=<chunk-size>         : max transaction per request [default:30]
+    --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:
     reset              : initialization starting from ark-core config folder

@@ -134,7 +134,7 @@ def init(**kwargs):
 			env = zen.loadEnv(root["env"])
 			env["CORE_TRANSACTION_POOL_MAX_PER_SENDER"] = max_per_sender
 			zen.dumpEnv(env, root["env"])
-			zen.logMsg("env parameter CORE_TRANSACTION_POOL_MAX_PER_SENDER set to %d \n    ark-core-relay have to be restarted" %(max_per_sender))
+			zen.logMsg("env parameter CORE_TRANSACTION_POOL_MAX_PER_SENDER set to %d \n    ark-core-relay have to be restarted" % (max_per_sender))
 
 		tbw.update(**kwargs)
 		dumpJson(tbw, "tbw.json")
@@ -418,8 +418,9 @@ def checkApplied(username):
 			except:
 				pass
 			checked_tx = full_registry.values()
-			zen.misc.notify("Payroll successfully broadcasted !\n%.8f Arks sent trough %d transactions" % (
+			zen.misc.notify("Payroll successfully broadcasted !\n%.8f %s sent trough %d transactions" % (
 				sum([tx["amount"] for tx in checked_tx])/100000000.,
+				dposlib.rest.cfg.symbol,
 				len(checked_tx)
 			))
 		else:
