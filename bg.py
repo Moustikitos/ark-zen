@@ -47,6 +47,15 @@ def setInterval(interval):
 	return decorator
 
 
+def checkRegistries():
+	try:
+		for username in [name for name in os.listdir(zen.DATA) if os.path.isdir(os.path.join(zen.DATA, name))]:
+			zen.tbw.checkApplied(username)
+			zen.logMsg("%s registry checked" % username)
+	except Exception as e:
+		zen.logMsg("transaction check error:\n%r" % e)
+
+
 def generateCharts():
 	try:
 		delegates = dict(
@@ -55,7 +64,7 @@ def generateCharts():
 		)
 		[zen.misc.chartAir(delegates[username]["share"], 50, username, zen.dposlib.util.misc.deltas()["real blocktime"]) for username in delegates]
 		[zen.misc.generateChart(username) for username in delegates]
-		zen.logMsg("charts successfully generated !")
+		zen.logMsg("charts successfully generated")
 	except Exception as e:
 		zen.logMsg("chart generation error:\n%r" % e)
 
@@ -106,6 +115,8 @@ def start():
 	daemon_1 = setInterval(60)(checkNode)()
 	# generate svg charts every round
 	daemon_2 = setInterval(sleep_time)(generateCharts)()
+	# check all registries 
+	daemon_3 = setInterval(sleep_time)(checkRegistries)()
 	zen.misc.notify("Background tasks started !")
 
 	try:

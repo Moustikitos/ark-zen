@@ -85,7 +85,7 @@ $HOME/ark-zen/bash/activate
 ./zen configure --max-per-sender 110
 ```
 
-Notice that `relay` task have to be restarted then.
+Notice that `relay` have to be restarted then.
 
 ## Notification system
 
@@ -144,7 +144,7 @@ PATH=/usr/bin:/bin:/usr/bin/env
 0 */4  *   *   *     $HOME/ark-zen/bash/snp
 @reboot sleep 10 && yarn exec ark relay:start
 @reboot sleep 30 && yarn exec ark forger:start
-@reboot cd $HOME/ark-zen && /usr/bin/pm2 start srv.json && /usr/bin/pm2 start chk.json
+@reboot cd $HOME/ark-zen && /usr/bin/pm2 start srv.json && /usr/bin/pm2 start bg.json
 ```
 
 ## `zen` front-end
@@ -196,10 +196,15 @@ PATH=/usr/bin:/bin:/usr/bin/env
  - [x] server auto-configuration using gunicorn and nginx 
  - [x] minor bugfixes and improvements
 
-### Fornax - zen script improvement (v1.7.1)
+### Fornax (v1.7.1)
  - [x] setup script improvement
  - [x] initialization improvement
  - [x] added relay checker
+
+### Fornax (v1.7.2)
+ - [x] front-end improvement
+ - [x] added FAQ page
+ - [x] background tasks merged
 
 ### TODO (dev version)
  - [ ] auto-rollback

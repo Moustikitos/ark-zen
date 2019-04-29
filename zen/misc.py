@@ -13,14 +13,18 @@ APPS = {
 	"ark-relay": "yarn exec ark relay:start",
 	"ark-forger": "yarn exec ark forger:start",
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
-	"zen-chk": "cd ~/ark-zen && pm2 start chk.json -s",
-	"zen-svg": "cd ~/ark-zen && pm2 start svg.json -s"
+	"zen-svg": "cd ~/ark-zen && pm2 start svg.json -s",
+	"zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
 }
 
 
 def shorten(address, chunk=5):
 	return address[:chunk]+"..."+address[-chunk:]
 
+
+def urlWallet(address):
+	return zen.rest.cfg.explorer+"/wallets/"+address
+	
 
 def transactionApplied(id):
 	return zen.rest.GET.api.transactions(id).get("data",{}).get("confirmations", 0) >= 10

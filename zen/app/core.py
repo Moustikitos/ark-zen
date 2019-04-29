@@ -151,10 +151,6 @@ def spread():
 				zen.tbw.extract(username)
 				zen.tbw.dumpRegistry(username)
 				zen.tbw.broadcast(username)
-			else:
-				zen.tbw.checkApplied(username)
-		else:
-			zen.tbw.checkApplied(username)
 
 	return json.dumps({"zen-tbw::block/forged":True}, indent=2)
 
@@ -195,6 +191,9 @@ def dated_url_for(endpoint, **values):
 		filename = values.get("filename", False)
 		if filename:
 			file_path = os.path.join(app.root_path, endpoint, filename)
-			values["q"] = int(os.stat(file_path).st_mtime)
+			try:
+				values["q"] = int(os.stat(file_path).st_mtime)
+			except OSError:
+				pass
 	return flask.url_for(endpoint, **values)
 ########################
