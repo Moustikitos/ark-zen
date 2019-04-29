@@ -38,7 +38,7 @@
 <tr>
 	<th>{{ loop.index }}</th>
 	<td width="100%">{{ _address(reccord["address"]) }}</td>
-	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
+	<td style="text-align:right;">{{ _currency(reccord["amount"], ".8f") }}</td>
 </tr>
 {%- endfor %}
 </tbody>

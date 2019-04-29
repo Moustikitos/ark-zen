@@ -94,9 +94,9 @@ allowed to withdraw part of the wallet but your relative vote weight will decrea
 {%- for username in delegates %}
 <li>If you voted for {{ username }}
 {%- if delegates[username].minimum_vote %}
-you will have to keep a minimum of {{ _currency(delegates[username].minimum_vote, ".2f") }}.</li>
+you will have to keep a minimum of {{ _currency(delegates[username].minimum_vote,) }}.</li>
 {%- else %}
-you will have to keep a minimum of {{ _currency(1, ".2f") }}.</li>
+you will have to keep a minimum of {{ _currency(1) }}.</li>
 {%- endif %}
 {%- endfor %}
 </ul>
@@ -113,7 +113,7 @@ using
 {%- if delegates[username].minimum_vote %}
 <li>
 If you voted for {{ username }} you will need a minimum of
-{{ _currency(delegates[username].minimum_vote, ".2f") }}.
+{{ _currency(delegates[username].minimum_vote) }}.
 </li>
 {%- endif %}
 {%- endfor %}

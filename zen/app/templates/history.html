@@ -12,7 +12,7 @@
 	<a class="nav-link" href="/faq">FAQ</a>
 </li>
 <li class="nav-item">
-	<a class="nav-link" href="/{{ username }}">Back to forgery</a>
+	<a class="nav-link" href="/{{ username }}">Delegate forgery</a>
 </li>
 {%- endblock nav %}
 
@@ -114,7 +114,7 @@
 <tr>
 	<td>{{ loop.index }}</td>
 	<th width="100%">{{ _address(reccord["address"]) }}</th>
-	<td style="text-align:right;">{{ _currency(reccord["amount"]) }}</td>
+	<td style="text-align:right;">{{ _currency(reccord["amount"], ".8f") }}</td>
 </tr>
 {%- endfor %}
 </tbody>

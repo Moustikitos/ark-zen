@@ -166,7 +166,7 @@ def tweak():
 	return dict(
 		url_for=dated_url_for,
 		tbw_config=tbw_config,
-		_currency=lambda value, fmt=".8f": flask.Markup(("%"+fmt+"&nbsp;%s") % (value, token)),
+		_currency=lambda value, fmt="r": flask.Markup(("%"+fmt+"&nbsp;%s") % (round(value,8), token)),
 		_dhm = lambda value: human_dhm(*dhm(value)),
 		_address=lambda address: flask.Markup(
 			'<span class="not-ellipsed">%s</span><span class="ellipsed">%s</span>' % 

@@ -1,7 +1,7 @@
 {
 	"apps": [{
-		"name": "zen-svg",
-		"script": "bash/svg.sh",
+		"name": "zen-bg",
+		"script": "bash/bg.sh",
 		"instances": 1,
 		"exec_mode": "fork",
 		"exec_interpreter": "bash",

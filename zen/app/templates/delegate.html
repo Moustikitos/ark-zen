@@ -15,7 +15,7 @@
 			{%- for key,value in config.items() %}
 			<tr>
 				<th>{{ key }}</th>
-				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value, ".2f") if key in ["minimum_vote", "threshold"] else _address(value) if key == "wallet" else value) | safe }}</td>
+				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value) if key in ["minimum_vote", "threshold"] else _address(value) if key == "wallet" else value) | safe }}</td>
 			</tr>
 			{%- endfor %}
 		</table>
@@ -31,7 +31,7 @@
 		<p>
 		voters:&nbsp;{{ forgery["contributions"] | length }}<br/>
 		blocks:&nbsp;{{ forgery["blocks"] }}<br/>
-		rewards:&nbsp;{{ _currency(total, "d") }}<br/>
+		rewards:&nbsp;{{ _currency(total) }}<br/>
 		fees:&nbsp;{{ _currency(forgery["fees"]) }}<br/>
 		</p>
 		<hr/>
@@ -55,7 +55,7 @@
 					<th>{{ loop.index }}</th>
 					<td>{{ _address(key) }}</td>
 					<td style="text-align:center;">{{ ("%.3f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>
-					<td style="text-align:right;">{{ _currency(value*share) }}</td>
+					<td style="text-align:right;">{{ _currency(value*share, ".8f") }}</td>
 				</tr>
 			{%- endfor %}
 			</tbody>

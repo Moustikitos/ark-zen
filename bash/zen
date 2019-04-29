@@ -108,13 +108,13 @@ def stop_chk(args={}, **options):
 
 
 def start_srv(args={}, **options):
-	zen.misc.start_pm2_app("zen-svg")
+	zen.misc.start_pm2_app("zen-bg")
 	zen.misc.start_pm2_app("zen-srv")
 
 
 def stop_srv(args={}, **options):
 	zen.misc.stop_pm2_app("zen-srv")
-	zen.misc.stop_pm2_app("zen-svg")
+	zen.misc.stop_pm2_app("zen-bg")
 
 
 def rebuild(args={}, **options):
