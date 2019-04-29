@@ -1,7 +1,6 @@
 # `zen`
 
-`zen` package, entirely writen in python, provides `True Block Weight` utilities
-for DPOS pool.
+`zen` package, entirely writen in python, provides `True Block Weight` utilities for DPOS pool.
 
 ## Support this project
 
@@ -76,6 +75,17 @@ Subcommands:
     append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
+## Specific tweak
+
+You should tweak the ``env.CORE_TRANSACTION_POOL_MAX_PER_SENDER`` value to fit the number of voter. If not, part of payroll will be counsiderred as spam.
+
+For example, if your delegate is upvoted by 100 wallets, set the value to 110 (100+10%) :
+```bash
+$HOME/ark-zen/bash/activate
+./zen configure --max-per-sender 110
+```
+
+Notice that `relay` task have to be restarted then.
 
 ## Notification system
 

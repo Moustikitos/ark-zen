@@ -111,9 +111,9 @@ def start():
 	try:
 		while not DAEMON.is_set():
 			time.sleep(sleep_time)
-			zen.logMsg(zen.json.dumps(CHECK_RESULT))
+			zen.logMsg("sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT))
 	except KeyboardInterrupt:
-		zen.misc.notify("Background tasks interrupted !")
+		zen.logMsg("background tasks interrupted !")
 
 	daemon_1.set()
 	daemon_2.set()
