@@ -77,7 +77,7 @@ Subcommands:
 ```
 ## Specific tweak
 
-You should tweak the ``env.CORE_TRANSACTION_POOL_MAX_PER_SENDER`` value to fit the number of voter. If not, part of payroll will be counsiderred as spam.
+You should tweak the ``env.CORE_TRANSACTION_POOL_MAX_PER_SENDER`` value to fit the number of voter. If not, part of payroll will be considered as spam.
 
 For example, if your delegate is upvoted by 100 wallets, set the value to 110 (100+10%) :
 ```bash

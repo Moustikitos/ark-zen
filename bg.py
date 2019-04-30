@@ -128,6 +128,7 @@ def start():
 
 	daemon_1.set()
 	daemon_2.set()
+	daemon_3.set()
 	zen.misc.notify("Background tasks stoped !")
 
 
