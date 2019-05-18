@@ -9,7 +9,8 @@
 
 ## Supported blockchain
 
- * [X] Ark-core v2
+ * [X] Ark
+ * [X] Persona
 
 ## Install
 
@@ -23,6 +24,14 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh)
+```
+
+## Configure
+
+```bash
+cd ~
+$HOME/ark-zen/bash/activate
+./zen initialize
 ```
 
 ## `zen` command
@@ -205,6 +214,9 @@ PATH=/usr/bin:/bin:/usr/bin/env
  - [x] front-end improvement
  - [x] added FAQ page
  - [x] background tasks merged
+
+### Fornax (v1.7.3)
+ - [x] persona network compliancy
 
 ### TODO (dev version)
  - [ ] auto-rollback
