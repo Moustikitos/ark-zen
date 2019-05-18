@@ -9,9 +9,15 @@ import zen.tbw
 import pygal
 import pygal.style
 
+
+YARN_EXEC = {
+	"prs": "persona",
+	"ripa": "ripa"
+}
+
 APPS = {
-	"ark-relay": "yarn exec ark relay:start",
-	"ark-forger": "yarn exec ark forger:start",
+	"ark-relay": "yarn exec %s relay:start" % YARN_EXEC.get(zen.rest.cfg.network, "ark"),
+	"ark-forger": "yarn exec %s forger:start" % YARN_EXEC.get(zen.rest.cfg.network, "ark"),
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
 	"zen-svg": "cd ~/ark-zen && pm2 start svg.json -s",
 	"zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",

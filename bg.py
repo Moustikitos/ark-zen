@@ -72,8 +72,9 @@ def generateCharts():
 def checkNode():
 	global IS_SYNCING, STATUS, SEED_STATUS, CHECK_RESULT
 
-	IS_SYNCING = zen.rest.GET.api.node.syncing(peer="http://127.0.0.1:4003").get("data", {})
-	STATUS = zen.rest.GET.api.node.status(peer="http://127.0.0.1:4003").get("data", {})
+	api_port = zen.rest.cfg.ports["core-api"]
+	IS_SYNCING = zen.rest.GET.api.node.syncing(peer="http://127.0.0.1:%s" % api_port).get("data", {})
+	STATUS = zen.rest.GET.api.node.status(peer="http://127.0.0.1:%s" % api_port).get("data", {})
 	SEED_STATUS = zen.rest.GET.api.node.status(peer="https://explorer.ark.io:8443").get("data", {})
 
 	try:
