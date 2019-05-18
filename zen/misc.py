@@ -10,16 +10,29 @@ import pygal
 import pygal.style
 
 
-YARN_EXEC = {
-	"prs": "persona",
-	"ripa": "ripa"
+PM2_PREFFIX_NAMES = {
+	"ark": "ark",
+	"dark": "ark",
+	"prs": "persona"
+}
+
+INTEROPERABILITY = {
+	"relay": {
+		"ark": "yarn exec ark relay:start",
+		"dark": "yarn exec ark relay:start",
+		"prs": "bash ~/core-control/ccontrol.sh start relay"
+	},
+	"forger": {
+		"ark": "yarn exec ark forger:start",
+		"dark": "yarn exec ark forger:start",
+		"prs": "bash ~/core-control/ccontrol.sh start forger"
+	}
 }
 
 APPS = {
-	"ark-relay": "yarn exec %s relay:start" % YARN_EXEC.get(zen.rest.cfg.network, "ark"),
-	"ark-forger": "yarn exec %s forger:start" % YARN_EXEC.get(zen.rest.cfg.network, "ark"),
+	"relay": INTEROPERABILITY["relay"].get(zen.rest.cfg.network, "ark"),
+	"forger": INTEROPERABILITY["forger"].get(zen.rest.cfg.network, "ark"),
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
-	"zen-svg": "cd ~/ark-zen && pm2 start svg.json -s",
 	"zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
 }
 
@@ -134,6 +147,8 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 
 
 def start_pm2_app(appname):
+	if appname in INTEROPERABILITY:
+		appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
 	os.system('''
 if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     %(pm2_app_cmd)s
@@ -149,6 +164,8 @@ fi
 
 
 def stop_pm2_app(appname):
+	if appname in INTEROPERABILITY:
+		appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
 	os.system('''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
 	echo stoping %(appname)s...
@@ -159,6 +176,8 @@ fi
 
 
 def del_pm2_app(appname):
+	if appname in INTEROPERABILITY:
+		appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
 	os.system('''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
 	echo deleting %(appname)s...

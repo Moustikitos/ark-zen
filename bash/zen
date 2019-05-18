@@ -104,14 +104,6 @@ def _addresses(value):
 		return result
 
 
-def start_chk(args={}, **options):
-	zen.misc.start_pm2_app("zen-chk")
-
-
-def stop_chk(args={}, **options):
-	zen.misc.stop_pm2_app("zen-chk")
-
-
 def start_srv(args={}, **options):
 	zen.misc.start_pm2_app("zen-bg")
 	zen.misc.start_pm2_app("zen-srv")
@@ -133,11 +125,10 @@ def reset(args={}, **options):
 
 
 def initialize(args={}, **options):
-	zen.misc.del_pm2_app("zen-tbw")
+	zen.misc.del_pm2_app("zen-bg")
 	zen.misc.del_pm2_app("zen-srv")
-	zen.misc.del_pm2_app("zen-chk")
 	zen.init()
-	zen.misc.start_pm2_app("ark-relay")
+	zen.misc.start_pm2_app("relay")
 	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
 	while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
 		time.sleep(5)
@@ -148,7 +139,7 @@ def initialize(args={}, **options):
 	else:
 		zen.logMsg("snapshot creation skipped")		
 	zen.misc.start_pm2_app("zen-srv")
-	zen.misc.start_pm2_app("zen-chk")
+	zen.misc.start_pm2_app("zen-bg")
 	os.system("pm2 list")
 
 
