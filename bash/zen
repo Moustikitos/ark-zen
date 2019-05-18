@@ -60,10 +60,16 @@ import zen.misc
 from dposlib import rest
 
 ROOT_JSON = zen.loadJson("root.json")
-app_name = os.path.basename(ROOT_JSON["config_folder"])
-CONFIG = ROOT_JSON["config_folder"]
-LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", app_name, ROOT_JSON["name"]))
-CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON["name"]))
+
+# if ROOT_JSON == {}:
+# app_name = ""
+# CONFIG = ""
+# LOCAL = "~/.local/share//
+# CACHE = "~/.cache//"
+app_name = os.path.basename(ROOT_JSON.get("config_folder", ""))
+CONFIG = ROOT_JSON.get("config_folder", "")
+LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", app_name, ROOT_JSON.get("name", "")))
+CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON.get("name", "")))
 
 
 def _fee(value):
