@@ -250,10 +250,10 @@ initPeers()
 # initialize blockchain network
 root = loadJson("root.json")
 rest.use(root.get("blockchain", "dark"))
+dposlib.core.stop()
 
 # customize blockchain network
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
 if len(custom_peers) > 0:
-	dposlib.core.stop()
 	dposlib.rest.cfg.peers = custom_peers
-dposlib.rest.cfg.timeout = 10
+# dposlib.rest.cfg.timeout = 10
