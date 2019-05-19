@@ -312,13 +312,13 @@ def dumpRegistry(username, fee_coverage=False):
 
 		fee_level = config.get("fee_level", False)
 		if fee_level:
-			dposlib.core.Transaction.setDynamicFee(fee_level)
+			dposlib.core.Transaction.useDynamicFee(fee_level)
 			if isinstance(fee_level, int):
 				fee_level = ((rest.cfg.doffsets.get("transfer", 0) + 153 + len("%s reward" % username)) * fee_level) / 100000000.0
 			else:
 				fee_level = rest.cfg.feestats[0].get(fee_level, 10000000.0) / 100000000.0
 		else:
-			dposlib.core.Transaction.setStaticFee()
+			dposlib.core.Transaction.useStaticFee()
 			fee_level = 0.1
 
 		if config.get("#2", None):

@@ -227,12 +227,14 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 	
 	delegates = _get.api.delegates()["data"][:51]
 	min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["votes"], reverse=True)]
-	try:
-		arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
-		data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
-		delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
-	except:
-		pass
+	
+	# if zen.rest.cfg.network == "ark":
+	# 	try:
+	# 		arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+	# 		data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
+	# 		delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
+	# 	except:
+	# 		pass
 
 	yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * blocktime)
 
@@ -269,21 +271,26 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 		stroke_style={'width': 4, 'linecap': 'round', 'linejoin': 'round'}
 	)
 
-	try:
-		for name, votes, _share in [
-			(d["username"], float(d["votes"])/100000000., d['payout_percent']) for d in delegates \
-			if d["username"] != username
-		]:
-			chart.add(
-				name,
-				[(votes, _share*yearly_share/votes)],
-				dots_size=3,
-				fill=False,
-				stroke=False,
-				show_legend=False
-			)
-	except:
-		pass
+	if zen.rest.cfg.network == "ark":
+		try:
+			arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+			data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
+			delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
+
+			for name, votes, _share in [
+				(d["username"], float(d["votes"])/100000000., d['payout_percent']) for d in delegates \
+				if d["username"] != username
+			]:
+				chart.add(
+					name,
+					[(votes, _share*yearly_share/votes)],
+					dots_size=3,
+					fill=False,
+					stroke=False,
+					show_legend=False
+				)
+		except:
+			pass
 
 	if username not in ["", None]:
 		try:
