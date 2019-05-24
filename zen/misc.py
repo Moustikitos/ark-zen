@@ -213,7 +213,7 @@ def chartTimedData(data, username=""):
 	)
 	chart.add(
 		"block weight % / Ѧ1000 vote",
-		[(d,round(1000*100*v, 3)) for d,v in data]
+		[(d,round(1000*100*v, 4)) for d,v in data]
 	)
 
 	chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "ctd_%s.svg" % username))
@@ -228,14 +228,6 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 	delegates = _get.api.delegates()["data"][:51]
 	min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["votes"], reverse=True)]
 	
-	# if zen.rest.cfg.network == "ark":
-	# 	try:
-	# 		arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
-	# 		data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
-	# 		delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
-	# 	except:
-	# 		pass
-
 	yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * blocktime)
 
 	chart = pygal.XY(
@@ -244,7 +236,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 		show_legend=False,
 		show_x_labels=True,
 		show_y_labels=True,
-		x_value_formatter=lambda x:"%.3f m%s" % (x/1000000, info.symbol),
+		x_value_formatter=lambda x:"%.2f m%s" % (x/1000000, info.symbol),
 		y_value_formatter=lambda y:"%d%%" % y,
 		x_label_rotation=20,
 		x_title="Delegate vote power",
@@ -273,7 +265,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 
 	if zen.rest.cfg.network == "ark":
 		try:
-			arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["delegates"][:51]
+			arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["data"][:51]
 			data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
 			delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
 
@@ -289,8 +281,8 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 					stroke=False,
 					show_legend=False
 				)
-		except:
-			pass
+		except Exception as e:
+			zen.logMsg('error occured using arkdelegates.io API : %r' % e)
 
 	if username not in ["", None]:
 		try:
@@ -302,8 +294,8 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 				dots_size=8,
 				fill=True,
 			)
-		except:
-			pass
+		except Exception as e:
+			zen.logMsg('error occured trying to put delegate details : %r' % e)
 
 	chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "air_%s.svg" % username))
 	# return chart.render_data_uri()

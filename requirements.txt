@@ -1,6 +1,6 @@
 wheel
 docopt
-git+https://github.com/Moustikitos/dpos.git@master#egg=dposlib
+dposlib>=0.1.8
 flask
 gunicorn
 pygal
