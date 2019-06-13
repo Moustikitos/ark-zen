@@ -63,21 +63,25 @@ def spread():
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
 			raise Exception("Not autorized here")
 
+		# get reward and fees
+		rewards = float(block["reward"])/100000000.
+		fees = float(block["totalFee"])/100000000.
+		logMsg("%s forged %s : %.8f|%.8f" % (username, block["id"], rewards, fees))
+		blocks = 1
+
 		# Because sometime network is not in good health, the spread function
 		# can exit with exception. So compare the ids of last forged blocks
 		# to compute rewards and fees... 
-		rewards = fees = 0.
-		blocks = 0
 		filename = "%s.last.block" % username
 		folder = os.path.join(zen.DATA, username)
 		last_block = loadJson(filename, folder=folder)
 		# if there is a <username>.last.block
 		if last_block.get("id", False):
+			logMsg("last known forged: %s" % last_block["id"])
 			# get last forged blocks from blockchain
 			# TODO : get all blocks till the last forged (not the 100 last ones)
 			req = rest.GET.api.delegates(generatorPublicKey, "blocks")
 			last_blocks = req.get("data", [])
-
 			# raise Exceptions if issues with API call
 			if not len(last_blocks):
 				raise Exception("No new block found in peer response")
@@ -85,11 +89,9 @@ def spread():
 				raise Exception("Api error : %r" % req.get("error", "?"))
 	
 			# compute fees, blocs and rewards from the last saved block
-			logMsg("%s forged %s" % (username, block["id"]))
-			logMsg("last known forged: %s" % last_block["id"])
 			for blk in last_blocks:
 				# stop the loop when last forged block is reach in the last blocks list
-				if blk["id"] == last_block["id"]:
+				if blk["id"] in [last_block["id"], block["id"]]:
 					break
 				# if bc is not synch and response is too bad, also check timestamp
 				elif blk["timestamp"]["epoch"] > last_block["timestamp"]:
@@ -131,16 +133,17 @@ def spread():
 			folder=folder
 		)
 		# dump current forged block as <username>.last.block 
-		if rewards > 0:
-			dumpJson(block, filename, folder=folder)
+		dumpJson(block, filename, folder=folder)
 
 		msg = "\n".join(
 			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
 			["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
 		)
 		logMsg("checking vote changes..." + msg)
+
 		# notify vote movements
-		if msg != "": zen.misc.notify(msg)
+		if msg != "":
+			zen.misc.notify(msg)
 
 		# launch payroll if block delay reach
 		block_delay = forger.get("block_delay", False)

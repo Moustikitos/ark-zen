@@ -17,6 +17,7 @@ import zen.misc
 from dposlib import rest
 from dposlib.blockchain import slots
 from dposlib.util.bin import unhexlify
+# from dposlib.util.misc import DataIterator
 from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
 
 
@@ -31,38 +32,33 @@ def initDb(username):
 	return sqlite
 
 
-def rebuildDb(username):
-	sqlite = initDb(username)
-	cursor = sqlite.cursor()
+# def rebuildDb(username):
+# 	sqlite = initDb(username)
+# 	cursor = sqlite.cursor()
 
-	account = rest.GET.api.delegates(username, returnKey="data")
-	address =  account.get("address", False)
-	if address:
-
-		# transactions = []
-		count, pageCount = 0, 1
-		while count < pageCount:
-			req = rest.GET.api.wallets(address, "transactions", page=count+1)
-			if req.get("error", False):
-				raise Exception("Api error occured: %r" % req)
-			pageCount = req["meta"]["pageCount"]
-			logMsg("reading transaction page %s over %s" % (count+1, pageCount))
-	
-			cursor.executemany(
-				"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-				[(
-					slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
-					tx["timestamp"]["epoch"],
-					tx["amount"]/100000000.,
-					tx.get("recipient", ""),
-					tx["id"]
-				) for tx in req.get("data", []) if tx.get("type", 100) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address]
-			)
-
-			count += 1
-			sqlite.commit()
-
-	sqlite.close()
+# 	account = rest.GET.api.delegates(username, returnKey="data")
+# 	address =  account.get("address", False)
+# 	if address:
+# 		req = DataIterator(rest.GET.api.wallets.__getattr__(address).transactions)
+# 		while True:
+# 			try:
+# 				data = next(req)
+# 				logMsg("reading transaction page %s over %s" % (req.page, req.data["meta"]["pageCount"]))
+# 			except:
+# 				break
+# 			else:
+# 				cursor.executemany(
+# 					"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+# 					[(
+# 						slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
+# 						tx["timestamp"]["epoch"],
+# 						tx["amount"]/100000000.,
+# 						tx.get("recipient", ""),
+# 						tx["id"]
+# 					) for tx in data if tx.get("type", None) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address]
+# 				)
+# 				sqlite.commit()
+# 	sqlite.close()
 
 
 def printNewLine():
@@ -349,7 +345,8 @@ def dumpRegistry(username, fee_coverage=False):
 					config["wallet"], "%s share" % username
 				)
 				transaction.finalize(fee_included=True)
-				registry[transaction["id"]] = transaction
+				response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
+				logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
 
 			dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
@@ -395,23 +392,23 @@ def checkApplied(username):
 
 		start = time.time()
 		transactions = list(registry.values())
-		for tx in [t for t in transactions if t["id"] in registry]:
+		for tx in transactions: #[t for t in transactions if t["id"] in registry]:
 			if zen.misc.transactionApplied(tx["id"]):
 				logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-				if "reward" in tx["vendorField"]:
-					cursor.execute(
-						"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-						(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
-					)
+				cursor.execute(
+					"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+					(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
+				)
 			# set a milestone every 5 seconds
 			if (time.time() - start) > 5.:
 				sqlite.commit()
 				dumpJson(registry, name+".milestone", folder=folder)
 				logMsg("milestone set (%d transaction left to check)" % len(registry))
 				start = time.time()
+		dumpJson(registry, name+".milestone", folder=folder)
 
 		if len(registry) == 0:
-			dumpJson(dict([tx["id"],tx] for tx in transactions), name, folder=os.path.join(folder, "backup"))
+			dumpJson(full_registry, name, folder=os.path.join(folder, "backup"))
 			try:
 				os.remove(os.path.join(folder, name))
 				os.remove(os.path.join(folder, name+".milestone"))

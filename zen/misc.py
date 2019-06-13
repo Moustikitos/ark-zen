@@ -12,19 +12,19 @@ import pygal.style
 
 PM2_PREFFIX_NAMES = {
 	"ark": "ark",
-	"dark": "ark",
+	"d.ark": "ark",
 	"prs": "persona"
 }
 
 INTEROPERABILITY = {
 	"relay": {
 		"ark": "yarn exec ark relay:start",
-		"dark": "yarn exec ark relay:start",
+		"d.ark": "yarn exec ark relay:start",
 		"prs": "bash ~/core-control/ccontrol.sh start relay"
 	},
 	"forger": {
 		"ark": "yarn exec ark forger:start",
-		"dark": "yarn exec ark forger:start",
+		"d.ark": "yarn exec ark forger:start",
 		"prs": "bash ~/core-control/ccontrol.sh start forger"
 	}
 }

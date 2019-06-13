@@ -249,7 +249,7 @@ initPeers()
 
 # initialize blockchain network
 root = loadJson("root.json")
-rest.use(root.get("blockchain", "dark"))
+rest.use(root.get("blockchain", "d.ark"))
 dposlib.core.stop()
 
 # customize blockchain network
