@@ -218,5 +218,9 @@ PATH=/usr/bin:/bin:/usr/bin/env
 ### Fornax (v1.7.3)
  - [x] persona network compliancy
 
+### Fornax (v1.8.0)
+ - [x] dposlib 0.2.1 compliancy
+ - [x] ark v2.4.1 compliancy
+
 ### TODO (dev version)
  - [ ] auto-rollback

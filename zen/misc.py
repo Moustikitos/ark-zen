@@ -30,8 +30,8 @@ INTEROPERABILITY = {
 }
 
 APPS = {
-	"relay": INTEROPERABILITY["relay"].get(zen.rest.cfg.network, "ark"),
-	"forger": INTEROPERABILITY["forger"].get(zen.rest.cfg.network, "ark"),
+	"relay": INTEROPERABILITY["relay"].get(zen.rest.cfg.network, "yarn exec ark relay:start"),
+	"forger": INTEROPERABILITY["forger"].get(zen.rest.cfg.network, "yarn exec ark relay:start"),
 	"zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
 	"zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
 }
@@ -158,7 +158,7 @@ else
 fi
 ''' % {
 	"appname": appname,
-	"pm2_app_cmd": APPS.get(appname, "echo pm2 cmd line not defined in zen script")
+	"pm2_app_cmd": APPS.get(appname.split("-")[-1], "echo pm2 cmd line not defined in zen script")
 }
 )
 
