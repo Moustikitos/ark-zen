@@ -147,6 +147,7 @@ curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json
 
 
 def start_pm2_app(appname):
+	_appname = appname
 	if appname in INTEROPERABILITY:
 		appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
 	os.system('''
@@ -158,7 +159,7 @@ else
 fi
 ''' % {
 	"appname": appname,
-	"pm2_app_cmd": APPS.get(appname.split("-")[-1], "echo pm2 cmd line not defined in zen script")
+	"pm2_app_cmd": APPS.get(_appname, "echo pm2 cmd line not defined in zen script")
 }
 )
 
