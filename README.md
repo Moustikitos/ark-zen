@@ -33,6 +33,7 @@ cd ~
 $HOME/ark-zen/bash/activate
 ./zen initialize
 ```
+This command restarts `relay`.
 
 ## `zen` command
 
