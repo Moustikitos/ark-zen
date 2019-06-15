@@ -90,17 +90,18 @@ def spread():
 	
 			# compute fees, blocs and rewards from the last saved block
 			for blk in last_blocks:
+				_id = blk["id"]
 				# stop the loop when last forged block is reach in the last blocks list
-				if blk["id"] in [last_block["id"], block["id"]]:
+				if _id in last_block["id"]: #, block["id"]]:
 					break
 				# if bc is not synch and response is too bad, also check timestamp
-				elif blk["timestamp"]["epoch"] > last_block["timestamp"]:
-					logMsg("    getting rewards and fees from block %s..." % blk["id"])
+				elif _id != block["id"] and blk["timestamp"]["epoch"] > last_block["timestamp"]:
+					logMsg("    getting rewards and fees from block %s..." % _id)
 					rewards += float(blk["forged"]["reward"])/100000000.
 					fees += float(blk["forged"]["fee"])/100000000.
 					blocks += 1
 				else:
-					logMsg("    ignoring block %s (previously forged)" % blk["id"])
+					logMsg("    ignoring block %s (previously forged)" % _id)
 		# else initiate <username>.last.block
 		else:
 			dumpJson(block, filename, folder=folder)
@@ -139,7 +140,7 @@ def spread():
 			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
 			["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
 		)
-		logMsg("checking vote changes..." + msg)
+		logMsg("checking vote changes..." + (" nothing hapened !" if msg == "" else ("\n%s"%msg)))
 
 		# notify vote movements
 		if msg != "":
