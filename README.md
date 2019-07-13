@@ -17,7 +17,7 @@
 ### last release
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 1.8.0
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 1.8.1
 ```
 
 ### developpement version
