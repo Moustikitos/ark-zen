@@ -1,6 +1,6 @@
 wheel
 docopt
-dposlib==0.2.1
+dposlib==0.2.2
 flask
 gunicorn
 pygal
