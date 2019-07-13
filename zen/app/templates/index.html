@@ -51,7 +51,7 @@
 		{%- endfor %}
 		<tr>
 			<th>total&nbsp;forged</th>
-			<td>{{ _currency(forged["total"]/100000000.0) }}</td>
+			<td>{{ _currency(forged["total"]) }}</td>
 		</tr>
 		{%- if "last" in blocks %}
 		<tr>

@@ -210,7 +210,11 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
 	voters = zen.misc.loadPages(rest.GET.api.delegates.__getattr__(pkey).voters)
 	if len(voters) == 0:
 		raise Exception("No voter found during distribution computation...")
-	voters = dict([v["address"], float(v["balance"])] for v in voters if v["address"] not in excludes and v["balance"] >= minvote)
+	voters = dict(
+		[v["address"], float(v["balance"])] for v in voters if \
+		v["address"] not in excludes and \
+		float(v["balance"]) >= minvote
+	)
 	total_balance = sum(voters.values())
 	# ARK Vote Dilution
 	dilution_value = 100000000.0 / total_balance
@@ -368,7 +372,7 @@ def broadcast(username, chunk_size=30):
 		registry = loadJson(name, folder=folder)
 		transactions = list(registry.values())
 		for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
-			response = rest.POST.api.transactions(transactions=chunk, peer=zen.API_PEER)
+			response = rest.POST.api.transactions(transactions=chunk, **({"peer":zen.API_PEER} if zen.misc.delegateIsForging(username) else {}))
 			logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
 	zen.misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
 

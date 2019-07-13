@@ -223,5 +223,8 @@ PATH=/usr/bin:/bin:/usr/bin/env
  - [x] dposlib 0.2.1 compliancy
  - [x] ark v2.4.1 compliancy
 
+### Gemini (v1.8.1)
+ - [x] ark v2.5.1 compliancy
+
 ### TODO (dev version)
  - [ ] auto-rollback

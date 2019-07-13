@@ -49,6 +49,10 @@ def transactionApplied(id):
 	return zen.rest.GET.api.transactions(id).get("data",{}).get("confirmations", 0) >= 10
 
 
+def delegateIsForging(username):
+	return zen.rest.GET.api.delegates.__getattr__(username)(returnKey="data")["rank"] <= zen.rest.cfg.delegate
+
+
 def regenerateUnapplied(username, filename):
 	registry = zen.loadJson("%s.registry" % filename, os.path.join(zen.DATA, username))
 	tbw = zen.loadJson("%s.tbw" % filename, os.path.join(zen.TBW, username, "history"))
@@ -191,7 +195,7 @@ fi
 def generateChart(username):
 	cursor = zen.tbw.initDb(username)
 	timestamp = time.time() - (30*24*60*60)
-	return zen.misc.chartTimedData(
+	return chartTimedData(
 		(
 			[datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
 			cursor.execute("SELECT * FROM dilution WHERE timestamp > ? ORDER BY timestamp DESC", (timestamp,)).fetchall()

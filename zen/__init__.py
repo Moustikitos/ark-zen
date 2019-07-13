@@ -256,4 +256,3 @@ dposlib.core.stop()
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
 if len(custom_peers) > 0:
 	dposlib.rest.cfg.peers = custom_peers
-# dposlib.rest.cfg.timeout = 10
