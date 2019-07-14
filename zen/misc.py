@@ -270,7 +270,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 
 	if zen.rest.cfg.network == "ark":
 		try:
-			arkdelegates = _get.api.delegates(peer="https://www.arkdelegates.io")["data"][:51]
+			arkdelegates = _get.api.delegates(peer="https://api.arkdelegates.io")["data"][:51]
 			data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
 			delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
 
