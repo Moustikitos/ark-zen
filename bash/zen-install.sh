@@ -33,8 +33,8 @@ else
     echo "ark-zen already cloned !"
 fi
 cd ~/ark-zen
-git reset -q --hard
-git fetch -q --all
+git reset --hard
+git fetch --all
 if [ "$B" == "master" ]; then
     git checkout $B -fq
 else
