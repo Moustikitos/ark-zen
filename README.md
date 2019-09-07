@@ -45,10 +45,10 @@ $HOME/ark-zen/bash/activate
 ```
 Usage:
     zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
-    zen (start-srv | stop-srv | start-chk | stop-chk )
+    zen (start-srv | stop-srv | start-bg | stop-bg )
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
-    zen configure [ --fee-coverage --max-per-sender <max-per-sender> --chunk-size <chubk-size>]
+    zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
     zen (launch-payroll | check-applied | resume-payroll) <username>
     zen adjust-forge <username> <value>
     zen retry-payroll <username> -n <name-list>
@@ -57,7 +57,6 @@ Usage:
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
-    -c --currency=<currency>          : configure token display on front-end pages
     -e --excludes=<excludes>          : coma-separated or file address list to exclude from payroll
     -w --wallet=<wallet>              : delegate funds wallet
     -f --fee-level=<fee-level>        : set the fee level for the delegate
@@ -74,12 +73,12 @@ Subcommands:
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
-    start-srv/chk      : start the true block weight server/node checker
-    stop-srv/chk       : stop the true block weight server/node checker
+    start-srv/bg       : start the true block weight server/background tasks
+    stop-srv/bg        : stop the true block weight server/background tasks
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add remote <username> (ie ark-forger running on remote node)
+    add-delegate       : add <username> without relay initialization (use if bip39 secret protection)
     remove-delegate    : remove delegate from list or specified by <username>
     snap-blockchain    : update snapshot or create it if no snapshot initialized yet
     append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file

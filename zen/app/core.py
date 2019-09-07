@@ -46,9 +46,7 @@ def check():
 # compute true block weight
 @app.route("/block/forged", methods=["POST", "GET"])
 def spread():
-
 	if flask.request.method == "POST":
-
 		block = json.loads(flask.request.data).get("data", False)
 		if not block:
 			raise Exception("Error: can not read data")
@@ -57,95 +55,11 @@ def spread():
 		username = getUsernameFromPublicKey(generatorPublicKey)
 		if not username:
 			raise Exception("Error: can not reach username")
-
 		# check autorization and exit if bad one
 		webhook = loadJson("%s-webhook.json" % username)
 		if not webhook["token"].startswith(flask.request.headers["Authorization"]):
 			raise Exception("Not autorized here")
-
-		# get reward and fees
-		rewards = float(block["reward"])/100000000.
-		fees = float(block["totalFee"])/100000000.
-		logMsg("%s forged %s : %.8f|%.8f" % (username, block["id"], rewards, fees))
-		blocks = 1
-
-		# Because sometime network is not in good health, the spread function
-		# can exit with exception. So compare the ids of last forged blocks
-		# to compute rewards and fees... 
-		filename = "%s.last.block" % username
-		folder = os.path.join(zen.DATA, username)
-		last_block = loadJson(filename, folder=folder)
-		# if there is a <username>.last.block
-		if last_block.get("id", False):
-			logMsg("last known forged: %s" % last_block["id"])
-			# get last forged blocks from blockchain
-			# TODO : get all blocks till the last forged (not the 100 last ones)
-			req = rest.GET.api.delegates(generatorPublicKey, "blocks")
-			last_blocks = req.get("data", [])
-			# raise Exceptions if issues with API call
-			if not len(last_blocks):
-				raise Exception("No new block found in peer response")
-			elif req.get("error", False) != False:
-				raise Exception("Api error : %r" % req.get("error", "?"))
-	
-			# compute fees, blocs and rewards from the last saved block
-			for blk in last_blocks:
-				_id = blk["id"]
-				# stop the loop when last forged block is reach in the last blocks list
-				if _id in last_block["id"]: #, block["id"]]:
-					break
-				# if bc is not synch and response is too bad, also check timestamp
-				elif _id != block["id"] and blk["timestamp"]["epoch"] > last_block["timestamp"]:
-					logMsg("    getting rewards and fees from block %s..." % _id)
-					rewards += float(blk["forged"]["reward"])/100000000.
-					fees += float(blk["forged"]["fee"])/100000000.
-					blocks += 1
-				else:
-					logMsg("    ignoring block %s (previously forged)" % _id)
-		# else initiate <username>.last.block
-		else:
-			dumpJson(block, filename, folder=folder)
-			raise Exception("First iteration for %s" % username)
-
-		# find forger information using username
-		forger = loadJson("%s.json" % username)
-		forgery = loadJson("%s.forgery" % username, folder=folder)
-
-		# compute the reward distribution excluding delegate
-		address = dposlib.core.crypto.getAddress(generatorPublicKey)
-		excludes = forger.get("excludes", [address])
-		if address not in excludes:
-			excludes.append(address)
-		contributions = zen.tbw.distributeRewards(
-			rewards,
-			username,
-			minvote=forger.get("minimum_vote", 0),
-			excludes=excludes
-		)
-		# dump true block weight data
-		_ctrb = forgery.get("contributions", {})
-		dumpJson(
-			{
-				"fees": forgery.get("fees", 0.) + fees,
-				"blocks": forgery.get("blocks", 0) + blocks,
-				"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions], key=lambda e:e[-1], reverse=True))
-			},
-			"%s.forgery" % username,
-			folder=folder
-		)
-		# dump current forged block as <username>.last.block 
-		dumpJson(block, filename, folder=folder)
-
-		msg = "\n".join(
-			["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
-			["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
-		)
-		logMsg("checking vote changes..." + (" nothing hapened !" if msg == "" else ("\n%s"%msg)))
-
-		# notify vote movements
-		if msg != "":
-			zen.misc.notify(msg)
-
+		zen.tbw.TaskExecutioner.JOB.put([username, generatorPublicKey, block])
 	return json.dumps({"zen-tbw::block/forged":True})
 
 

@@ -6,6 +6,7 @@ import json
 import sqlite3
 import getpass
 import datetime
+import threading
 
 from collections import OrderedDict
 
@@ -19,6 +20,11 @@ from dposlib.blockchain import slots
 from dposlib.util.bin import unhexlify
 # from dposlib.util.misc import DataIterator
 from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
+
+if zen.PY3:
+	import queue
+else:
+	import Queue as queue
 
 
 def initDb(username):
@@ -391,7 +397,6 @@ def checkApplied(username):
 			registry = dict(full_registry) #loadJson(name, folder=folder)
 			logMsg("starting transaction check from %s..." % name)
 		else:
-			# misc.notify("Transactions are about to be checked (%d)..." % len(registry))
 			logMsg("resuming transaction check from %s..." % (name+".milestone"))
 
 		start = time.time()
@@ -428,3 +433,109 @@ def checkApplied(username):
 			zen.misc.notify("Transactions are still to be checked (%d)..." % len(registry))
 
 		sqlite.commit()
+
+
+def computeDelegateBlock(username, generatorPublicKey, block):
+	# get reward and fees from block data
+	rewards = float(block["reward"])/100000000.
+	fees = float(block["totalFee"])/100000000.
+	logMsg("%s forged %s : %.8f|%.8f" % (username, block["id"], rewards, fees))
+	blocks = 1
+	# Because sometime network is not in good health, the spread function
+	# can exit with exception. So compare the ids of last forged blocks
+	# to compute rewards and fees... 
+	filename = "%s.last.block" % username
+	folder = os.path.join(zen.DATA, username)
+	last_block = loadJson(filename, folder=folder)
+	# if there is a <username>.last.block
+	if last_block.get("id", False):
+		logMsg("last known forged: %s" % last_block["id"])
+		# get last forged blocks from blockchain
+		# TODO : get all blocks till the last forged (not the 100 last ones)
+		req = rest.GET.api.delegates(generatorPublicKey, "blocks")
+		last_blocks = req.get("data", [])
+		# raise Exceptions if issues with API call
+		if not len(last_blocks):
+			raise Exception("No new block found in peer response")
+		elif req.get("error", False) != False:
+			raise Exception("Api error : %r" % req.get("error", "?"))
+		# compute fees, blocs and rewards from the last saved block
+		for blk in last_blocks:
+			_id = blk["id"]
+			# stop the loop when last forged block is reach in the last blocks list
+			if _id == last_block["id"]:
+				break
+			# if bc is not synch and response is too bad, also check timestamp
+			elif _id != block["id"] and blk["timestamp"]["epoch"] > last_block["timestamp"]:
+				logMsg("    getting rewards and fees from block %s..." % _id)
+				rewards += float(blk["forged"]["reward"])/100000000.
+				fees += float(blk["forged"]["fee"])/100000000.
+				blocks += 1
+			else:
+				logMsg("    ignoring block %s (previously forged)" % _id)
+	# else initiate <username>.last.block
+	else:
+		dumpJson(block, filename, folder=folder)
+		raise Exception("First iteration for %s" % username)
+	# find forger information using username
+	forger = loadJson("%s.json" % username)
+	forgery = loadJson("%s.forgery" % username, folder=folder)
+	# compute the reward distribution excluding delegate
+	address = dposlib.core.crypto.getAddress(generatorPublicKey)
+	excludes = forger.get("excludes", [address])
+	if address not in excludes:
+		excludes.append(address)
+	contributions = distributeRewards(
+		rewards,
+		username,
+		minvote=forger.get("minimum_vote", 0),
+		excludes=excludes
+	)
+	# dump true block weight data
+	_ctrb = forgery.get("contributions", {})
+	dumpJson(
+		{
+			"fees": forgery.get("fees", 0.) + fees,
+			"blocks": forgery.get("blocks", 0) + blocks,
+			"contributions": OrderedDict(sorted([[a, _ctrb.get(a, 0.)+contributions[a]] for a in contributions], key=lambda e:e[-1], reverse=True))
+		},
+		"%s.forgery" % username,
+		folder=folder
+	)
+	# dump current forged block as <username>.last.block 
+	dumpJson(block, filename, folder=folder)
+	# notify vote movements
+	msg = "\n".join(
+		["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
+		["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
+	)
+	logMsg("checking vote changes..." + (" nothing hapened !" if msg == "" else ("\n%s"%msg)))
+	if msg != "":
+		zen.misc.notify(msg)
+
+
+class TaskExecutioner(threading.Thread):
+
+	JOB = queue.Queue()
+	LOCK = threading.Lock()
+	STOP = threading.Event()
+
+	@staticmethod
+	def killall():
+		TaskExecutioner.STOP.set()
+
+	def __init__(self, *args, **kwargs):
+		threading.Thread.__init__(self)
+		self.daemon = True
+		self.start()
+
+	def run(self):
+		# controled infinite loop
+		while not TaskExecutioner.STOP.is_set():
+			try:
+				# compute new block when it comes
+				computeDelegateBlock(*TaskExecutioner.JOB.get())
+			except Exception as error:
+				LogMsg("%r" % error)
+
+DAEMON = TaskExecutioner()
