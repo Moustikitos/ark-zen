@@ -50,8 +50,16 @@ def setInterval(interval):
 def checkRegistries():
 	try:
 		for username in [name for name in os.listdir(zen.DATA) if os.path.isdir(os.path.join(zen.DATA, name))]:
-			zen.tbw.checkApplied(username)
-			zen.logMsg("%s registry checked" % username)
+			block_delay = zen.loadJson("%s.json" % username).get("block_delay", False)
+			blocks = zen.loadJson("%s.forgery" % username, folder=os.path.join(zen.DATA, username)).get("blocks", 0)
+			if block_delay and blocks >= block_delay:
+				zen.logMsg("%s payroll triggered by block delay : %s [>= %s]" % (username, blocks, block_delay))
+				zen.tbw.extract(username)
+				zen.tbw.dumpRegistry(username)
+				zen.tbw.broadcast(username)
+			else:
+				zen.tbw.checkApplied(username)
+				zen.logMsg("%s registry checked : %s [< %s]" % (username, blocks, block_delay))
 	except Exception as e:
 		zen.logMsg("transaction check error:\n%r" % e)
 

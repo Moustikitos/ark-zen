@@ -46,7 +46,11 @@ def urlWallet(address):
 	
 
 def transactionApplied(id):
-	return zen.rest.GET.api.transactions(id).get("data",{}).get("confirmations", 0) >= 10
+	data = zen.rest.GET.api.transactions(id).get("data", {})
+	if isinstance(data, dict):
+		return data.get("confirmations", 0) >= 10
+	else:
+		return False
 
 
 def delegateIsForging(username):

@@ -146,17 +146,7 @@ def spread():
 		if msg != "":
 			zen.misc.notify(msg)
 
-		# launch payroll if block delay reach
-		block_delay = forger.get("block_delay", False)
-		if block_delay:
-			test = forgery.get("blocks", 0) + blocks
-			if test >= block_delay:
-				logMsg("%s payroll triggered by block delay : %s [>= %s]" % (username, test, block_delay))
-				zen.tbw.extract(username)
-				zen.tbw.dumpRegistry(username)
-				zen.tbw.broadcast(username)
-
-	return json.dumps({"zen-tbw::block/forged":True}, indent=2)
+	return json.dumps({"zen-tbw::block/forged":True})
 
 
 @app.context_processor
