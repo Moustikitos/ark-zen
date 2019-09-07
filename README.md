@@ -227,7 +227,7 @@ PATH=/usr/bin:/bin:/usr/bin/env
 
 ### Hydrus (v1.9.0)
  - [x] dposlib 0.2.2 compliancy
- - [x] added background tasks
+ - [x] background tasks added
  - [x] block computation daemonization
  - [x] logging improvement
  - [x] better error handling
