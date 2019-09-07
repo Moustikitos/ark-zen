@@ -17,7 +17,7 @@
 ### last release
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 1.8.1
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 1.9.0
 ```
 
 ### developpement version
@@ -225,5 +225,10 @@ PATH=/usr/bin:/bin:/usr/bin/env
 ### Gemini (v1.8.1)
  - [x] ark v2.5.1 compliancy
 
-### TODO (dev version)
- - [ ] auto-rollback
+### Hydrus (v1.9.0)
+ - [x] dposlib 0.2.2 compliancy
+ - [x] added background tasks
+ - [x] block computation daemonization
+ - [x] logging improvement
+ - [x] better error handling
+
