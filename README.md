@@ -163,7 +163,6 @@ PATH=/usr/bin:/bin:/usr/bin/env
 ## Releases
 
 ### Andromeda (v1.2.0)
-
  - [x] true block weight
  - [x] secured payrolls
  - [x] command line interface

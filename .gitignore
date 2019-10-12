@@ -150,6 +150,7 @@ $RECYCLE.BIN/
 .json/
 .data/
 .tbw/
+api/
 test/
 v1/
 *.bat
