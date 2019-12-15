@@ -1,13 +1,12 @@
 # -*- coding:utf-8 -*-
 
 import dposlib
-from dposlib import rest
+from dposlib import rest, net
 
 import os
 import io
 import sys
 import json
-import time
 import shutil
 import socket
 import datetime
@@ -113,8 +112,8 @@ def logMsg(msg, logname=None, dated=False):
         stdout = sys.stdout
 
     stdout.write(
-        ">>> " + \
-        ("[%s] " % datetime.datetime.now().strftime("%x %X") if dated else "") + \
+        ">>> " +
+        ("[%s] " % datetime.datetime.now().strftime("%x %X") if dated else "") +
         "%s\n" % msg
     )
     stdout.flush()
@@ -215,8 +214,8 @@ def init():
             sys.exit(1)
     try:
         blockchain = chooseItem(
-            "select blockchain you are running the network with:", 
-            *sorted([n.replace(".net", "") for n in os.listdir(os.path.join(dposlib.ROOT, "network"))])
+            "select blockchain you are running the network with:",
+            *[name for name in dir(net) if not name.startswith("_")]
         )
     except KeyboardInterrupt:
         raise Exception("configuration aborted...")
@@ -249,7 +248,7 @@ initPeers()
 
 # initialize blockchain network
 root = loadJson("root.json")
-rest.use(root.get("blockchain", "d.ark"))
+rest.use(root.get("blockchain", "dark"))
 dposlib.core.stop()
 
 # customize blockchain network

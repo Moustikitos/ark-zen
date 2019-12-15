@@ -182,12 +182,11 @@ def setDelegate(pkey, webhook_peer, public=False):
 
 def askSecret(account):
     seed = "01"
-    publicKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(seed))["publicKey"]
+    publicKey = dposlib.core.crypto.getKeys(dposlib.core.crypto.unhexlify(seed))["publicKey"]
     while publicKey != account["publicKey"]:
         try:
             secret = getpass.getpass("> enter %s secret: " % account["username"])
-            seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
-            publicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
+            publicKey = dposlib.core.crypto.getKeys(secret)["publicKey"]
         except KeyboardInterrupt:
             printNewLine()
             logMsg("delegate configuration skipped")
@@ -198,12 +197,11 @@ def askSecret(account):
 def askSecondSecret(account):
     if account.get("secondPublicKey", False):
         seed = "01"
-        secondPublicKey = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(seed))["publicKey"]
+        secondPublicKey = dposlib.core.crypto.getKeys(dposlib.core.crypto.unhexlify(seed))["publicKey"]
         while secondPublicKey != account["secondPublicKey"]:
             try:
                 secret = getpass.getpass("> enter %s second secret: " % account["username"])
-                seed = dposlib.core.crypto.hashlib.sha256(secret.encode("utf8") if not isinstance(secret, bytes) else secret).digest()
-                secondPublicKey = dposlib.core.crypto.getKeys(None, seed=seed)["publicKey"]
+                secondPublicKey = dposlib.core.crypto.getKeys(secret)["publicKey"]
             except KeyboardInterrupt:
                 printNewLine()
                 logMsg("delegate configuration skipped")
@@ -296,24 +294,24 @@ def dumpRegistry(username, fee_coverage=False):
     root = loadJson("root.json")
     tbw = loadJson("tbw.json")
 
+    KEYS01 = None
+    KEYS02 = None
+
     config = loadJson("%s.json" % username)
     if "#1" in config:
-        keys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#1"]))
+        KEYS01 = dposlib.core.crypto.getKeys(config["#1"])
     else:
         pkey = getPublicKeyFromUsername(username)
         delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
         if delegates == {}:
             delegates = loadJson("delegates.json", os.path.dirname(root["env"]))
         for secret in delegates["secrets"]:
-            keys = dposlib.core.crypto.getKeys(secret)
-            if keys["publicKey"] == pkey: break
-            else: keys = False
+            KEYS01 = dposlib.core.crypto.getKeys(secret)
+            if KEYS01["publicKey"] == pkey: break
+            else: KEYS01 = False
 
-    if keys:
-        dposlib.core.Transaction._publicKey = keys["publicKey"]
-        dposlib.core.Transaction._privateKey = keys["privateKey"]
-        nonce = int(rest.GET.api.wallets(keys["publicKey"]).get("data", {}).get("nonce", 0))
-
+    wallet = rest.GET.api.wallets(username).get("data", {})
+    if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
         folder = os.path.join(zen.ROOT, "app", ".tbw", username)
 
@@ -329,12 +327,10 @@ def dumpRegistry(username, fee_coverage=False):
             fee_level = 0.1
 
         if config.get("#2", None):
-            secondKeys = dposlib.core.crypto.getKeys(None, seed=dposlib.core.crypto.unhexlify(config["#2"]))
-            dposlib.core.Transaction._secondPublicKey = secondKeys["publicKey"]
-            dposlib.core.Transaction._secondPrivateKey = secondKeys["privateKey"]
+            KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
 
         for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
-            data = loadJson(name, folder) 
+            data = loadJson(name, folder)
             amount = data["distributed"]
             fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/fee_level) > len(data["weight"])
 
@@ -342,37 +338,43 @@ def dumpRegistry(username, fee_coverage=False):
             timestamp = slots.getTime()
 
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
-            for chunk in [weights[i:i+50] for i in range(0, len(weight), 50)]:
-                nonce += 1
+            nonce_delta = 1
+            for chunk in [weights[i:i+10] for i in range(0, len(weights), 10)]:
                 transaction = dposlib.core.multiPayment(
-                    *[[round(amount*wght, 8), addr] for wght, addr in chunk],
+                    *[[round(amount*wght, 8), addr] for addr, wght in chunk],
                     vendorField=config.get("vendorField", "%s reward" % username)
-                    nonce=nonce,
                 )
+                dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
+                transaction.nonce = int(wallet["nonce"]) + nonce_delta
+                transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
-                transaction.finalize(fee_included=not fee_covered)
-                totalFees += transaction["fee"]
+                transaction.setFee()
+                if not fee_covered:
+                    transaction.feeIncluded()
+                transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
+                if KEYS02 is not None:
+                    transaction.signSignWithKey(KEYS02["privateKey"])
+                transaction.identify()
                 registry[transaction["id"]] = transaction
-
-            # for address, weight in weights:
-                # nonce += 1
-                # transaction = dposlib.core.transfer(
-                # 	round(amount*weight, 8), address,
-                # 	config.get("vendorField", "%s reward" % username)
-                # 	nonce=nonce
-                # )
-                # transaction["timestamp"] = timestamp
-                # transaction.finalize(fee_included=not fee_covered)
-                # totalFees += transaction["fee"]
-                # registry[transaction["id"]] = transaction
+                totalFees += transaction["fee"]
+                nonce_delta += 1
 
             if config.get("wallet", False):
                 transaction = dposlib.core.transfer(
                     round(data["delegate-share"] + data["fees"]-(totalFees/100000000.0 if fee_covered else 0), 8),
-                    config["wallet"], "%s share" % username
-                    nonce=nonce + 1
+                    config["wallet"], "%s share" % username,
                 )
-                transaction.finalize(fee_included=True)
+                dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
+                transaction.nonce = int(wallet["nonce"]) + nonce_delta
+                transaction.senderId = wallet["address"]
+                transaction.timestamp = timestamp
+                transaction.setFee()
+                if not fee_covered:
+                    transaction.feeIncluded()
+                transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
+                if KEYS02 is not None:
+                    transaction.signSignWithKey(KEYS02["privateKey"])
+                transaction.identify()
                 response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
                 logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
 
@@ -381,8 +383,6 @@ def dumpRegistry(username, fee_coverage=False):
             if fee_covered: data["covered fees"] = totalFees/100000000.0
             dumpJson(data, name, os.path.join(folder, "history"))
             os.remove(os.path.join(folder, name))
-
-        dposlib.core.Transaction.unlink()
 
 
 def broadcast(username, chunk_size=30):
@@ -530,8 +530,8 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     dumpJson(block, filename, folder=folder)
     # notify vote movements
     msg = "\n".join(
-        ["%s downvoted %s [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
-        ["%s upvoted %s" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
+        ["%s removed from %s list [%.8f Arks]" % (zen.misc.shorten(wallet), username, _ctrb[wallet]) for wallet in [w for w in _ctrb if w not in contributions]] + \
+        ["%s added to %s list" % (zen.misc.shorten(wallet), username) for wallet in [w for w in contributions if w not in _ctrb]]
     )
     logMsg("checking vote changes..." + (" nothing hapened !" if msg == "" else ("\n%s"%msg)))
     if msg != "":
