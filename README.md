@@ -231,3 +231,7 @@ PATH=/usr/bin:/bin:/usr/bin/env
  - [x] logging improvement
  - [x] better error handling
 
+### Lupus (v2.0.0)
+ - [x] ark-core 2.6 compliancy
+ - [x] dposlib 0.3 compliancy
+ - [x] use multipayment transaction
