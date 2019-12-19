@@ -315,24 +315,19 @@ def dumpRegistry(username, fee_coverage=False):
         config = loadJson("%s.json" % username)
         folder = os.path.join(zen.ROOT, "app", ".tbw", username)
 
+        if config.get("#2", None):
+            KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
+
+        fee_coverage = tbw.get("fee_coverage", fee_coverage)
         fee_level = config.get("fee_level", False)
         if fee_level:
             dposlib.core.Transaction.useDynamicFee(fee_level)
-            if isinstance(fee_level, int):
-                fee_level = ((rest.cfg.doffsets.get("transfer", 0) + 153 + len("%s reward" % username)) * fee_level) / 100000000.0
-            else:
-                fee_level = rest.cfg.feestats[0].get(fee_level, 10000000.0) / 100000000.0
         else:
             dposlib.core.Transaction.useStaticFee()
-            fee_level = 0.1
-
-        if config.get("#2", None):
-            KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
 
         for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
             data = loadJson(name, folder)
             amount = data["distributed"]
-            fee_covered = tbw.get("fee_coverage", fee_coverage) and (data["fees"]/fee_level) > len(data["weight"])
 
             totalFees, registry = 0, OrderedDict()
             timestamp = slots.getTime()
@@ -349,14 +344,16 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                if not fee_covered:
+                totalFees += transaction["fee"]
+                if fee_coverage and totalFees <= data["fees"]:
+                    transaction.feeExcluded()
+                else:
                     transaction.feeIncluded()
                 transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
                 if KEYS02 is not None:
                     transaction.signSignWithKey(KEYS02["privateKey"])
                 transaction.identify()
                 registry[transaction["id"]] = transaction
-                totalFees += transaction["fee"]
                 nonce_delta += 1
 
             if config.get("wallet", False):
@@ -369,7 +366,10 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                if not fee_covered:
+                totalFees += transaction["fee"]
+                if fee_coverage and totalFees <= data["fees"]:
+                    transaction.feeExcluded()
+                else:
                     transaction.feeIncluded()
                 transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
                 if KEYS02 is not None:

@@ -54,7 +54,7 @@ def transactionApplied(id):
 
 
 def delegateIsForging(username):
-    return zen.rest.GET.api.delegates.__getattr__(username)(returnKey="data")["rank"] <= zen.rest.cfg.delegate
+    return zen.rest.GET.api.delegates.__getattr__(username)(returnKey="data")["rank"] <= zen.rest.cfg.activeDelegates
 
 
 def regenerateUnapplied(username, filename):
