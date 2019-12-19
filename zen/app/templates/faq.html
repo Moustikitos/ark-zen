@@ -14,13 +14,13 @@
 {%- endblock nav %}
 
 {%- block body %}
-{%- set tph = 3600/(info.blocktime * info.delegate)*info.blockreward %}
+{%- set tph = 3600/(info.blocktime * info.activeDelegates)*info.blockreward %}
 
 <div class="container">
 	<h1>FAQ</h1>
 <div class="alert alert-info"><strong>How does vote-reward work&nbsp;?</strong></div>
 <p>
-Voting for a delegate helps to push it within the top {{ info.delegate }} to be
+Voting for a delegate helps to push it within the top {{ info.activeDelegates }} to be
 allowed to forge blocks. Then, its associated node can puts transactions
 in a block, signs it and inserts it into the blockchain. For each forged block,
 the delegate wallet receives {{ _currency(2, "d") }}
@@ -41,7 +41,7 @@ two forged block according to total vote variation.
 <div class="alert alert-info"><strong>How much may I get&nbsp;?</strong></div>
 <p>
 Since {{ info.network }} network is running, the average delay between two blocks is {{ "%.3f" % info.blocktime }}&nbsp;seconds.
-A delegate forges a block every {{ "%.3f" % (info.blocktime*info.delegate) }}&nbsp;seconds (average blocktime x delegate number)
+A delegate forges a block every {{ "%.3f" % (info.blocktime*info.activeDelegates) }}&nbsp;seconds (average blocktime x delegate number)
 that makes {{  _currency(tph) }} per hour. So on a daily basis, the maximum a
 delegate could distribute is {{  _currency(tph*24) }}.
 </p>

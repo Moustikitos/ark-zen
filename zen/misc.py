@@ -235,9 +235,9 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
     blocktime = info.blocktime if not blocktime else blocktime
 
     delegates = _get.api.delegates()["data"][:51]
-    min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.delegate][::info.delegate-1], key=lambda d:d["votes"], reverse=True)]
+    min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.activeDelegates][::info.activeDelegates-1], key=lambda d:d["votes"], reverse=True)]
 
-    yearly_share = 365 * 24 * info.blockreward * 3600./(info.delegate * blocktime)
+    yearly_share = 365 * 24 * info.blockreward * 3600./(info.activeDelegates * blocktime)
 
     chart = pygal.XY(
         title=u'Public delegates Annual Interest Rate (AIR)',

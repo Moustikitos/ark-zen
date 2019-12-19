@@ -8,6 +8,8 @@ import zen.tbw
 import zen.misc
 import zen.app
 
+from dposlib.ark.v2 import mixin
+
 DAEMON = False
 STATUS = SEED_STATUS = IS_SYNCING = {}
 CHECK_RESULT = {}
@@ -64,14 +66,15 @@ def checkRegistries():
     except Exception as e:
         zen.logMsg("transaction check error:\n%r" % e)
 
-
+import json
 def generateCharts():
     try:
         delegates = dict(
             [username, dict(zen.loadJson(username+".json", zen.JSON), **zen.dposlib.rest.GET.api.delegates(username, returnKey="data"))] for \
             username in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
         )
-        real_blocktime = zen.dposlib.core.deltas()["real blocktime"]
+        print(json.dumps(delegates, indent=2))
+        real_blocktime = mixin.deltas()["real blocktime"]
         [zen.misc.chartAir(delegates[username]["share"], 50, username, real_blocktime) for username in delegates]
         [zen.misc.generateChart(username) for username in delegates]
         zen.misc.chartAir(1., 50, "", real_blocktime)
