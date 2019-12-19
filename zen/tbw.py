@@ -38,35 +38,6 @@ def initDb(username):
     return sqlite
 
 
-# def rebuildDb(username):
-# 	sqlite = initDb(username)
-# 	cursor = sqlite.cursor()
-
-# 	account = rest.GET.api.delegates(username, returnKey="data")
-# 	address =  account.get("address", False)
-# 	if address:
-# 		req = DataIterator(rest.GET.api.wallets.__getattr__(address).transactions)
-# 		while True:
-# 			try:
-# 				data = next(req)
-# 				logMsg("reading transaction page %s over %s" % (req.page, req.data["meta"]["pageCount"]))
-# 			except:
-# 				break
-# 			else:
-# 				cursor.executemany(
-# 					"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-# 					[(
-# 						slots.getRealTime(tx["timestamp"]["epoch"]).strftime("%Y%m%d-%H%M"),
-# 						tx["timestamp"]["epoch"],
-# 						tx["amount"]/100000000.,
-# 						tx.get("recipient", ""),
-# 						tx["id"]
-# 					) for tx in data if tx.get("type", None) == 0 and tx.get("vendorField", "") != "" and tx.get("sender", "") == address]
-# 				)
-# 				sqlite.commit()
-# 	sqlite.close()
-
-
 def printNewLine():
     sys.stdout.write("\n")
     sys.stdout.flush()
@@ -182,7 +153,7 @@ def setDelegate(pkey, webhook_peer, public=False):
 
 def askSecret(account):
     seed = "01"
-    publicKey = dposlib.core.crypto.getKeys(dposlib.core.crypto.unhexlify(seed))["publicKey"]
+    publicKey = dposlib.core.crypto.getKeys(unhexlify(seed))["publicKey"]
     while publicKey != account["publicKey"]:
         try:
             secret = getpass.getpass("> enter %s secret: " % account["username"])
@@ -197,7 +168,7 @@ def askSecret(account):
 def askSecondSecret(account):
     if account.get("secondPublicKey", False):
         seed = "01"
-        secondPublicKey = dposlib.core.crypto.getKeys(dposlib.core.crypto.unhexlify(seed))["publicKey"]
+        secondPublicKey = dposlib.core.crypto.getKeys(unhexlify(seed))["publicKey"]
         while secondPublicKey != account["secondPublicKey"]:
             try:
                 secret = getpass.getpass("> enter %s second secret: " % account["username"])
@@ -344,8 +315,8 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                totalFees += transaction["fee"]
-                if fee_coverage and totalFees <= data["fees"]:
+                if fee_coverage and (totalFees + transaction["fee"]) <= data["fees"]:
+                    totalFees += transaction["fee"]
                     transaction.feeExcluded()
                 else:
                     transaction.feeIncluded()
@@ -366,8 +337,8 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                totalFees += transaction["fee"]
-                if fee_coverage and totalFees <= data["fees"]:
+                if fee_coverage and (totalFees + transaction["fee"]) <= data["fees"]:
+                    totalFees += transaction["fee"]
                     transaction.feeExcluded()
                 else:
                     transaction.feeIncluded()
@@ -380,7 +351,7 @@ def dumpRegistry(username, fee_coverage=False):
 
             dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
-            if fee_covered: data["covered fees"] = totalFees/100000000.0
+            data["covered fees"] = totalFees/100000000.0
             dumpJson(data, name, os.path.join(folder, "history"))
             os.remove(os.path.join(folder, name))
 
