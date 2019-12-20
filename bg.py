@@ -1,6 +1,7 @@
 # -*- encoding:utf-8 -*-
 import os
 import time
+import traceback
 import threading
 
 import zen
@@ -64,23 +65,22 @@ def checkRegistries():
                 zen.tbw.checkApplied(username)
                 zen.logMsg("%s registry checked : %s [< %s]" % (username, blocks, block_delay))
     except Exception as e:
-        zen.logMsg("transaction check error:\n%r" % e)
+        zen.logMsg("transaction check error:\n%r\n%s" % (e, traceback.format_exc()))
 
-import json
+
 def generateCharts():
     try:
         delegates = dict(
             [username, dict(zen.loadJson(username+".json", zen.JSON), **zen.dposlib.rest.GET.api.delegates(username, returnKey="data"))] for \
             username in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
         )
-        print(json.dumps(delegates, indent=2))
         real_blocktime = mixin.deltas()["real blocktime"]
         [zen.misc.chartAir(delegates[username]["share"], 50, username, real_blocktime) for username in delegates]
         [zen.misc.generateChart(username) for username in delegates]
         zen.misc.chartAir(1., 50, "", real_blocktime)
         zen.logMsg("charts successfully generated")
     except Exception as e:
-        zen.logMsg("chart generation error:\n%r" % e)
+        zen.logMsg("chart generation error:\n%r\n%s" % (e, traceback.format_exc()))
 
 
 def checkNode():
@@ -114,7 +114,7 @@ def checkNode():
                 zen.misc.notify("Your node had recovered network height %d" % STATUS["now"])
 
     except Exception as e:
-        zen.logMsg("node check error:\n%r" % e)
+        zen.logMsg("node check error:\n%r\n%s" % (e, traceback.format_exc()))
 
 
 def start():

@@ -32,7 +32,7 @@ def initDb(username):
     sqlite.row_factory = sqlite3.Row
     cursor = sqlite.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS transactions(filename TEXT, timestamp INTEGER, amount INTEGER, address TEXT, id TEXT);")
-    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id);")
+    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS tx_index ON transactions(id, address);")
     cursor.execute("CREATE TABLE IF NOT EXISTS dilution(timestamp REAL, value REAL);")
     sqlite.commit()
     return sqlite
@@ -393,15 +393,11 @@ def checkApplied(username):
         for tx in transactions: #[t for t in transactions if t["id"] in registry]:
             if zen.misc.transactionApplied(tx["id"]):
                 logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-                for record in tx.asset["payments"]:
+                for record in tx["asset"]["payments"]:
                     cursor.execute(
                         "INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
                         (os.path.splitext(name)[0], tx["timestamp"], record["amount"]/100000000., record["recipientId"], tx["id"])
                     )
-                # cursor.execute(
-                # 	"INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-                # 	(os.path.splitext(name)[0], tx["timestamp"], tx["amount"]/100000000., tx["recipientId"], tx["id"])
-                # )
             # set a milestone every 5 seconds
             if (time.time() - start) > 5.:
                 sqlite.commit()
@@ -419,8 +415,7 @@ def checkApplied(username):
                 pass
             checked_tx = full_registry.values()
             zen.misc.notify("Payroll successfully broadcasted !\n%.8f %s sent trough %d transactions" % (
-                # sum([tx["amount"] for tx in checked_tx])/100000000.,
-                sum([sum([rec["amount"] for rec in tx.asset["payments"]]) for tx in checked_tx])/100000000.,
+                sum([sum([rec["amount"] for rec in tx["asset"]["payments"]]) for tx in checked_tx])/100000000.,
                 dposlib.rest.cfg.symbol,
                 len(checked_tx)
             ))
@@ -531,6 +526,6 @@ class TaskExecutioner(threading.Thread):
                 # compute new block when it comes
                 computeDelegateBlock(*TaskExecutioner.JOB.get())
             except Exception as error:
-                LogMsg("%r" % error)
+                logMsg("%r" % error)
 
 DAEMON = TaskExecutioner()

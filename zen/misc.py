@@ -43,7 +43,7 @@ def shorten(address, chunk=5):
 
 def urlWallet(address):
     return zen.rest.cfg.explorer+"/wallets/"+address
-    
+
 
 def transactionApplied(id):
     data = zen.rest.GET.api.transactions(id).get("data", {})
