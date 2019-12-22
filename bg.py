@@ -35,14 +35,14 @@ def setInterval(interval):
             stopped = threading.Event()
 
             # executed in another thread
-            def loop():
+            def _loop():
                 """Thread entry point."""
 
                 # until stopped
                 while not stopped.wait(interval):
                     function(*args, **kwargs)
 
-            t = threading.Thread(target=loop)
+            t = threading.Thread(target=_loop)
             # stop if the program exits
             t.daemon = True
             t.start()
@@ -95,6 +95,7 @@ def checkNode():
         if STATUS == {}:
             CHECK_RESULT["not responding"] = True
             zen.misc.notify("Your node is not responding")
+            zen.logMsg("node is not responding")
         elif CHECK_RESULT.get("not responding", False):
             CHECK_RESULT.pop("not responding")
             zen.misc.notify("Your node is back online")
@@ -130,9 +131,9 @@ def start():
     daemon_1 = setInterval(60)(checkNode)()
     # generate svg charts every round
     daemon_2 = setInterval(sleep_time)(generateCharts)()
-    # check all registries 
+    # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
-    zen.misc.notify("Background tasks started !")
+    zen.logMsg("Background tasks started !")
 
     try:
         while not DAEMON.is_set():
@@ -162,4 +163,5 @@ def loop():
 
 
 if __name__ == "__main__":
+    loop()
     start()

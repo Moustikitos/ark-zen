@@ -153,10 +153,10 @@ def setDelegate(pkey, webhook_peer, public=False):
 
 def askSecret(account, cmp_key="publicKey"):
     if account.get(cmp_key, False):
-        keys = dposlib.core.crypto.getKeys("0")
+        keys = dposlib.core.crypto.getKeys("01")
         while keys["publicKey"] != account[cmp_key]:
             try:
-                secret = getpass.getpass("> enter %s secret: " % account["username"])
+                secret = getpass.getpass("> enter %s secret for %s: " % (account["username"], cmp_key))
                 keys = dposlib.core.crypto.getKeys(secret)
             except KeyboardInterrupt:
                 printNewLine()
