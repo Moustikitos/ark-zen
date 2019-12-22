@@ -25,7 +25,7 @@ kw = {
 	"long_description": LONG_DESCRIPTION,
 	"long_description_content_type": "text/markdown",
 	"packages": ["zen", "zen.app"],
-	"install_requires": ["docopt", "dposlib==0.2.2", "flask", "gunicorn", "pygal"],
+	"install_requires": ["wheel", "docopt", "dposlib==0.3.1", "flask", "gunicorn", "pygal"],
 	"license": "Copyright 2016-2019 Toons",
 	"classifiers": [
 		"Development Status :: 6 - Mature",
