@@ -73,7 +73,7 @@ def init(**kwargs):
             account = setDelegate(pkey, webhook_peer, webhook_peer != zen.WEBHOOK_PEER)
             if account:
                 config = loadJson("%s.json" % account["username"])
-                config["#1"] = askSecret(account)
+                config["#1"] = askSecret(account, cmp_key="publicKey")
                 config.update(**kwargs)
                 dumpJson(config, "%s.json" % account["username"])
 
@@ -125,7 +125,7 @@ def setDelegate(pkey, webhook_peer, public=False):
         logMsg("setting up %s delegate..." % username)
         # load forger configuration and update with minimum data
         config = loadJson("%s.json" % username)
-        config.update(**{"publicKey":pkey, "#2":askSecondSecret(account)})
+        config.update(**{"publicKey":pkey, "#2":askSecret(account, cmp_key="secondPublicKey")})
         dumpJson(config, "%s.json" % username)
         # create a webhook if no one is set
         webhook = loadJson("%s-webhook.json" % username)
@@ -144,40 +144,25 @@ def setDelegate(pkey, webhook_peer, public=False):
             else:
                 logMsg("error occur on webhook creation:\n%s" % data)
         else:
-            logMsg("webhook already set for delegate %s" % username)	
+            logMsg("webhook already set for delegate %s" % username)
         logMsg("%s delegate set" % username)
         return account
     else:
         logMsg("%s: %s" % (req.get("error", "API Error"), req.get("message", "...")))
 
 
-def askSecret(account):
-    seed = "01"
-    publicKey = dposlib.core.crypto.getKeys(unhexlify(seed))["publicKey"]
-    while publicKey != account["publicKey"]:
-        try:
-            secret = getpass.getpass("> enter %s secret: " % account["username"])
-            publicKey = dposlib.core.crypto.getKeys(secret)["publicKey"]
-        except KeyboardInterrupt:
-            printNewLine()
-            logMsg("delegate configuration skipped")
-            sys.exit(1)
-    return dposlib.core.crypto.hexlify(seed)
-
-
-def askSecondSecret(account):
-    if account.get("secondPublicKey", False):
-        seed = "01"
-        secondPublicKey = dposlib.core.crypto.getKeys(unhexlify(seed))["publicKey"]
-        while secondPublicKey != account["secondPublicKey"]:
+def askSecret(account, cmp_key="publicKey"):
+    if account.get(cmp_key, False):
+        keys = dposlib.core.crypto.getKeys("0")
+        while keys["publicKey"] != account[cmp_key]:
             try:
-                secret = getpass.getpass("> enter %s second secret: " % account["username"])
-                secondPublicKey = dposlib.core.crypto.getKeys(secret)["publicKey"]
+                secret = getpass.getpass("> enter %s secret: " % account["username"])
+                keys = dposlib.core.crypto.getKeys(secret)
             except KeyboardInterrupt:
                 printNewLine()
                 logMsg("delegate configuration skipped")
                 sys.exit(1)
-        return dposlib.core.crypto.hexlify(seed)
+        return keys["privateKey"]
 
 
 def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
