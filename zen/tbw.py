@@ -290,11 +290,13 @@ def dumpRegistry(username, fee_coverage=False):
 
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
             nonce_delta = 1
-            for chunk in [weights[i:i+10] for i in range(0, len(weights), 10)]:
+            for chunk in [weights[i:i+50] for i in range(0, len(weights), 50)]:
                 transaction = dposlib.core.multiPayment(
                     *[[round(amount*wght, 8), addr] for addr, wght in chunk],
                     vendorField=config.get("vendorField", "%s reward" % username)
                 )
+                if "vendorFieldHex" in config:
+                    transaction.vendorFieldHex = config["vendorFieldHex"]
                 dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
                 transaction.nonce = int(wallet["nonce"]) + nonce_delta
                 transaction.senderId = wallet["address"]
