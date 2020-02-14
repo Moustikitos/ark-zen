@@ -246,9 +246,8 @@ def extract(username):
         dumpJson(forgery, "%s.forgery" % username, os.path.join(zen.DATA, username))
 
 
-def dumpRegistry(username, fee_coverage=False):
+def dumpRegistry(username):
     root = loadJson("root.json")
-    tbw = loadJson("tbw.json")
 
     KEYS01 = None
     KEYS02 = None
@@ -274,7 +273,6 @@ def dumpRegistry(username, fee_coverage=False):
         if config.get("#2", None):
             KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
 
-        fee_coverage = tbw.get("fee_coverage", fee_coverage)
         fee_level = config.get("fee_level", False)
         if fee_level:
             dposlib.core.Transaction.useDynamicFee(fee_level)
@@ -285,7 +283,8 @@ def dumpRegistry(username, fee_coverage=False):
             data = loadJson(name, folder)
             amount = data["distributed"]
 
-            totalFees, registry = 0, OrderedDict()
+            totalFees = 0
+            registry = OrderedDict()
             timestamp = slots.getTime()
 
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
@@ -302,21 +301,18 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                if fee_coverage and (totalFees + transaction["fee"]) <= data["fees"]:
-                    totalFees += transaction["fee"]
-                    transaction.feeExcluded()
-                else:
-                    transaction.feeIncluded()
                 transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
                 if KEYS02 is not None:
                     transaction.signSignWithKey(KEYS02["privateKey"])
                 transaction.identify()
                 registry[transaction["id"]] = transaction
+                totalFees += transaction["fee"]
                 nonce_delta += 1
 
+            totalFees /= 100000000.0
             if config.get("wallet", False):
                 transaction = dposlib.core.transfer(
-                    round(data["delegate-share"] + data["fees"]-(totalFees/100000000.0 if fee_covered else 0), 8),
+                    round(data["delegate-share"] + data["fees"]-totalFees, 8),
                     config["wallet"], "%s share" % username,
                 )
                 dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
@@ -324,11 +320,6 @@ def dumpRegistry(username, fee_coverage=False):
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
-                if fee_coverage and (totalFees + transaction["fee"]) <= data["fees"]:
-                    totalFees += transaction["fee"]
-                    transaction.feeExcluded()
-                else:
-                    transaction.feeIncluded()
                 transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
                 if KEYS02 is not None:
                     transaction.signSignWithKey(KEYS02["privateKey"])
@@ -338,7 +329,7 @@ def dumpRegistry(username, fee_coverage=False):
 
             dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
-            data["covered fees"] = totalFees/100000000.0
+            data["covered fees"] = totalFees
             dumpJson(data, name, os.path.join(folder, "history"))
             os.remove(os.path.join(folder, name))
 

@@ -134,13 +134,14 @@ def start():
     # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
     zen.logMsg("Background tasks started !")
+    zen.misc.notify("Background tasks started !")
 
     try:
         while not DAEMON.is_set():
             time.sleep(sleep_time)
             zen.logMsg("sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT))
     except KeyboardInterrupt:
-        zen.logMsg("background tasks interrupted !")
+        zen.logMsg("Background tasks interrupted !")
 
     daemon_1.set()
     daemon_2.set()
