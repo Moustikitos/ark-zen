@@ -289,6 +289,23 @@ def dumpRegistry(username):
 
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
             nonce_delta = 1
+            if config.get("wallet", False):
+                transaction = dposlib.core.transfer(
+                    round(data["delegate-share"] + data["fees"]-totalFees, 8),
+                    config["wallet"], "%s share" % username,
+                )
+                dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
+                transaction.nonce = int(wallet["nonce"]) + nonce_delta
+                transaction.senderId = wallet["address"]
+                transaction.timestamp = timestamp
+                transaction.setFee()
+                transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
+                if KEYS02 is not None:
+                    transaction.signSignWithKey(KEYS02["privateKey"])
+                transaction.identify()
+                response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
+                logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
+
             for chunk in [weights[i:i+50] for i in range(0, len(weights), 50)]:
                 transaction = dposlib.core.multiPayment(
                     *[[round(amount*wght, 8), addr] for addr, wght in chunk],
@@ -310,23 +327,6 @@ def dumpRegistry(username):
                 nonce_delta += 1
 
             totalFees /= 100000000.0
-            if config.get("wallet", False):
-                transaction = dposlib.core.transfer(
-                    round(data["delegate-share"] + data["fees"]-totalFees, 8),
-                    config["wallet"], "%s share" % username,
-                )
-                dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
-                transaction.nonce = int(wallet["nonce"]) + nonce_delta
-                transaction.senderId = wallet["address"]
-                transaction.timestamp = timestamp
-                transaction.setFee()
-                transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
-                if KEYS02 is not None:
-                    transaction.signSignWithKey(KEYS02["privateKey"])
-                transaction.identify()
-                response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
-                logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
-
             dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
 
             data["covered fees"] = totalFees
