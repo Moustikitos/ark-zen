@@ -305,6 +305,7 @@ def dumpRegistry(username):
                 transaction.identify()
                 response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
                 logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
+                nonce_delta += 1
 
             for chunk in [weights[i:i+50] for i in range(0, len(weights), 50)]:
                 transaction = dposlib.core.multiPayment(
