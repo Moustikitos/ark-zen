@@ -72,210 +72,211 @@ CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON.get("
 
 
 def _fee(value):
-	if value in ["minFee", "avgFee", "maxFee"]:
-		return value
-	else:
-		try: return int(value)
-		except: return False
-	return False
+    if value in ["minFee", "avgFee", "maxFee"]:
+        return value
+    else:
+        try: return int(value)
+        except: return False
+    return False
 
 
 def _split(value):
-	if os.path.exists(value):
-		with io.open(value, "r") as data:
-			lst = [addr.strip() for addr in data.read().split("\n").split(",")]
-	else:
-		lst = value.split(",")
-	return lst
+    if os.path.exists(value):
+        with io.open(value, "r") as data:
+            lst = [addr.strip() for addr in data.read().split("\n").split(",")]
+    else:
+        lst = value.split(",")
+    return lst
 
 
 def _addresses(value):
-	addresses = _split(value)
-	result = []
-	for address in addresses:
-		try: base58.b58decode_check(address)
-		except ValueError: pass
-		else: result.append(address)
+    addresses = _split(value)
+    result = []
+    for address in addresses:
+        try: base58.b58decode_check(address)
+        except ValueError: pass
+        else: result.append(address)
 
-	if not len(result):
-		return None
-	else:
-		return result
+    if not len(result):
+        return None
+    else:
+        return result
 
 
 def start_srv(args={}, **options):
-	zen.misc.start_pm2_app("zen-bg")
-	zen.misc.start_pm2_app("zen-srv")
+    zen.misc.start_pm2_app("zen-bg")
+    zen.misc.start_pm2_app("zen-srv")
 
 
 def stop_srv(args={}, **options):
-	zen.misc.stop_pm2_app("zen-srv")
-	zen.misc.stop_pm2_app("zen-bg")
+    zen.misc.stop_pm2_app("zen-srv")
+    zen.misc.stop_pm2_app("zen-bg")
 
 
 def rebuild(args={}, **options):
-	zen.snp.rollbackAndRebuild()
+    zen.snp.rollbackAndRebuild()
 
 
 def reset(args={}, **options):
-	if os.path.exists(os.path.join(zen.JSON, "root.json")):
-		os.remove(os.path.join(zen.JSON, "root.json"))
-	initialize(args, **options)
+    if os.path.exists(os.path.join(zen.JSON, "root.json")):
+        os.remove(os.path.join(zen.JSON, "root.json"))
+    initialize(args, **options)
 
 
 def initialize(args={}, **options):
-	zen.misc.del_pm2_app("zen-bg")
-	zen.misc.del_pm2_app("zen-srv")
-	zen.init()
-	zen.misc.start_pm2_app("relay")
-	zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
-	while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
-		time.sleep(5)
-	zen.tbw.init()
-	zen.tbw.printNewLine()
-	if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
-		snap_blockchain()
-	else:
-		zen.logMsg("snapshot creation skipped")		
-	zen.misc.start_pm2_app("zen-srv")
-	zen.misc.start_pm2_app("zen-bg")
-	os.system("pm2 list")
+    zen.misc.del_pm2_app("zen-bg")
+    zen.misc.del_pm2_app("zen-srv")
+    zen.init()
+    zen.misc.start_pm2_app("relay")
+    zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
+    while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
+        time.sleep(5)
+    zen.tbw.init()
+    zen.tbw.printNewLine()
+    if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
+        snap_blockchain()
+    else:
+        zen.logMsg("snapshot creation skipped")		
+    zen.misc.start_pm2_app("zen-srv")
+    zen.misc.start_pm2_app("zen-bg")
+    os.system("pm2 list")
 
 
 def add_delegate(args={}, **options):
-	username = args["<username>"]
-	if username:
-		zen.tbw.init(usernames=[username], **options)
+    username = args["<username>"]
+    if username:
+        zen.tbw.init(usernames=[username], **options)
 
 
 def launch_payroll(args={}, **options):
-	username = args["<username>"]
-	zen.tbw.extract(username)
-	zen.tbw.dumpRegistry(username)
-	zen.tbw.broadcast(username)
+    username = args["<username>"]
+    zen.tbw.extract(username)
+    zen.tbw.dumpRegistry(username)
+    zen.tbw.broadcast(username)
 
 
 def resume_payroll(args={}, **options):
-	username = args["<username>"]
-	zen.tbw.dumpRegistry(username)
-	zen.tbw.broadcast(username)
+    username = args["<username>"]
+    zen.tbw.dumpRegistry(username)
+    zen.tbw.broadcast(username)
 
 
 def retry_payroll(args={}, **options):
-	username = args["<username>"]
-	folder = os.path.join(zen.ROOT, "app", ".tbw", username)
-	for path in [
-		os.path.join(zen.ROOT, "app", ".tbw", username, "history", "%s.tbw" % name) \
-		for name in options["name_list"]
-	]: os.system('mv "%s" "%s"' % (path, folder))
-	zen.tbw.dumpRegistry(username)
-	zen.tbw.broadcast(username)
+    username = args["<username>"]
+    zen.tbw.updateRegistryNonces(username)
+    # folder = os.path.join(zen.ROOT, "app", ".tbw", username)
+    # for path in [
+    # 	os.path.join(zen.ROOT, "app", ".tbw", username, "history", "%s.tbw" % name) \
+    # 	for name in options["name_list"]
+    # ]: os.system('mv "%s" "%s"' % (path, folder))
+    # zen.tbw.dumpRegistry(username)
+    # zen.tbw.broadcast(username)
 
 
 def remove_delegate(args={}, **options):
-	username = args["<username>"]
+    username = args["<username>"]
 
-	if not username:
-		webhooks = [name for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
-		usernames = [name.split("-")[0] for name in webhooks]
-		username = zen.chooseItem("Select listener to destroy:", *[u for u in usernames if u])
-		if not username:
-			return
+    if not username:
+        webhooks = [name for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
+        usernames = [name.split("-")[0] for name in webhooks]
+        username = zen.chooseItem("Select listener to destroy:", *[u for u in usernames if u])
+        if not username:
+            return
 
-	webhook_path = os.path.join(zen.JSON, "%s-webhook.json" % username)
-	webhook = zen.loadJson(webhook_path)
-	w_id = webhook.get("id", False)
-	if w_id:
-		rest.DELETE.api.webhooks("%s"%webhook["id"], peer=webhook["peer"])
-		os.remove(webhook_path)
-		zen.logMsg("%s webhook destroyed" % username)
-	else:
-		zen.logMsg("%s webhook not found" % username)
+    webhook_path = os.path.join(zen.JSON, "%s-webhook.json" % username)
+    webhook = zen.loadJson(webhook_path)
+    w_id = webhook.get("id", False)
+    if w_id:
+        rest.DELETE.api.webhooks("%s"%webhook["id"], peer=webhook["peer"])
+        os.remove(webhook_path)
+        zen.logMsg("%s webhook destroyed" % username)
+    else:
+        zen.logMsg("%s webhook not found" % username)
 
-	username_path = os.path.join(zen.JSON, "%s.json" % username)
-	delegate = zen.loadJson(username_path)
-	if len(delegate):
-		os.remove(username_path)
-		zen.logMsg("%s destroyed" % username)
-	else:
-		zen.logMsg("%s not found" % username)
+    username_path = os.path.join(zen.JSON, "%s.json" % username)
+    delegate = zen.loadJson(username_path)
+    if len(delegate):
+        os.remove(username_path)
+        zen.logMsg("%s destroyed" % username)
+    else:
+        zen.logMsg("%s not found" % username)
 
 
 def configure(args={}, **options):
-	username = args["<username>"]
-	if username:
-		zen.tbw.init(username=username, **options)
-	else:
-		zen.tbw.init(**options)
+    username = args["<username>"]
+    if username:
+        zen.tbw.init(username=username, **options)
+    else:
+        zen.tbw.init(**options)
 
 
 def adjust_forge(args={}, **options):
-	username = args["<username>"]
-	zen.tbw.adjust(username, float(args["<value>"]))
+    username = args["<username>"]
+    zen.tbw.adjust(username, float(args["<value>"]))
 
 
 def snap_blockchain(args={}, **options):
-	try: zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
-	except: zen.snp.createSnapshot()
-	else: zen.snp.updateSnapshot()
+    try: zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
+    except: zen.snp.createSnapshot()
+    else: zen.snp.updateSnapshot()
 
 
 def append_custom_peer(args={}, **options):
-	tbw = zen.loadJson("tbw.json")
-	custom_peers = tbw.get("custom_peers", [])
-	custom_peers.extend(_split(args["<peer-list>"]))
-	tbw["custom_peers"] = custom_peers
-	zen.dumpJson(tbw, "tbw.json")
+    tbw = zen.loadJson("tbw.json")
+    custom_peers = tbw.get("custom_peers", [])
+    custom_peers.extend(_split(args["<peer-list>"]))
+    tbw["custom_peers"] = custom_peers
+    zen.dumpJson(tbw, "tbw.json")
 
 
 def remove_custom_peer(args={}, **options):
-	tbw = zen.loadJson("tbw.json")
-	items = zen.chooseMultipleItem("> select peers to remove", *tbw["custom_peers"])
-	if len(items):
-		for item in items:
-			tbw["custom_peers"].remove(item)
-	zen.dumpJson(tbw, "tbw.json")
+    tbw = zen.loadJson("tbw.json")
+    items = zen.chooseMultipleItem("> select peers to remove", *tbw["custom_peers"])
+    if len(items):
+        for item in items:
+            tbw["custom_peers"].remove(item)
+    zen.dumpJson(tbw, "tbw.json")
 
 
 def check_applied(args={}, **options):
-	zen.tbw.checkApplied(args["<username>"])
+    zen.tbw.checkApplied(args["<username>"])
 
 
 if __name__ == "__main__":
-	tbw = zen.loadJson("tbw.json")
+    tbw = zen.loadJson("tbw.json")
 
-	FILTER = {
-		"--block-delay": lambda value: int(value),
-		"--excludes":    lambda value: _addresses(value),
-		"--wallet":      lambda value: _addresses(value)[0],
-		"--share":       lambda value: min(1.0, float(value)),
-		"--threshold":   lambda value: float(value),
-		"--name-list":   lambda value: _split(value),
-		"--fee-level":   lambda value: _fee(value),
-		"--chunk-size":  lambda value: int(value),
-	}
+    FILTER = {
+        "--block-delay": lambda value: int(value),
+        "--excludes":    lambda value: _addresses(value),
+        "--wallet":      lambda value: _addresses(value)[0],
+        "--share":       lambda value: min(1.0, float(value)),
+        "--threshold":   lambda value: float(value),
+        "--name-list":   lambda value: _split(value),
+        "--fee-level":   lambda value: _fee(value),
+        "--chunk-size":  lambda value: int(value),
+    }
 
-	def getAction(args):
-		for action in [k for k in args if k[0] not in ["-", "<"]]:
-			if args[action] == True:
-				return action
-		return False
+    def getAction(args):
+        for action in [k for k in args if k[0] not in ["-", "<"]]:
+            if args[action] == True:
+                return action
+        return False
 
-	def getOptions(args):
-		options = {}
-		for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
-			try:
-				options[option[2:].replace("-", "_")] = FILTER.get(option, lambda v:v)(value)
-			except Exception as error:
-				zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
-				sys.exit(1)
-		return dict((k,v) for k,v in options.items() if v not in [None, False])
+    def getOptions(args):
+        options = {}
+        for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
+            try:
+                options[option[2:].replace("-", "_")] = FILTER.get(option, lambda v:v)(value)
+            except Exception as error:
+                zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
+                sys.exit(1)
+        return dict((k,v) for k,v in options.items() if v not in [None, False])
 
-	args = docopt.docopt(__doc__, argv=sys.argv[1:])
-	action = getAction(args)
-	options = getOptions(args)
+    args = docopt.docopt(__doc__, argv=sys.argv[1:])
+    action = getAction(args)
+    options = getOptions(args)
 
-	if action:
-		func = getattr(sys.modules[__name__], action.replace("-", "_"))
-		if callable(func):
-			func(args, **options)
+    if action:
+        func = getattr(sys.modules[__name__], action.replace("-", "_"))
+        if callable(func):
+            func(args, **options)

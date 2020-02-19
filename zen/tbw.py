@@ -17,8 +17,6 @@ import zen.misc
 
 from dposlib import rest
 from dposlib.blockchain import slots
-from dposlib.util.bin import unhexlify
-# from dposlib.util.misc import DataIterator
 from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
 
 if zen.PY3:
@@ -180,7 +178,7 @@ def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
     dilution_value = 100000000.0 / total_balance
     sqlite = initDb(pkey)
     req = sqlite.execute("SELECT * FROM dilution ORDER BY timestamp DESC LIMIT 1").fetchall()
-    # this sql command remove double values in value column keeping the first one 
+    # this sql command remove double values in value column keeping the first one
     # DELETE FROM dilution WHERE timestamp NOT IN
     # (SELECT MIN(timestamp) as timestamp FROM dilution GROUP BY value)
     if len(req):
@@ -246,13 +244,13 @@ def extract(username):
         dumpJson(forgery, "%s.forgery" % username, os.path.join(zen.DATA, username))
 
 
-def dumpRegistry(username):
-    root = loadJson("root.json")
-
+def getKeys(username):
     KEYS01 = None
     KEYS02 = None
 
+    root = loadJson("root.json")
     config = loadJson("%s.json" % username)
+
     if "#1" in config:
         KEYS01 = dposlib.core.crypto.getKeys(config["#1"])
     else:
@@ -265,13 +263,19 @@ def dumpRegistry(username):
             if KEYS01["publicKey"] == pkey: break
             else: KEYS01 = False
 
+    if config.get("#2", None):
+        KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
+
+    return KEYS01, KEYS02
+
+
+def dumpRegistry(username):
+    KEYS01, KEYS02 = getKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
+
     if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
         folder = os.path.join(zen.ROOT, "app", ".tbw", username)
-
-        if config.get("#2", None):
-            KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
 
         fee_level = config.get("fee_level", False)
         if fee_level:
@@ -288,24 +292,7 @@ def dumpRegistry(username):
             timestamp = slots.getTime()
 
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
-            nonce_delta = 1
-            if config.get("wallet", False):
-                transaction = dposlib.core.transfer(
-                    round(data["delegate-share"] + data["fees"]-totalFees, 8),
-                    config["wallet"], "%s share" % username,
-                )
-                dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
-                transaction.nonce = int(wallet["nonce"]) + nonce_delta
-                transaction.senderId = wallet["address"]
-                transaction.timestamp = timestamp
-                transaction.setFee()
-                transaction.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
-                if KEYS02 is not None:
-                    transaction.signSignWithKey(KEYS02["privateKey"])
-                transaction.identify()
-                response = rest.POST.api.transactions(transactions=[transaction], peer=zen.API_PEER)
-                logMsg("broadcasting %s share...\n%s" % (username, json.dumps(response, indent=2)))
-                nonce_delta += 1
+            nonce = int(wallet["nonce"]) + 1
 
             for chunk in [weights[i:i+50] for i in range(0, len(weights), 50)]:
                 transaction = dposlib.core.multiPayment(
@@ -315,7 +302,7 @@ def dumpRegistry(username):
                 if "vendorFieldHex" in config:
                     transaction.vendorFieldHex = config["vendorFieldHex"]
                 dict.__setitem__(transaction, "senderPublicKey", wallet["publicKey"])
-                transaction.nonce = int(wallet["nonce"]) + nonce_delta
+                transaction.nonce = nonce
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
                 transaction.setFee()
@@ -325,11 +312,27 @@ def dumpRegistry(username):
                 transaction.identify()
                 registry[transaction["id"]] = transaction
                 totalFees += transaction["fee"]
-                nonce_delta += 1
+                nonce += 1
 
             totalFees /= 100000000.0
-            dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
+            if config.get("wallet", False):
+                transaction0 = dposlib.core.transfer(
+                    round(data["delegate-share"] + data["fees"] - totalFees, 8),
+                    config["wallet"], "%s share" % username,
+                )
+                dict.__setitem__(transaction0, "senderPublicKey", wallet["publicKey"])
+                transaction0.nonce = nonce
+                transaction0.senderId = wallet["address"]
+                transaction0.timestamp = timestamp
+                transaction0.setFee()
+                transaction0.feeIncluded()
+                transaction0.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
+                if KEYS02 is not None:
+                    transaction0.signSignWithKey(KEYS02["privateKey"])
+                transaction0.identify()
+                registry[transaction0["id"]] = transaction0
 
+            dumpJson(registry, "%s.registry" % os.path.splitext(name)[0], os.path.join(zen.DATA, username))
             data["covered fees"] = totalFees
             dumpJson(data, name, os.path.join(folder, "history"))
             os.remove(os.path.join(folder, name))
@@ -351,6 +354,35 @@ def broadcast(username, chunk_size=30):
     zen.misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
 
 
+def updateRegistryNonces(username):
+    KEYS01, KEYS02 = getKeys(username)
+    folder = os.path.join(zen.DATA, username)
+    wallet = rest.GET.api.wallets(username).get("data", {})
+
+    if KEYS01 and len(wallet):
+        nonce = int(wallet["nonce"]) + 1
+        for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
+            full_registry = loadJson(name, folder=folder)
+            registry = loadJson(name+".milestone", folder=folder)
+            if len(registry):
+                logMsg("updating transaction nonces in %s..." % (name+".milestone"))
+                for tx in list(registry.values()):
+                    old_id = tx["id"]
+                    new_tx = dposlib.core.Transaction(tx)
+                    new_tx.nonce = nonce
+                    nonce += 1
+                    new_tx.signWithKeys(KEYS01["publicKey"], KEYS01["privateKey"])
+                    if KEYS02 is not None:
+                        new_tx.signSignWithKey(KEYS02["privateKey"])
+                    new_tx.identify()
+                    registry.pop(old_id)
+                    full_registry.pop(old_id)
+                    registry[new_tx["id"]] = new_tx
+                    full_registry[new_tx["id"]] = new_tx
+            dumpJson(registry, name+".milestone", folder=folder)
+            dumpJson(full_registry, name, folder=folder)
+
+
 def checkApplied(username):
     folder = os.path.join(zen.DATA, username)
     sqlite = initDb(username)
@@ -369,14 +401,15 @@ def checkApplied(username):
 
         start = time.time()
         transactions = list(registry.values())
-        for tx in transactions: #[t for t in transactions if t["id"] in registry]:
+        for tx in transactions:
             if zen.misc.transactionApplied(tx["id"]):
                 logMsg("transaction %(id)s <type %(type)s> applied" % registry.pop(tx["id"]))
-                for record in tx["asset"]["payments"]:
-                    cursor.execute(
-                        "INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-                        (os.path.splitext(name)[0], tx["timestamp"], record["amount"]/100000000., record["recipientId"], tx["id"])
-                    )
+                if "payments" in tx.get("asset", {}):
+                    for record in tx["asset"]["payments"]:
+                        cursor.execute(
+                            "INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
+                            (os.path.splitext(name)[0], tx["timestamp"], record["amount"]/100000000., record["recipientId"], tx["id"])
+                        )
             # set a milestone every 5 seconds
             if (time.time() - start) > 5.:
                 sqlite.commit()
@@ -412,7 +445,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     blocks = 1
     # Because sometime network is not in good health, the spread function
     # can exit with exception. So compare the ids of last forged blocks
-    # to compute rewards and fees... 
+    # to compute rewards and fees...
     filename = "%s.last.block" % username
     folder = os.path.join(zen.DATA, username)
     last_block = loadJson(filename, folder=folder)
@@ -471,7 +504,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         "%s.forgery" % username,
         folder=folder
     )
-    # dump current forged block as <username>.last.block 
+    # dump current forged block as <username>.last.block
     dumpJson(block, filename, folder=folder)
     # notify vote movements
     msg = "\n".join(
