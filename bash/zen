@@ -8,9 +8,8 @@ Usage:
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
-    zen (launch-payroll | check-applied | resume-payroll) <username>
+    zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
     zen adjust-forge <username> <value>
-    zen retry-payroll <username> -n <name-list>
     zen remove-delegate [<username>]
     zen append-custom-peer <peer-list>
 
@@ -164,13 +163,7 @@ def resume_payroll(args={}, **options):
 def retry_payroll(args={}, **options):
     username = args["<username>"]
     zen.tbw.updateRegistryNonces(username)
-    # folder = os.path.join(zen.ROOT, "app", ".tbw", username)
-    # for path in [
-    # 	os.path.join(zen.ROOT, "app", ".tbw", username, "history", "%s.tbw" % name) \
-    # 	for name in options["name_list"]
-    # ]: os.system('mv "%s" "%s"' % (path, folder))
-    # zen.tbw.dumpRegistry(username)
-    # zen.tbw.broadcast(username)
+    zen.tbw.broadcast(username)
 
 
 def remove_delegate(args={}, **options):
