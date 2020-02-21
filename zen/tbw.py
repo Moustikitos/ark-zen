@@ -356,7 +356,7 @@ def broadcast(username, chunk_size=30):
         for chunk in (transactions[x:x+chunk_size] for x in range(0, len(transactions), chunk_size)):
             response = rest.POST.api.transactions(transactions=chunk, **({"peer":zen.API_PEER} if zen.misc.delegateIsForging(username) else {}))
             logMsg("broadcasting chunk of transactions...\n%s" % json.dumps(response, indent=2))
-    zen.misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
+        zen.misc.notify("New payroll started : %d transactions sent to delegate node..." % len(transactions))
 
 
 def updateRegistryNonces(username):
