@@ -50,10 +50,10 @@ def init(**kwargs):
         # find delegates secrets and generate publicKeys
         env_folder = os.path.dirname(root["env"])
         if os.path.exists(os.path.join(env_folder, "delegates.json")):
-            # ark core v2.1.x
+            # ark core >= v2.1.x
             delegates = loadJson("delegates.json", env_folder)
         else:
-            # ark core v2.0.x
+            # ark core <= v2.0.x
             delegates = loadJson("delegates.json", os.path.join(env_folder, "config"))
         pkeys = [dposlib.core.crypto.getKeys(secret)["publicKey"] for secret in delegates["secrets"]]
 
@@ -270,20 +270,23 @@ def getKeys(username):
 
 
 def dumpRegistry(username):
+    folder = os.path.join(zen.ROOT, "app", ".tbw", username)
+    tbw_files = [n for n in os.listdir(folder) if n.endswith(".tbw")]
+    if not len(tbw_files):
+        return False
+
     KEYS01, KEYS02 = getKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
 
     if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
-        folder = os.path.join(zen.ROOT, "app", ".tbw", username)
-
         fee_level = config.get("fee_level", False)
         if fee_level:
             dposlib.core.Transaction.useDynamicFee(fee_level)
         else:
             dposlib.core.Transaction.useStaticFee()
 
-        for name in [n for n in os.listdir(folder) if n.endswith(".tbw")]:
+        for name in tbw_files:
             data = loadJson(name, folder)
             amount = data["distributed"]
 
@@ -337,6 +340,8 @@ def dumpRegistry(username):
             dumpJson(data, name, os.path.join(folder, "history"))
             os.remove(os.path.join(folder, name))
 
+    return True
+
 
 def broadcast(username, chunk_size=30):
     # initialize options
@@ -355,13 +360,17 @@ def broadcast(username, chunk_size=30):
 
 
 def updateRegistryNonces(username):
-    KEYS01, KEYS02 = getKeys(username)
     folder = os.path.join(zen.DATA, username)
+    registries = [n for n in os.listdir(folder) if n.endswith(".registry")]
+    if not len(registries):
+        return False
+
+    KEYS01, KEYS02 = getKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
+    nonce = int(wallet["nonce"]) + 1
 
     if KEYS01 and len(wallet):
-        nonce = int(wallet["nonce"]) + 1
-        for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
+        for name in registries:
             full_registry = loadJson(name, folder=folder)
             registry = loadJson(name+".milestone", folder=folder)
             if len(registry):
@@ -381,6 +390,8 @@ def updateRegistryNonces(username):
                     full_registry[new_tx["id"]] = new_tx
             dumpJson(registry, name+".milestone", folder=folder)
             dumpJson(full_registry, name, folder=folder)
+
+    return True
 
 
 def checkApplied(username):

@@ -2,10 +2,6 @@
 import os
 import zen
 import math
-import json
-import time
-import datetime
-import threading
 from collections import OrderedDict
 
 import flask
@@ -33,7 +29,7 @@ def faq():
 	data = dict((k,v) for k,v in dposlib.core.cfg.__dict__.items() if not k.startswith('_'))
 	data["begintime"] = data["begintime"].strftime("%Y-%m-%dT%H:%M:%S.000Z")
 	try:
-		data["blocktime"] = dposlib.core.deltas()["real blocktime"]
+		data["blocktime"] = dposlib.core.mixin.deltas()["real blocktime"]
 	except Exception as e:
 		zen.logMsg('error occured computing deltas : %s' % e)
 	delegates = dict(

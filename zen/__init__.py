@@ -11,12 +11,9 @@ import shutil
 import socket
 import datetime
 
-
 # register python familly
 PY3 = True if sys.version_info[0] >= 3 else False
 input = raw_input if not PY3 else input
-
-import requests
 
 # configuration pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))

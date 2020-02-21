@@ -49,9 +49,8 @@ Usage:
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
-    zen (launch-payroll | check-applied | resume-payroll) <username>
+    zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
     zen adjust-forge <username> <value>
-    zen retry-payroll <username> -n <name-list>
     zen remove-delegate [<username>]
     zen append-custom-peer <peer-list>
 
@@ -84,6 +83,7 @@ Subcommands:
     append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
+
 ## Specific tweak
 
 You should tweak the ``env.CORE_TRANSACTION_POOL_MAX_PER_SENDER`` value to fit the number of voter. If not, part of payroll will be considered as spam.
@@ -235,3 +235,8 @@ PATH=/usr/bin:/bin:/usr/bin/env
  - [x] ark-core 2.6 compliancy
  - [x] dposlib 0.3 compliancy
  - [x] use multipayment transaction
+
+### Lupus (v2.0.1)
+ - [X] nonce bugfix
+ - [X] `retry-payroll` updated
+ - [X] `bg` module updated

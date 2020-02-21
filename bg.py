@@ -63,6 +63,8 @@ def checkRegistries():
                 zen.tbw.broadcast(username)
             else:
                 zen.tbw.checkApplied(username)
+                if zen.tbw.updateRegistryNonces(username):
+                    zen.tbw.broadcast(username)
                 zen.logMsg("%s registry checked : %s [< %s]" % (username, blocks, block_delay))
     except Exception as e:
         zen.logMsg("transaction check error:\n%r\n%s" % (e, traceback.format_exc()))
