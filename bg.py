@@ -59,7 +59,7 @@ def checkVersion():
             versions = set([p["version"] for p in peers])
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join([str(i) for i in last])
-            if last not in subprocess.check_output(["ark", "version"]):
+            if last not in subprocess.check_output(["ark", "version"]).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be updated to %s" % last)
             else:
@@ -153,7 +153,7 @@ def start():
     # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
     # check updates
-    daemon_4 = setInterval(sleep_time)(checkVersion)()
+    daemon_4 = setInterval(5 * sleep_time)(checkVersion)()
     zen.logMsg("Background tasks started !")
     zen.misc.notify("Background tasks started !")
 
