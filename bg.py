@@ -3,6 +3,7 @@ import os
 import time
 import traceback
 import threading
+import subprocess
 
 import zen
 import zen.tbw
@@ -49,6 +50,22 @@ def setInterval(interval):
             return stopped
         return wrapper
     return decorator
+
+
+def checkVersion():
+    try:
+        peers = zen.dposlib.rest.GET.api.peers(returnKey="data")
+        if len(peers):
+            versions = set([p["version"] for p in peers])
+            last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
+            last = ".".join([str(i) for i in last])
+            if last not in subprocess.check_output(["ark", "version"]):
+                zen.logMsg("your node have to be updated to %s" % last)
+                zen.misc.notify("your node have to be updated to %s" % last)
+            else:
+                zen.logMsg("your node is up to date (%s)" % last)
+    except Exception as e:
+        zen.logMsg("version check error:\n%r\n%s" % (e, traceback.format_exc()))
 
 
 def checkRegistries():
@@ -135,6 +152,8 @@ def start():
     daemon_2 = setInterval(sleep_time)(generateCharts)()
     # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
+    # check updates
+    daemon_4 = setInterval(sleep_time)(checkVersion)()
     zen.logMsg("Background tasks started !")
     zen.misc.notify("Background tasks started !")
 
@@ -148,6 +167,7 @@ def start():
     daemon_1.set()
     daemon_2.set()
     daemon_3.set()
+    daemon_4.set()
     zen.misc.notify("Background tasks stoped !")
 
 
