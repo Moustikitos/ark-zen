@@ -419,7 +419,7 @@ def checkApplied(username):
                     for record in tx["asset"]["payments"]:
                         cursor.execute(
                             "INSERT OR REPLACE INTO transactions(filename, timestamp, amount, address, id) VALUES(?,?,?,?,?);",
-                            (os.path.splitext(name)[0], tx["timestamp"], record["amount"]/100000000., record["recipientId"], tx["id"])
+                            (os.path.splitext(name)[0], tx["timestamp"], int(record["amount"])/100000000., record["recipientId"], tx["id"])
                         )
             # set a milestone every 5 seconds
             if (time.time() - start) > 5.:
@@ -438,7 +438,7 @@ def checkApplied(username):
                 pass
             checked_tx = full_registry.values()
             zen.misc.notify("Payroll successfully broadcasted !\n%.8f %s sent trough %d transactions" % (
-                sum([sum([rec["amount"] for rec in tx["asset"]["payments"]]) for tx in checked_tx])/100000000.,
+                sum([sum([int(rec["amount"]) for rec in tx["asset"]["payments"]]) for tx in checked_tx])/100000000.,
                 dposlib.rest.cfg.symbol,
                 len(checked_tx)
             ))
