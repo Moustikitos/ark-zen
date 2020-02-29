@@ -61,7 +61,7 @@ def checkVersion():
             last = ".".join([str(i) for i in last])
             if last not in subprocess.check_output(["ark", "version"]).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
-                zen.misc.notify("your node have to be updated to %s" % last)
+                zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
                 zen.logMsg("your node is up to date (%s)" % last)
     except Exception as e:
@@ -102,80 +102,68 @@ def generateCharts():
 
 def checkIfForging():
     try:
-        data = zen.dposlib.rest.GET.api.blocks.last().get("data", {})
         usernames = [
             name.split("-")[0] for name in os.listdir(zen.JSON)
             if name.endswith("-webhook.json")
         ]
         delegate_number = zen.dposlib.rest.cfg.activeDelegates
         notification_delay = 10 * 60  # 10 minutes in seconds
-        messages = []
 
         for username in usernames:
+            data = zen.dposlib.rest.GET.api.delegates(username) \
+                .get("data", {}).get("blocks", {}).get("last", {})
+            height = zen.dposlib.rest.GET.api.blockchain() \
+                .get("data", {}).get("block", {}).get("height", 0)
             last_block = zen.loadJson("%s.last.block" % username, folder=zen.DATA)
-            # if last forged block found
+            last_round = (data["height"] - 1) // delegate_number
+            current_round = (height - 1) // delegate_number
+
+            # if last forged block not found
             if last_block == {}:
-                last_block = zen.dposlib.rest.GET.api.delegates(username)\
-                             .get("data", {}).get("blocks", {}).get("last", {})
-                zen.dumpJson(last_block, "%s.last.block" % username, folder=zen.DATA)
+                zen.dumpJson(data, "%s.last.block" % username, folder=zen.DATA)
             else:
                 # get current height
-                height = zen.dposlib.rest.GET.api.blockchain()\
-                         .get("data", {}).get("block", {}).get("height", 0)
                 # custom parameters
                 missed = last_block.get("missed", 0)
                 last_notification = last_block.get("notification", 0)
                 # blockchain parameters
-                last_round = (last_block["height"] - 1) // delegate_number
-                current_round = (height - 1) // delegate_number
                 diff = current_round - last_round
                 now = time.time()
                 delay = now - last_notification
 
                 if diff > 1:
-                    rank = zen.dposlib.rest.GET.api.delegates(username)\
+                    rank = zen.dposlib.rest.GET.api.delegates(username) \
                            .get("data", {}).get("rank", -1)
                     if not rank:
-                        return {"success": False, "message": "delegate not found"}
+                        zen.logMsg("delegate %s not found" % username)
                     send_notification = (rank <= delegate_number) and \
                                         (delay >= notification_delay)
                     # do the possible checks
                     if rank > delegate_number:
                         msg = "%s is not in forging position" % username
                         if delay >= notification_delay:
-                            zen.misc.notify.send(msg)
+                            zen.misc.notify(msg)
                             last_block["notification"] = now
-                    elif diff == 2:
-                        msg = "%s just missed a block" % username
+                    else:
+                        msg = ("%s just missed a block" % username) if diff == 2 else \
+                              ("%s is missing blocks (total %d)" % (username, missed + 1))
                         if send_notification:
-                            zen.misc.notify.send(msg)
+                            zen.misc.notify(msg)
                             last_block["notification"] = now
                         last_block["missed"] = missed + 1
-                    elif diff > 2:
-                        msg = "%s is missing blocks (total %d)" % (username, missed + 1)
-                        if send_notification:
-                            zen.misc.notify.send(msg)
-                            last_block["notification"] = now
-                        last_block["missed"] = missed + 1
-                elif diff <= 1 and (missed > 0 or last_notification > 0):
+                elif missed > 0 or last_notification > 0:
                     msg = "%s is forging again" % username
-                    zen.misc.notify.send(msg)
+                    zen.misc.notify(msg)
                     last_block.pop("missed", False)
                     last_block.pop("notification", False)
                 else:
-                    # default message
                     msg = "%s is forging" % username
 
                 # dump last forged block info
-                zen.dumpJson(last_block, "%s.last.block" % username, folder=zen.DATA)
-                messages.append(msg)
-
-            # update last forged block with data and dump it
-            if data["generator"]["username"] == username:
                 last_block.update(data)
                 zen.dumpJson(last_block, "%s.last.block" % username, folder=zen.DATA)
 
-        zen.logMsg("check if forging:\n%s" % zen.json.dumps(messages))
+            zen.logMsg("check if forging: %d | %d - %s" % (last_round, current_round, msg))
 
     except Exception as e:
         zen.logMsg("chart generation error:\n%r\n%s" % (e, traceback.format_exc()))
