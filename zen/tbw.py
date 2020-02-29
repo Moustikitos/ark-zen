@@ -438,7 +438,7 @@ def checkApplied(username):
                 pass
             checked_tx = full_registry.values()
             zen.misc.notify("Payroll successfully broadcasted !\n%.8f %s sent trough %d transactions" % (
-                sum([sum([int(rec["amount"]) for rec in tx["asset"]["payments"]]) for tx in checked_tx])/100000000.,
+                sum([sum([int(rec["amount"]) for rec in tx["asset"].get("payments", [])]) for tx in checked_tx])/100000000.,
                 dposlib.rest.cfg.symbol,
                 len(checked_tx)
             ))
