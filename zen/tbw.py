@@ -255,6 +255,8 @@ def getKeys(username):
         KEYS01 = dposlib.core.crypto.getKeys(config["#1"])
     else:
         pkey = getPublicKeyFromUsername(username)
+        # for testing purpose
+        # pkey = "030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe110d60a15e9"
         delegates = loadJson("delegates.json", os.path.join(root["env"], "config"))
         if delegates == {}:
             delegates = loadJson("delegates.json", os.path.dirname(root["env"]))
@@ -269,7 +271,7 @@ def getKeys(username):
     return KEYS01, KEYS02
 
 
-def dumpRegistry(username):
+def dumpRegistry(username, chunk_size=50):
     folder = os.path.join(zen.ROOT, "app", ".tbw", username)
     tbw_files = [n for n in os.listdir(folder) if n.endswith(".tbw")]
     if not len(tbw_files):
@@ -277,6 +279,46 @@ def dumpRegistry(username):
 
     KEYS01, KEYS02 = getKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
+
+    # for testing purpose
+    # wallet = {
+    # "address":"ARfDVWZ7Zwkox3ZXtMQQY1HYSANMB88vWE",
+    # "publicKey":"030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe110d60a15e9",
+    # "nonce":"16973",
+    # "balance":"160032168390",
+    # "attributes":{
+    #   "delegate":{
+    #       "username":"arky",
+    #       "voteBalance":"182267782242191",
+    #       "forgedFees":"447838954643",
+    #       "forgedRewards":"44064800000000",
+    #       "producedBlocks":221746,
+    #       "rank":8,
+    #       "lastBlock":{
+    #           "version":0,"timestamp":93163312,
+    #           "height":11498689,
+    #           "previousBlockHex":"23ccc346f07fe6a22e2cb8420faf7ed53675e14b85ded3d55d5f3e118d987043",
+    #           "previousBlock":"23ccc346f07fe6a22e2cb8420faf7ed53675e14b85ded3d55d5f3e118d987043",
+    #           "numberOfTransactions":0,
+    #           "totalAmount":"0",
+    #           "totalFee":"0",
+    #           "reward":"200000000",
+    #           "payloadLength":0,
+    #           "payloadHash":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    #           "generatorPublicKey":"030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe110d60a15e9",
+    #           "blockSignature":"304402207026213f4376fa0270f257600b6825e559e1a43e1402182e1d6a9e2388573b1402202d631c2cc54ed8e9aeff0014d0d8efb31b706be1b38774be13a279ef239647da",
+    #           "idHex":"e3dbd0b2647647bc5cb853f78d82fc9949dd2dc669469f5973622ce04a27fc0c",
+    #           "id":"e3dbd0b2647647bc5cb853f78d82fc9949dd2dc669469f5973622ce04a27fc0c"
+    #       },
+    #       "round":225466
+    #   },
+    #   "vote":"02b54f00d9de5a3ace28913fe78a15afcfe242926e94d9b517d06d2705b261f992"
+    # },
+    # "isDelegate":True,
+    # "isResigned":False,
+    # "vote":"02b54f00d9de5a3ace28913fe78a15afcfe242926e94d9b517d06d2705b261f992",
+    # "username":"arky"
+    # }
 
     if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
@@ -297,7 +339,10 @@ def dumpRegistry(username):
             weights = sorted(data["weight"].items(), key=lambda e:e[-1], reverse=True)
             nonce = int(wallet["nonce"]) + 1
 
-            for chunk in [weights[i:i+50] for i in range(0, len(weights), 50)]:
+            while len(weights) % chunk_size <= 3:
+                chunk_size -= 1
+
+            for chunk in [weights[i:i+chunk_size] for i in range(0, len(weights), chunk_size)]:
                 transaction = dposlib.core.multiPayment(
                     *[[round(amount*wght, 8), addr] for addr, wght in chunk],
                     vendorField=config.get("vendorField", "%s reward" % username)
