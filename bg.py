@@ -54,9 +54,9 @@ def setInterval(interval):
 
 def checkVersion():
     try:
-        peers = zen.dposlib.rest.GET.api.peers(returnKey="data")
+        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc", returnKey="data")
         if len(peers):
-            versions = set([p["version"] for p in peers])
+            versions = set([p["version"] for p in peers[1:]]) # pop the very first update
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join([str(i) for i in last])
             if last not in subprocess.check_output(["ark", "version"]).split()[0]:
