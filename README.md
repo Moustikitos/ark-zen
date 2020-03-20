@@ -44,7 +44,7 @@ $HOME/ark-zen/bash/activate
 ```
 Usage:
     zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
-    zen (start-srv | stop-srv | start-bg | stop-bg )
+    zen (start-srv | stop-srv | log-zen | log-bg)
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
@@ -71,8 +71,9 @@ Subcommands:
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
-    start-srv/bg       : start the true block weight server/background tasks
-    stop-srv/bg        : stop the true block weight server/background tasks
+    start-srv          : start the true block weight server tasks
+    stop-srv           : stop the true block weight server tasks
+    log-zen/bg         : log true block weight server or background tasks
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
