@@ -5,19 +5,18 @@
 ## Support this project
 
   * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
-  * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://arky-delegate.info/arky)
+  * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
 
 ## Supported blockchain
 
  * [X] Ark
- * [X] Persona
 
 ## Install
 
 ### last release
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 1.9.0
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 2.0.1
 ```
 
 ### developpement version
@@ -135,25 +134,6 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 {
     "token": "..."
 }
-```
-
-## `crontab` use case
-
-Edit the crontab file
-```shell
-crontab -e
-```
-
-This crontab tasks create a snapshot every 4 hours and automatically start relay,
-forger, zen server and zen checker.
-
-```shell
-PATH=/usr/bin:/bin:/usr/bin/env
-
-0 */4  *   *   *     $HOME/ark-zen/bash/snp
-@reboot sleep 10 && yarn exec ark relay:start
-@reboot sleep 30 && yarn exec ark forger:start
-@reboot cd $HOME/ark-zen && /usr/bin/pm2 start srv.json && /usr/bin/pm2 start bg.json
 ```
 
 ## `zen` front-end

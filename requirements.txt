@@ -1,6 +1,6 @@
 wheel
 docopt
-dposlib==0.3.21
+dposlib==git+https://github.com/Moustikitos/dpos@master#egg=dposlib
 flask
 gunicorn
 pygal

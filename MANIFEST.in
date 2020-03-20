@@ -3,6 +3,4 @@ recursive-include zen *.html
 recursive-include bash *
 include LICENSE
 include VERSION
-include bg.*
-include srv.json
-include nginx-zen
+include bg.py

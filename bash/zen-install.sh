@@ -70,10 +70,6 @@ echo "done"
 echo
 echo installing zen command
 echo ======================
-sudo rm /etc/nginx/sites-enabled/nginx-zen
-sudo cp nginx-zen /etc/nginx/sites-available
-sudo ln -sf /etc/nginx/sites-available/nginx-zen /etc/nginx/sites-enabled
-sudo service nginx restart
 
 chmod +x bash/snp
 cp bash/activate ~
