@@ -43,20 +43,22 @@ Subcommands:
     remove-custom-peer : remove one or more custom peer from a selection list
 """
 
+import io
 import os
 import sys
 import time
+import base58
+import docopt
+
+from dposlib import rest
 
 sys.path.append(os.path.abspath(os.path.expanduser("~/ark-zen")))
 
 import zen
-import base58
-import docopt
 import zen.tbw
 import zen.snp
 import zen.misc
 
-from dposlib import rest
 
 ROOT_JSON = zen.loadJson("root.json")
 # if ROOT_JSON == {}:
@@ -70,12 +72,45 @@ CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON.get("
 # CACHE = "~/.cache//"
 
 
+BG_SERVICE = """[Unit]
+Description=Lys web server
+After=network.target
+
+[Service]
+User=${USER}
+WorkingDirectory=${HOME}/.local/share/ark-zen
+Environment=PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+ExecStart=${HOME}/.local/share/ark-zen/venv/bin/python ${HOME}/ark-zen/bg.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+ZEN_SERVICE = """[Unit]
+Description=Lys web server
+After=network.target
+
+[Service]
+User=${USER}
+WorkingDirectory=${HOME}/.local/share/ark-zen
+Environment=PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+ExecStart=${HOME}/.local/share/ark-listener/venv/bin/gunicorn zen.app:app --bind=0.0.0.0:5000 --workers=5 --timeout 10 --access-logfile -
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+"""
+
+
 def _fee(value):
     if value in ["minFee", "avgFee", "maxFee"]:
         return value
     else:
-        try: return int(value)
-        except: return False
+        try:
+            return int(value)
+        except Exception:
+            return False
     return False
 
 
@@ -92,9 +127,12 @@ def _addresses(value):
     addresses = _split(value)
     result = []
     for address in addresses:
-        try: base58.b58decode_check(address)
-        except ValueError: pass
-        else: result.append(address)
+        try:
+            base58.b58decode_check(address)
+        except ValueError:
+            pass
+        else:
+            result.append(address)
 
     if not len(result):
         return None
@@ -103,13 +141,23 @@ def _addresses(value):
 
 
 def start_srv(args={}, **options):
-    zen.misc.start_pm2_app("zen-bg")
-    zen.misc.start_pm2_app("zen-srv")
+    os.system(
+        "sudo {echo -e '%s' /etc/systemd/system/zen.service} 2> /dev/null" %
+        ZEN_SERVICE
+    )
+    os.system(
+        "sudo {echo -e '%s' /etc/systemd/system/bg.service} 2> /dev/null" %
+        BG_SERVICE
+    )
+    os.system("sudo systemctl daemon-reload")
+    if not os.system("sudo systemctl restart zen"):
+        os.system("sudo systemctl start zen")
+        os.system("sudo systemctl start bg")
 
 
 def stop_srv(args={}, **options):
-    zen.misc.stop_pm2_app("zen-srv")
-    zen.misc.stop_pm2_app("zen-bg")
+    os.system("sudo systemctl stop zen")
+    os.system("sudo systemctl stop bg")
 
 
 def rebuild(args={}, **options):
@@ -123,11 +171,10 @@ def reset(args={}, **options):
 
 
 def initialize(args={}, **options):
-    zen.misc.del_pm2_app("zen-bg")
-    zen.misc.del_pm2_app("zen-srv")
+    stop_srv()
     zen.init()
     zen.misc.start_pm2_app("relay")
-    zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")		
+    zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")
     while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
         time.sleep(5)
     zen.tbw.init()
@@ -135,10 +182,8 @@ def initialize(args={}, **options):
     if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
         snap_blockchain()
     else:
-        zen.logMsg("snapshot creation skipped")		
-    zen.misc.start_pm2_app("zen-srv")
-    zen.misc.start_pm2_app("zen-bg")
-    os.system("pm2 list")
+        zen.logMsg("snapshot creation skipped")
+    start_srv()
 
 
 def add_delegate(args={}, **options):
@@ -209,9 +254,12 @@ def adjust_forge(args={}, **options):
 
 
 def snap_blockchain(args={}, **options):
-    try: zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
-    except: zen.snp.createSnapshot()
-    else: zen.snp.updateSnapshot()
+    try:
+        zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
+    except Exception:
+        zen.snp.createSnapshot()
+    else:
+        zen.snp.updateSnapshot()
 
 
 def append_custom_peer(args={}, **options):
@@ -240,13 +288,13 @@ if __name__ == "__main__":
 
     FILTER = {
         "--block-delay": lambda value: int(value),
-        "--excludes":    lambda value: _addresses(value),
-        "--wallet":      lambda value: _addresses(value)[0],
-        "--share":       lambda value: min(1.0, float(value)),
-        "--threshold":   lambda value: float(value),
-        "--name-list":   lambda value: _split(value),
-        "--fee-level":   lambda value: _fee(value),
-        "--chunk-size":  lambda value: int(value),
+        "--excludes": lambda value: _addresses(value),
+        "--wallet": lambda value: _addresses(value)[0],
+        "--share": lambda value: min(1.0, float(value)),
+        "--threshold": lambda value: float(value),
+        "--name-list": lambda value: _split(value),
+        "--fee-level": lambda value: _fee(value),
+        "--chunk-size": lambda value: int(value),
     }
 
     def getAction(args):
