@@ -4,7 +4,7 @@
 """
 Usage:
     zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
-    zen (start-srv | stop-srv | start-bg | stop-bg )
+    zen (start-srv | stop-srv | log-zen | log-bg)
     zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
@@ -31,8 +31,9 @@ Subcommands:
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
     configure          : configure options for a given <username>
-    start-srv/bg       : start the true block weight server/background tasks
-    stop-srv/bg        : stop the true block weight server/background tasks
+    start-srv          : start the true block weight server tasks
+    stop-srv           : stop the true block weight server tasks
+    log-zen/bg         : log true block weight server or background tasks
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
@@ -73,7 +74,7 @@ CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON.get("
 
 
 BG_SERVICE = """[Unit]
-Description=Lys web server
+Description=Zen bg tasks
 After=network.target
 
 [Service]
@@ -88,14 +89,14 @@ WantedBy=multi-user.target
 """
 
 ZEN_SERVICE = """[Unit]
-Description=Lys web server
+Description=Zen TBW server
 After=network.target
 
 [Service]
 User=${USER}
 WorkingDirectory=${HOME}/.local/share/ark-zen
 Environment=PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
-ExecStart=${HOME}/.local/share/ark-listener/venv/bin/gunicorn zen.app:app --bind=0.0.0.0:5000 --workers=5 --timeout 10 --access-logfile -
+ExecStart=${HOME}/.local/share/ark-zen/venv/bin/gunicorn zen.app:app --bind=0.0.0.0:5000 --workers=5 --timeout 10 --access-logfile -
 Restart=always
 
 [Install]
@@ -141,14 +142,9 @@ def _addresses(value):
 
 
 def start_srv(args={}, **options):
-    os.system(
-        "sudo {echo -e '%s' /etc/systemd/system/zen.service} 2> /dev/null" %
-        ZEN_SERVICE
-    )
-    os.system(
-        "sudo {echo -e '%s' /etc/systemd/system/bg.service} 2> /dev/null" %
-        BG_SERVICE
-    )
+    os.system('echo "%s" > ~/zen.service' % ZEN_SERVICE)
+    os.system('echo "%s" > ~/bg.service' % BG_SERVICE)
+    os.system("sudo mv ~/zen.service ~/bg.service /etc/systemd/system")
     os.system("sudo systemctl daemon-reload")
     if not os.system("sudo systemctl restart zen"):
         os.system("sudo systemctl start zen")
@@ -158,6 +154,14 @@ def start_srv(args={}, **options):
 def stop_srv(args={}, **options):
     os.system("sudo systemctl stop zen")
     os.system("sudo systemctl stop bg")
+
+
+def log_bg(args={}, **options):
+    os.system("sudo journalctl -u bg -ef")
+
+
+def log_zen(args={}, **options):
+    os.system("sudo journalctl -u zen -ef")
 
 
 def rebuild(args={}, **options):
