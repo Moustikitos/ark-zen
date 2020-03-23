@@ -28,7 +28,7 @@ kw = {
     "install_requires": [
         "wheel",
         "docopt",
-        "dposlib==git+https://github.com/Moustikitos/dpos@master#egg=dposlib",
+        "git+https://github.com/Moustikitos/dpos@master#egg=dposlib",
         "flask",
         "gunicorn",
         "pygal"

@@ -80,7 +80,7 @@ After=network.target
 [Service]
 User=${USER}
 WorkingDirectory=${HOME}/.local/share/ark-zen
-Environment=PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+Environment=PYTHONPATH=${HOME}/ark-zen:${HOME}/dpos
 ExecStart=${HOME}/.local/share/ark-zen/venv/bin/python ${HOME}/ark-zen/bg.py
 Restart=always
 
@@ -95,7 +95,7 @@ After=network.target
 [Service]
 User=${USER}
 WorkingDirectory=${HOME}/.local/share/ark-zen
-Environment=PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
+Environment=PYTHONPATH=${HOME}/ark-zen:${HOME}/dpos
 ExecStart=${HOME}/.local/share/ark-zen/venv/bin/gunicorn zen.app:app --bind=0.0.0.0:5000 --workers=5 --timeout 10 --access-logfile -
 Restart=always
 
