@@ -113,7 +113,7 @@ def freemobile_sendmsg(title, body):
     if freemobile != {}:
         return zen.rest.GET.sendmsg(
             peer="https://smsapi.free-mobile.fr",
-            msg=title + ":\n" + body,
+            msg=title + b":\n" + body,
             **freemobile
         )
 
