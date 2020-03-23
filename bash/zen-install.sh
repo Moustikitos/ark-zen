@@ -16,6 +16,9 @@ sudo apt-get -qq install curl
 sudo apt-get -qq install python python-dev
 sudo apt-get -qq install python-setuptools
 sudo apt-get -qq install python-pip
+sudo apt-get -qq install python3 python3-dev
+sudo apt-get -qq install python3-setuptools
+sudo apt-get -qq install python3-pip
 sudo apt-get -qq install pypy
 sudo apt-get -qq install virtualenv
 sudo apt-get -qq install nginx
@@ -81,7 +84,7 @@ echo installing zen command
 echo ======================
 
 chmod +x bash/snp
-cp bash/activate ~
+chmod +x bash/activate
 cp bash/zen ~
 
 cd ~
