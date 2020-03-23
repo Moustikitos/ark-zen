@@ -12,7 +12,6 @@ echo "github branch to use : $B"
 echo
 echo installing system dependencies
 echo ==============================
-sudo apt-get -qq install curl
 sudo apt-get -qq install libudev-dev libusb-1.0.0-dev
 sudo apt-get -qq install python python-dev python-setuptools python-pip
 sudo apt-get -qq install python3 python3-dev python3-setuptools python3-pip
