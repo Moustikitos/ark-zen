@@ -13,16 +13,12 @@ echo
 echo installing system dependencies
 echo ==============================
 sudo apt-get -qq install curl
-sudo apt-get -qq install python python-dev
-sudo apt-get -qq install python-setuptools
-sudo apt-get -qq install python-pip
-sudo apt-get -qq install python3 python3-dev
-sudo apt-get -qq install python3-setuptools
-sudo apt-get -qq install python3-pip
+sudo apt-get -qq install libudev-dev libusb-1.0.0-dev
+sudo apt-get -qq install python python-dev python-setuptools python-pip
+sudo apt-get -qq install python3 python3-dev python3-setuptools python3-pip
 sudo apt-get -qq install pypy
 sudo apt-get -qq install virtualenv
 sudo apt-get -qq install nginx
-sudo apt-get -qq install libudev-dev libusb-1.0.0-dev
 
 echo "done"
 

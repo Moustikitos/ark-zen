@@ -221,3 +221,7 @@ Copy your API token in `pushbullet.json` file&nbsp;:
  - [X] nonce bugfix
  - [X] `retry-payroll` updated
  - [X] `bg` module updated
+
+### Monoceros (v3.0.0)
+ - [X] virtualenv target choice on zen installation
+ - [X] `zen` and `bg` run as system services
