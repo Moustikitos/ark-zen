@@ -167,7 +167,7 @@ def twilio_messages(title, body):
 def notify(body):
     title = ("ark-zen@%s" % zen.dposlib.core.cfg.network).encode("utf-8")
     body = body.encode("utf-8") if not isinstance(body, bytes) else body
-    print(title, body)
+
     for func in [
         freemobile_sendmsg,
         pushbullet_pushes,
