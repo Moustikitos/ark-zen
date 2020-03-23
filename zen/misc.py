@@ -2,6 +2,7 @@
 
 import os
 import time
+import base64
 import datetime
 
 import zen
@@ -107,51 +108,75 @@ def loadCryptoCompareYearData(year, reference, interest):
         raise Exception("can not reach data")
 
 
-def notify(body):
-    network = zen.dposlib.core.cfg.network
-
-    pushover = zen.loadJson("pushover.json")
-    if pushover != {}:
-        pushover["body"] = body
-        pushover["network"] = network
-        os.system('''
-curl -s -F "token=%(token)s" \
-    -F "user=%(user)s" \
-    -F "title=ark-zen@%(network)s" \
-    -F "message=%(body)s" \
-    --silent --output /dev/null \
-    https://api.pushover.net/1/messages.json
-''' % pushover)
-
-    pushbullet = zen.loadJson("pushbullet.json")
-    if pushbullet != {}:
-        pushbullet["body"] = body
-        pushbullet["network"] = network
-        os.system('''
-curl --header 'Access-Token: %(token)s' \
-    --header 'Content-Type: application/json' \
-    --data-binary '{"body":"%(body)s","title":"ark-zen@%(network)s","type":"note"}' \
-    --request POST \
-    --silent --output /dev/null \
-    https://api.pushbullet.com/v2/pushes
-''' % pushbullet)
-
-    twilio = zen.loadJson("twilio.json")
-    if twilio != {}:
-        twilio["body"] = body
-        os.system('''
-curl -X "POST" "https://api.twilio.com/2010-04-01/Accounts/%(sid)s/Messages.json" \
-    --data-urlencode "From=%(sender)s" \
-    --data-urlencode "Body=%(body)s" \
-    --data-urlencode "To=%(receiver)s" \
-    --silent --output /dev/null \
-    -u "%(sid)s:%(auth)s"
-''' % twilio)
-
+def freemobile_sendmsg(title, body):
     freemobile = zen.loadJson("freemobile.json")
     if freemobile != {}:
-        freemobile["msg"] = network + ":\n" + body
-        zen.rest.GET.sendmsg(peer="https://smsapi.free-mobile.fr", **freemobile)
+        return zen.rest.GET.sendmsg(
+            peer="https://smsapi.free-mobile.fr",
+            msg=title + ":\n" + body,
+            **freemobile
+        )
+
+
+def pushbullet_pushes(title, body):
+    pushbullet = zen.loadJson("pushbullet.json")
+    if pushbullet != {}:
+        return zen.rest.POST.v2.pushes(
+            peer="https://api.pushbullet.com",
+            body=body, title=title, type="note",
+            headers={
+                'Access-Token': pushbullet["token"],
+            }
+        )
+
+
+def pushover_messages(title, body):
+    pushover = zen.loadJson("pushover.json")
+    if pushover != {}:
+        return zen.rest.POST(
+            "1", "messages.json",
+            peer="https://api.pushover.net",
+            urlencode=dict(
+                message=body,
+                title=title,
+                **pushover
+            )
+        )
+
+
+def twilio_messages(title, body):
+    twilio = zen.loadJson("twilio.json")
+    if twilio != {}:
+        authentication = base64.b64encode(
+            ("%s:%s" % (twilio["sid"], twilio["auth"])).encode('utf-8')
+        )
+        return zen.rest.POST(
+            "2010-04-01", "Accounts", twilio["sid"], "Messages.json",
+            peer="https://api.twilio.com",
+            urlencode={
+                "From": twilio["sender"],
+                "To": twilio["receiver"],
+                "Body": body,
+            },
+            headers={
+                "Authorization": "Basic %s" % authentication.decode('ascii')
+            }
+        )
+
+
+def notify(body):
+    title = ("ark-zen@%s" % zen.dposlib.core.cfg.network).encode("utf-8")
+    body = body.encode("utf-8") if not isinstance(body, bytes) else body
+    print(title, body)
+    for func in [
+        freemobile_sendmsg,
+        pushbullet_pushes,
+        pushover_messages,
+        twilio_messages
+    ]:
+        response = func(title, body)
+        if response is not None:
+            return response
 
 
 def start_pm2_app(appname):

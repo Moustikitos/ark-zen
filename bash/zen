@@ -81,6 +81,7 @@ After=network.target
 User=${USER}
 WorkingDirectory=${HOME}/.local/share/ark-zen
 Environment=PYTHONPATH=${HOME}/ark-zen:${HOME}/dpos
+Environment=PATH=$(yarn global bin):$PATH
 ExecStart=${HOME}/.local/share/ark-zen/venv/bin/python ${HOME}/ark-zen/bg.py
 Restart=always
 
