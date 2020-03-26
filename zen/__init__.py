@@ -58,15 +58,18 @@ def loadJson(name, folder=None):
     filename = os.path.join(JSON if not folder else folder, name)
     if os.path.exists(filename):
         with io.open(filename) as in_:
-            return json.load(in_)
+            data = json.load(in_)
     else:
-        return {}
+        data = {}
+    return data
 
 
 def dumpJson(data, name, folder=None):
     filename = os.path.join(JSON if not folder else folder, name)
-    try: os.makedirs(os.path.dirname(filename))
-    except OSError: pass
+    try:
+        os.makedirs(os.path.dirname(filename))
+    except OSError:
+        pass
     with io.open(filename, "w" if PY3 else "wb") as out:
         json.dump(data, out, indent=4)
 
