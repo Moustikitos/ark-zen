@@ -1,5 +1,8 @@
 #!/bin/bash
-# install system dependencies
+
+VENVDIR="$HOME/.local/share/ark-zen/venv"
+GITREPO="https://github.com/Moustikitos/ark-zen.git"
+
 clear
 
 if [ $# = 0 ]; then
@@ -18,71 +21,76 @@ sudo apt-get -qq install python3 python3-dev python3-setuptools python3-pip
 sudo apt-get -qq install pypy
 sudo apt-get -qq install virtualenv
 sudo apt-get -qq install nginx
-
 echo "done"
 
-# download zen package
 echo
-echo downloading zen package
-echo =======================
+echo downloading ark-listener package
+echo ================================
+
 cd ~
-if (git clone -q --branch $B https://github.com/Moustikitos/ark-zen.git) then
-    echo "cloning ark-zen..."
+if (git clone --branch $B $GITREPO) then
+    echo "package cloned !"
 else
-    echo "ark-zen already cloned !"
+    echo "package already cloned !"
 fi
-cd ~/ark-zen
+
+cd ~/ark-listener
 git reset --hard
 git fetch --all
 if [ "$B" == "master" ]; then
-    git checkout $B -fq
+    git checkout $B -f
 else
-    git checkout tags/$B -fq
+    git checkout tags/$B -f
 fi
-git pull -q
+git pull
+
 echo "done"
 
 echo
-echo creating virtual environement
+echo creating virtual environment
 echo =============================
 
-echo -e "Select the environment:\n  1) python3\n  2) pypy"
-read -p "(default:python)> " n
-case $n in
-1) TARGET="$(which python3)";;
-2) TARGET="$(which pypy)";;
-*) TARGET="$(which python)";;
-esac
-
-if [ ! -d "$HOME/.local/share/ark-zen/venv" ]; then
-    mkdir ~/.local/share/ark-zen/venv -p
-    virtualenv -p ${TARGET} ~/.local/share/ark-zen/venv -q
-else
-    echo "virtual environement already there !"
+if [ -d $VENVDIR ]; then
+    read -p "remove previous virtual environement ? [y/N]> " r
+    case $r in
+    y) rm -rf $VENVDIR;;
+    Y) rm -rf $VENVDIR;;
+    *) echo -e "previous virtual environement keeped";;
+    esac
 fi
 
-. ~/.local/share/ark-zen/venv/bin/activate
+if [ ! -d $VENVDIR ]; then
+    echo -e "select environment:\n  1) python3\n  2) pypy"
+    read -p "[default:python]> " n
+    case $n in
+    1) TARGET="$(which python3)";;
+    2) TARGET="$(which pypy)";;
+    *) TARGET="$(which python)";;
+    esac
+    mkdir $VENVDIR -p
+    virtualenv -p $TARGET $VENVDIR -q
+fi
+
+. $VENVDIR/bin/activate
 export PYTHONPATH=${HOME}/ark-zen
-cd ~/ark-zen
 echo "done"
 
-# install python dependencies
 echo
 echo installing python dependencies
 echo ==============================
+cd ~/ark-zen
 pip install -r requirements.txt -q
 echo "done"
 
-# installing zen command
 echo
 echo installing zen command
 echo ======================
 
 chmod +x bash/snp
 chmod +x bash/activate
-cp bash/zen ~
 
+cp bash/zen ~
 cd ~
 chmod +x zen
-chmod +x activate
+
 echo "done"
