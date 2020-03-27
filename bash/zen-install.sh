@@ -34,7 +34,7 @@ else
     echo "package already cloned !"
 fi
 
-cd ~/ark-zev
+cd ~/ark-zen
 git reset --hard
 git fetch --all
 if [ "$B" == "master" ]; then
