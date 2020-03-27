@@ -71,13 +71,13 @@ if [ ! -d $VENVDIR ]; then
     virtualenv -p $TARGET $VENVDIR -q
 fi
 
-. $VENVDIR/bin/activate
-export PYTHONPATH=${HOME}/ark-zen
 echo "done"
 
 echo
 echo installing python dependencies
 echo ==============================
+. $VENVDIR/bin/activate
+export PYTHONPATH=${HOME}/ark-zen
 cd ~/ark-zen
 pip install -r requirements.txt -q
 echo "done"
