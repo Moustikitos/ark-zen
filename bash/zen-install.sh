@@ -24,8 +24,8 @@ sudo apt-get -qq install nginx
 echo "done"
 
 echo
-echo downloading ark-listener package
-echo ================================
+echo downloading ark-zen package
+echo ===========================
 
 cd ~
 if (git clone --branch $B $GITREPO) then
@@ -34,7 +34,7 @@ else
     echo "package already cloned !"
 fi
 
-cd ~/ark-listener
+cd ~/ark-zev
 git reset --hard
 git fetch --all
 if [ "$B" == "master" ]; then
