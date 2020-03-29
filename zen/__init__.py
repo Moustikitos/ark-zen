@@ -58,10 +58,10 @@ def getUsernameFromPublicKey(publicKey):
 
 def loadJson(name, folder=None, reload=False):
     filename = os.path.join(JSON if not folder else folder, name)
-    data = LOADED_JSON.get(filename, False)
-    if data and not reload:
-        return data
-    elif os.path.exists(filename):
+    # data = LOADED_JSON.get(filename, False)
+    # if data and not reload:
+    #     return data
+    if os.path.exists(filename):
         with io.open(filename) as in_:
             data = json.load(in_)
     else:
@@ -74,7 +74,7 @@ def loadJson(name, folder=None, reload=False):
     except Exception:
         pass
     #
-    LOADED_JSON[filename] = data
+    # LOADED_JSON[filename] = data
     return data
 
 
@@ -85,7 +85,7 @@ def dumpJson(data, name, folder=None):
     except OSError:
         pass
     with io.open(filename, "w" if PY3 else "wb") as out:
-        LOADED_JSON[filename] = data
+        # LOADED_JSON[filename] = data
         json.dump(data, out, indent=4)
     # hack to avoid "OSError: [Errno 24] Too many open files"
     # with pypy
