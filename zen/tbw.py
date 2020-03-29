@@ -504,7 +504,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     # to compute rewards and fees...
     filename = "%s.last.block" % username
     folder = os.path.join(zen.DATA, username)
-    last_block = loadJson(filename, folder=folder, reload=True)
+    last_block = loadJson(filename, folder=folder)
     # if there is a <username>.last.block
     if last_block.get("id", False):
         logMsg("last known forged: %s" % last_block["id"])
@@ -536,8 +536,8 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         dumpJson(block, filename, folder=folder)
         raise Exception("First iteration for %s" % username)
     # find forger information using username
-    forger = loadJson("%s.json" % username, reload=True)
-    forgery = loadJson("%s.forgery" % username, folder=folder, reload=True)
+    forger = loadJson("%s.json" % username)
+    forgery = loadJson("%s.forgery" % username, folder=folder)
     # compute the reward distribution excluding delegate
     address = dposlib.core.crypto.getAddress(generatorPublicKey)
     excludes = forger.get("excludes", [address])
