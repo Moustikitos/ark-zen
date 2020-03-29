@@ -56,10 +56,10 @@ def getUsernameFromPublicKey(publicKey):
     return req.get("data", {}).get("username", False)
 
 
-def loadJson(name, folder=None):
+def loadJson(name, folder=None, reload=False):
     filename = os.path.join(JSON if not folder else folder, name)
     data = LOADED_JSON.get(filename, False)
-    if data:
+    if data and not reload:
         return data
     elif os.path.exists(filename):
         with io.open(filename) as in_:
