@@ -66,7 +66,7 @@ def loadJson(name, folder=None):
             data = json.load(in_)
     else:
         data = {}
-    # hack to avoid  OSError: [Errno 24] Too many open files
+    # hack to avoid "OSError: [Errno 24] Too many open files"
     # with pypy
     try:
         in_.close()
@@ -85,8 +85,9 @@ def dumpJson(data, name, folder=None):
     except OSError:
         pass
     with io.open(filename, "w" if PY3 else "wb") as out:
+        LOADED_JSON[filename] = data
         json.dump(data, out, indent=4)
-    # hack to avoid  OSError: [Errno 24] Too many open files
+    # hack to avoid "OSError: [Errno 24] Too many open files"
     # with pypy
     try:
         out.close()
