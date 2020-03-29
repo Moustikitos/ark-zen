@@ -27,6 +27,8 @@ API_PEER = None
 WEBHOOK_PEER = None
 #
 PUBLIC_IP = None
+#
+LOADED_JSON = {}
 
 
 def getIp():
@@ -37,7 +39,7 @@ def getIp():
         # doesn't even have to be reachable
         s.connect(('10.255.255.255', 1))
         PUBLIC_IP = s.getsockname()[0]
-    except:
+    except Exception:
         PUBLIC_IP = '127.0.0.1'
     finally:
         s.close()
@@ -56,11 +58,23 @@ def getUsernameFromPublicKey(publicKey):
 
 def loadJson(name, folder=None):
     filename = os.path.join(JSON if not folder else folder, name)
-    if os.path.exists(filename):
+    data = LOADED_JSON.get(filename, False)
+    if data:
+        return data
+    elif os.path.exists(filename):
         with io.open(filename) as in_:
             data = json.load(in_)
     else:
         data = {}
+    # hack to avoid  OSError: [Errno 24] Too many open files
+    # with pypy
+    try:
+        in_.close()
+        del in_
+    except Exception:
+        pass
+    #
+    LOADED_JSON[filename] = data
     return data
 
 
@@ -72,6 +86,14 @@ def dumpJson(data, name, folder=None):
         pass
     with io.open(filename, "w" if PY3 else "wb") as out:
         json.dump(data, out, indent=4)
+    # hack to avoid  OSError: [Errno 24] Too many open files
+    # with pypy
+    try:
+        out.close()
+        del out
+    except Exception:
+        pass
+    #
 
 
 def dropJson(name, folder=None):

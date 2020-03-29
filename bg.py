@@ -221,7 +221,7 @@ def start():
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
     # check updates
     daemon_4 = setInterval(5 * sleep_time)(checkVersion)()
-    # check updates
+    # check forge
     daemon_5 = setInterval(30)(checkIfForging)()
     zen.logMsg("Background tasks started !")
     zen.misc.notify("Background tasks started !")
