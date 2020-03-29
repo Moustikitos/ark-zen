@@ -70,11 +70,11 @@ def loadJson(name, folder=None, reload=False):
     # with pypy
     try:
         in_.close()
-        del in_
     except Exception:
         pass
+    finally:
+        del in_
     #
-    # LOADED_JSON[filename] = data
     return data
 
 
@@ -91,9 +91,10 @@ def dumpJson(data, name, folder=None):
     # with pypy
     try:
         out.close()
-        del out
     except Exception:
         pass
+    finally:
+        del out
     #
 
 
