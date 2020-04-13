@@ -111,10 +111,10 @@ def loadCryptoCompareYearData(year, reference, interest):
 def freemobile_sendmsg(title, body):
     freemobile = zen.loadJson("freemobile.json")
     if freemobile != {}:
-        return zen.rest.GET.sendmsg(
+        freemobile["msg"] = title + ":\n" + body
+        return zen.rest.POST.sendmsg(
             peer="https://smsapi.free-mobile.fr",
-            msg=title + b":\n" + body,
-            **freemobile
+            jsonify=freemobile
         )
 
 
@@ -165,8 +165,8 @@ def twilio_messages(title, body):
 
 
 def notify(body):
-    title = ("ark-zen@%s" % zen.dposlib.core.cfg.network).encode("utf-8")
-    body = body.encode("utf-8") if not isinstance(body, bytes) else body
+    title = "ark-zen@%s" % zen.dposlib.core.cfg.network
+    body = body.decode("utf-8") if isinstance(body, bytes) else body
 
     for func in [
         freemobile_sendmsg,
@@ -175,8 +175,10 @@ def notify(body):
         twilio_messages
     ]:
         response = func(title, body)
-        if response is not None:
-            return response
+        if isinstance(response, dict):
+            zen.logMsg("notification response:\n%s" % response)
+            if response.get("status", 1000) < 300:
+                return response
 
 
 def start_pm2_app(appname):
