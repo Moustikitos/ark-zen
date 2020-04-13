@@ -56,13 +56,10 @@ def checkVersion():
     try:
         peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc", returnKey="data")
         if len(peers):
-            versions = set([p["version"] for p in peers[1:]]) # pop the very first update
+            versions = set([p["version"] for p in peers[1:]])  # pop the very first update
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
-            # last = (b"." if zen.PY3 else ".").join([(b"%s" if zen.PY3 else "%s") % i for i in last])
             last = ".".join(["%s" % i for i in last])
-            if zen.PY3:
-                last = last.encode("utf-8")
-            if last not in subprocess.check_output(["ark", "version"]).split()[0]:
+            if (last.encode("utf-8") if zen .PY3 else last) not in subprocess.check_output(["ark", "version"]).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
