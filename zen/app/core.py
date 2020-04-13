@@ -5,13 +5,10 @@ import json
 import flask
 import dposlib
 
-from collections import OrderedDict
-
 import zen
 import zen.tbw
 import zen.misc
-from dposlib import rest
-from zen import logMsg, loadJson, dumpJson, getUsernameFromPublicKey
+from zen import logMsg, loadJson, getUsernameFromPublicKey
 
 
 # create the application instance 
@@ -71,7 +68,7 @@ def tweak():
         url_for=dated_url_for,
         tbw_config=tbw_config,
         _currency=lambda value, fmt="r": flask.Markup(("%"+fmt+"&nbsp;%s") % (round(value,8), token)),
-        _dhm = lambda value: human_dhm(*dhm(value)),
+        _dhm=lambda value: human_dhm(*dhm(value)),
         _address=lambda address: flask.Markup(
             '<span class="not-ellipsed">%s</span><span class="ellipsed">%s</span>' % 
             (address, "%s&nbsp;&#x2026;&nbsp;%s" % (address[:5],address[-5:])))
