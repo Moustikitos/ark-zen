@@ -119,7 +119,8 @@ def dumpEnv(env, pathname):
     shutil.copy(pathname, pathname+".bak")
     with io.open(pathname, "wb") as environ:
         for key,value in sorted([(k,v) for k,v in env.items()], key=lambda e:e[0]):
-            environ.write(b"%s=%s\n" % (key, value))
+            line = "%s=%s\n" % (key, value)
+            environ.write(line.encode("utf-8"))
 
 
 def logMsg(msg, logname=None, dated=False):
