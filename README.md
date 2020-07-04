@@ -1,6 +1,6 @@
 # `zen`
 
-`zen` package, entirely writen in python, provides `True Block Weight` utilities for DPOS pool.
+`zen` package, entirely written in python, provides `True Block Weight` utilities for DPOS pool.
 
 ## Support this project
 
@@ -19,7 +19,7 @@
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 2.0.1
 ```
 
-### developpement version
+### development version
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh)
@@ -80,7 +80,7 @@ Subcommands:
     add-delegate       : add <username> without relay initialization (use if bip39 secret protection)
     remove-delegate    : remove delegate from list or specified by <username>
     snap-blockchain    : update snapshot or create it if no snapshot initialized yet
-    append-custom-peer : append custom peer from coma-separated-peer or newline-separated-peer file
+    append-custom-peer : append custom peer from comma-separated-peer or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
 
