@@ -28,10 +28,12 @@ kw = {
     "install_requires": [
         "wheel",
         "docopt",
-        "git+https://github.com/Moustikitos/dpos@master#egg=dposlib",
         "flask",
         "gunicorn",
         "pygal"
+    ],
+    "dependency_links": [
+        "git+https://github.com/Moustikitos/dpos@master#egg=dposlib"
     ],
     "license": "Cpyright 2016-2019 Toons",
     "classifiers": [

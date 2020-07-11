@@ -54,7 +54,7 @@ def setInterval(interval):
 
 def checkVersion():
     try:
-        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc", returnKey="data")
+        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc").get("data", [])
         if len(peers):
             versions = set([p["version"] for p in peers[1:]])  # pop the very first update
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
@@ -171,6 +171,8 @@ def checkIfForging():
 
 def checkNode():
     global IS_SYNCING, STATUS, SEED_STATUS, CHECK_RESULT
+
+# int(subprocess.check_output(shlex.split('psql -qtAX -d ark_mainnet -c "SELECT height FROM blocks ORDER BY height DESC LIMIT 1"')).strip())
 
     api_port = zen.rest.cfg.ports["core-api"]
     IS_SYNCING = zen.rest.GET.api.node.syncing(peer="http://127.0.0.1:%s" % api_port).get("data", {})

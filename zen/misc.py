@@ -176,7 +176,7 @@ def notify(body):
     ]:
         response = func(title, body)
         if isinstance(response, dict):
-            zen.logMsg("notification response:\n%s" % response)
+            zen.logMsg("%s: notification response:\n%s" % (func.__name__, response))
             if response.get("status", 1000) < 300:
                 return response
 

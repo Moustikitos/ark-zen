@@ -473,6 +473,7 @@ def checkApplied(username):
                 logMsg("milestone set (%d transaction left to check)" % len(registry))
                 start = time.time()
         dumpJson(registry, name+".milestone", folder=folder)
+        sqlite.commit()
 
         if len(registry) == 0:
             dumpJson(full_registry, name, folder=os.path.join(folder, "backup"))
@@ -482,15 +483,12 @@ def checkApplied(username):
             except:
                 pass
             checked_tx = full_registry.values()
-            zen.misc.notify("Payroll successfully broadcasted !\n%.8f %s sent trough %d transactions" % (
+            zen.misc.notify("Payroll successfully broadcasted !\n%.8f token sent trough %d transactions" % (
                 sum([sum([int(rec["amount"]) for rec in tx["asset"].get("payments", [])]) for tx in checked_tx])/100000000.,
-                dposlib.rest.cfg.symbol,
                 len(checked_tx)
             ))
         else:
             zen.misc.notify("Transactions are still to be checked (%d)..." % len(registry))
-
-        sqlite.commit()
 
 
 def computeDelegateBlock(username, generatorPublicKey, block):
