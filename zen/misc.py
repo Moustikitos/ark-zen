@@ -10,6 +10,7 @@ import zen.tbw
 import pygal
 import pygal.style
 
+from uio import req as uio_req
 
 PM2_PREFFIX_NAMES = {
     "ark": "ark",
@@ -55,7 +56,9 @@ def transactionApplied(id):
 
 
 def delegateIsForging(username):
-    return zen.rest.GET.api.delegates.__getattr__(username)(returnKey="data")["rank"] <= zen.rest.cfg.activeDelegates
+    dlgt = zen.rest.GET.api.delegates(username).get("data", {})
+    rank = dlgt.get("rank", dlgt.get("attributes", {}).get("rank", -1))
+    return rank != -1 and rank <= zen.rest.cfg.activeDelegates
 
 
 def regenerateUnapplied(username, filename):
@@ -72,7 +75,7 @@ def regenerateUnapplied(username, filename):
 
 
 def loadPages(endpoint, pages=None, quiet=True, nb_tries=10, peer=None, condition=[]):
-    if not isinstance(endpoint, zen.rest.EndPoint):
+    if not isinstance(endpoint, uio_req.EndPoint):
         raise Exception("Invalid endpoint class")
     count, pageCount, data = 0, 1, []
     while count < pageCount:
