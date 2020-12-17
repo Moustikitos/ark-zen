@@ -2,8 +2,9 @@
 
 `zen` package, entirely written in python, provides `True Block Weight` utilities for DPOS pool.
 
-## Support this project
+### Support this project
 
+[Buy &#1126;](https://bittrex.com/Account/Register?referralCode=NW5-DQO-QMT) and:
   * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
   * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
 
