@@ -54,50 +54,87 @@ def setInterval(interval):
 
 def checkVersion():
     try:
-        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc").get("data", [])
+        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc").get(
+            "data", []
+        )
         if len(peers):
-            versions = set([p["version"] for p in peers[1:]])  # pop the very first update
+            # pop the very first update
+            versions = set([p["version"] for p in peers[1:]])
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join(["%s" % i for i in last])
-            if (last.encode("utf-8") if zen .PY3 else last) not in subprocess.check_output(["ark", "version"]).split()[0]:
+            if (last.encode("utf-8") if zen.PY3 else last) \
+               not in subprocess.check_output(["ark", "version"]).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
                 zen.logMsg("your node is up to date (%s)" % last)
     except Exception as e:
-        zen.logMsg("version check error:\n%r\n%s" % (e, traceback.format_exc()))
+        zen.logMsg(
+            "version check error:\n%r\n%s" % (e, traceback.format_exc())
+        )
 
 
 def checkRegistries():
     try:
-        for username in [name for name in os.listdir(zen.DATA) if os.path.isdir(os.path.join(zen.DATA, name))]:
-            block_delay = zen.loadJson("%s.json" % username).get("block_delay", False)
-            blocks = zen.loadJson("%s.forgery" % username, folder=os.path.join(zen.DATA, username)).get("blocks", 0)
+        for username in [
+            name for name in os.listdir(zen.DATA)
+            if os.path.isdir(os.path.join(zen.DATA, name))
+        ]:
+            block_delay = zen.loadJson("%s.json" % username).get(
+                "block_delay", False
+            )
+            blocks = zen.loadJson(
+                "%s.forgery" % username,
+                folder=os.path.join(zen.DATA, username)
+            ).get("blocks", 0)
             if block_delay and blocks >= block_delay:
-                zen.logMsg("%s payroll triggered by block delay : %s [>= %s]" % (username, blocks, block_delay))
+                zen.logMsg(
+                    "%s payroll triggered by block delay : %s [>= %s]" %
+                    (username, blocks, block_delay)
+                )
                 zen.tbw.extract(username)
                 zen.tbw.dumpRegistry(username)
                 zen.tbw.broadcast(username)
             else:
                 zen.tbw.checkApplied(username)
-                zen.logMsg("%s registry checked : %s [< %s]" % (username, blocks, block_delay))
+                zen.logMsg(
+                    "%s registry checked : %s [< %s]" %
+                    (username, blocks, block_delay)
+                )
     except Exception as e:
-        zen.logMsg("transaction check error:\n%r\n%s" % (e, traceback.format_exc()))
+        zen.logMsg(
+            "transaction check error:\n%r\n%s" % (e, traceback.format_exc())
+        )
 
 
 def generateCharts():
     try:
         delegates = dict(
-            [username, dict(zen.loadJson(username+".json", zen.JSON), **zen.dposlib.rest.GET.api.delegates(username, returnKey="data"))] for \
-            username in [name.split("-")[0] for name in os.listdir(zen.JSON) if name.endswith("-webhook.json")]
+            [
+                username,
+                dict(
+                    zen.loadJson(username+".json", zen.JSON),
+                    **zen.dposlib.rest.GET.api.delegates(
+                        username, returnKey="data")
+                    )
+                ] for username in [
+                    name.split("-")[0] for name in os.listdir(zen.JSON)
+                    if name.endswith("-webhook.json")
+                ]
         )
         real_blocktime = mixin.deltas()["real blocktime"]
-        [zen.misc.chartAir(delegates[username]["share"], 50, username, real_blocktime) for username in delegates]
+        [
+            zen.misc.chartAir(
+                delegates[username]["share"], 50, username, real_blocktime
+            ) for username in delegates
+        ]
         [zen.misc.generateChart(username) for username in delegates]
         zen.misc.chartAir(1., 50, "", real_blocktime)
         zen.logMsg("charts successfully generated")
     except Exception as e:
-        zen.logMsg("chart generation error:\n%r\n%s" % (e, traceback.format_exc()))
+        zen.logMsg(
+            "chart generation error:\n%r\n%s" % (e, traceback.format_exc())
+        )
 
 
 def checkIfForging():
@@ -114,7 +151,9 @@ def checkIfForging():
                 .get("data", {}).get("blocks", {}).get("last", {})
             height = zen.dposlib.rest.GET.api.blockchain() \
                 .get("data", {}).get("block", {}).get("height", 0)
-            last_block = zen.loadJson("%s.last.block" % username, folder=zen.DATA)
+            last_block = zen.loadJson(
+                "%s.last.block" % username, folder=zen.DATA
+            )
             last_round = (data["height"] - 1) // delegate_number
             current_round = (height - 1) // delegate_number
 
@@ -132,12 +171,16 @@ def checkIfForging():
                 delay = now - last_notification
 
                 if diff > 1:
-                    rank = zen.dposlib.rest.GET.api.delegates(username) \
-                           .get("data", {}).get("rank", -1)
+                    rank = zen.dposlib.rest.GET.api.delegates(
+                        username
+                    ).get("data", {}).get("rank", -1)
                     if not rank:
                         zen.logMsg("delegate %s not found" % username)
-                    send_notification = (rank <= delegate_number) and \
-                                        (delay >= notification_delay)
+                    send_notification = (
+                        rank <= delegate_number
+                    ) and (
+                        delay >= notification_delay
+                    )
                     # do the possible checks
                     if rank > delegate_number:
                         msg = "%s is not in forging position" % username
@@ -145,8 +188,12 @@ def checkIfForging():
                             zen.misc.notify(msg)
                             last_block["notification"] = now
                     else:
-                        msg = ("%s just missed a block" % username) if diff == 2 else \
-                              ("%s is missing blocks (total %d)" % (username, missed + 1))
+                        msg = (
+                            "%s just missed a block" % username
+                        ) if diff == 2 else (
+                            "%s is missing blocks (total %d)" %
+                            (username, missed + 1)
+                        )
                         if send_notification:
                             zen.misc.notify(msg)
                             last_block["notification"] = now
@@ -161,23 +208,43 @@ def checkIfForging():
 
                 # dump last forged block info
                 last_block.update(data)
-                zen.dumpJson(last_block, "%s.last.block" % username, folder=zen.DATA)
+                zen.dumpJson(
+                    last_block, "%s.last.block" % username, folder=zen.DATA
+                )
 
-            zen.logMsg("check if forging: %d | %d - %s" % (last_round, current_round, msg))
+            zen.logMsg(
+                "check if forging: %d | %d - %s" %
+                (last_round, current_round, msg)
+            )
 
     except Exception as e:
-        zen.logMsg("chart generation error:\n%r\n%s" % (e, traceback.format_exc()))
+        zen.logMsg(
+            "chart generation error:\n%r\n%s" % (e, traceback.format_exc())
+        )
 
 
 def checkNode():
     global IS_SYNCING, STATUS, SEED_STATUS, CHECK_RESULT
 
-# int(subprocess.check_output(shlex.split('psql -qtAX -d ark_mainnet -c "SELECT height FROM blocks ORDER BY height DESC LIMIT 1"')).strip())
+# int(
+#   subprocess.check_output(
+#       shlex.split(
+#           'psql -qtAX -d ark_mainnet -c '
+#           '"SELECT height FROM blocks ORDER BY height DESC LIMIT 1"'
+#       )
+#   ).strip()
+# )
 
     api_port = zen.rest.cfg.ports["core-api"]
-    IS_SYNCING = zen.rest.GET.api.node.syncing(peer="http://127.0.0.1:%s" % api_port).get("data", {})
-    STATUS = zen.rest.GET.api.node.status(peer="http://127.0.0.1:%s" % api_port).get("data", {})
-    SEED_STATUS = zen.rest.GET.api.node.status(peer="https://explorer.ark.io:8443").get("data", {})
+    IS_SYNCING = zen.rest.GET.api.node.syncing(
+        peer="http://127.0.0.1:%s" % api_port
+    ).get("data", {})
+    STATUS = zen.rest.GET.api.node.status(
+        peer="http://127.0.0.1:%s" % api_port
+    ).get("data", {})
+    SEED_STATUS = zen.rest.GET.api.node.status(
+        peer="https://explorer.ark.io:8443"
+    ).get("data", {})
 
     try:
         if STATUS == {}:
@@ -191,16 +258,23 @@ def checkNode():
             zen.logMsg(zen.json.dumps(STATUS))
             if not STATUS.get("synced"):
                 if IS_SYNCING["syncing"]:
-                    zen.misc.notify("Your node is syncing... %d blocks from network height" % IS_SYNCING["blocks"])
+                    zen.misc.notify(
+                        "Your node is syncing... %d blocks from network height"
+                        % IS_SYNCING["blocks"]
+                    )
                 else:
                     CHECK_RESULT["not syncing"] = True
-                    zen.misc.notify("Your node is not synced and seems stoped at height %d, network is at height %d" % (
-                        IS_SYNCING["height"],
-                        SEED_STATUS["now"]
-                    ))
+                    zen.misc.notify(
+                        "Your node is not synced and seems stoped at height "
+                        "%d, network is at height %d" % (
+                            IS_SYNCING["height"], SEED_STATUS["now"]
+                        )
+                    )
             elif CHECK_RESULT.get("not syncing", False):
                 CHECK_RESULT.pop("not syncing")
-                zen.misc.notify("Your node had recovered network height %d" % STATUS["now"])
+                zen.misc.notify(
+                    "Your node had recovered network height %d" % STATUS["now"]
+                )
 
     except Exception as e:
         zen.logMsg("node check error:\n%r\n%s" % (e, traceback.format_exc()))
@@ -218,7 +292,7 @@ def start():
     # check health status every minutes
     daemon_1 = setInterval(60)(checkNode)()
     # generate svg charts every round
-    daemon_2 = setInterval(sleep_time)(generateCharts)()
+    daemon_2 = setInterval(3 * sleep_time)(generateCharts)()
     # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
     # check updates
@@ -231,7 +305,9 @@ def start():
     try:
         while not DAEMON.is_set():
             time.sleep(sleep_time)
-            zen.logMsg("sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT))
+            zen.logMsg(
+                "sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT)
+            )
     except KeyboardInterrupt:
         zen.logMsg("Background tasks interrupted !")
 
