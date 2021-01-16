@@ -104,13 +104,13 @@ def dropJson(name, folder=None):
 
 def loadEnv(pathname):
     with io.open(pathname, "r") as environ:
-        lines = [l.strip() for l in environ.read().split("\n")]
+        lines = [li.strip() for li in environ.read().split("\n")]
     result = {}
-    for line in [l for l in lines if l != ""]:
-        key,value = [l.strip() for l in line.split("=")]
+    for line in [li for li in lines if li != ""]:
+        key, value = [li.strip() for li in line.split("=")]
         try:
             result[key] = int(value)
-        except:
+        except Exception:
             result[key] = value
     return result
 
@@ -118,7 +118,9 @@ def loadEnv(pathname):
 def dumpEnv(env, pathname):
     shutil.copy(pathname, pathname+".bak")
     with io.open(pathname, "wb") as environ:
-        for key,value in sorted([(k,v) for k,v in env.items()], key=lambda e:e[0]):
+        for key, value in sorted(
+            [(k, v) for k, v in env.items()], key=lambda e: e[0]
+        ):
             line = "%s=%s\n" % (key, value)
             environ.write(line.encode("utf-8"))
 
@@ -136,7 +138,10 @@ def logMsg(msg, logname=None, dated=False):
 
     stdout.write(
         ">>> " +
-        ("[%s] " % datetime.datetime.now().strftime("%x %X") if dated else "") +
+        (
+            "[%s] " % datetime.datetime.now().strftime("%x %X")
+            if dated else ""
+        ) +
         "%s\n" % msg
     )
     stdout.flush()
@@ -148,12 +153,18 @@ def logMsg(msg, logname=None, dated=False):
 def initPeers():
     global WEBHOOK_PEER, API_PEER
     root = loadJson("root.json")
-    try: env = loadEnv(root["env"])
-    except: pass
-    try: WEBHOOK_PEER = "http://127.0.0.1:%(CORE_WEBHOOKS_PORT)s" % env
-    except: pass
-    try: API_PEER = "http://127.0.0.1:%(CORE_API_PORT)s" % env
-    except: pass
+    try:
+        env = loadEnv(root["env"])
+    except Exception:
+        pass
+    try:
+        WEBHOOK_PEER = "http://127.0.0.1:%(CORE_WEBHOOKS_PORT)s" % env
+    except Exception:
+        pass
+    try:
+        API_PEER = "http://127.0.0.1:%(CORE_API_PORT)s" % env
+    except Exception:
+        pass
 
 
 def chooseItem(msg, *elem):
@@ -186,7 +197,8 @@ def chooseItem(msg, *elem):
 
 def chooseMultipleItem(msg, *elem):
     """
-    Convenience function to allow the user to select multiple items from a list.
+    Convenience function to allow the user to select multiple items from a
+    list.
     """
     n = len(elem)
     if n > 0:
@@ -204,9 +216,13 @@ def chooseMultipleItem(msg, *elem):
                     indexes = []
                     break
                 else:
-                    indexes = [int(s) for s in indexes.strip().replace(" ", ",").split(",") if s != ""]
+                    indexes = [
+                        int(s) for s in indexes.strip().replace(
+                            " ", ","
+                        ).split(",") if s != ""
+                    ]
                     indexes = [r for r in indexes if 0 < r <= n]
-            except:
+            except Exception:
                 indexes = []
         return [elem[i-1] for i in indexes]
 
@@ -223,11 +239,15 @@ def init():
     config_folder = root.get("config_folder", "")
     while not os.path.exists(config_folder):
         try:
-            config_folder = os.path.abspath(input("> enter configuration folder: "))
+            config_folder = os.path.abspath(
+                input("> enter configuration folder: ")
+            )
         except KeyboardInterrupt:
             raise Exception("configuration aborted...")
     try:
-        network = chooseItem("select network:", *list(os.walk(config_folder))[0][1])
+        network = chooseItem(
+            "select network:", *list(os.walk(config_folder))[0][1]
+        )
     except IndexError:
         raise Exception("configuration folder not found")
         sys.exit(1)
@@ -250,7 +270,9 @@ def init():
     root["config_folder"] = config_folder
     root["blockchain"] = blockchain
     root["name"] = network
-    root["env"] = os.path.expanduser(os.path.join(config_folder, network, ".env"))
+    root["env"] = os.path.expanduser(
+        os.path.join(config_folder, network, ".env")
+    s)
     dumpJson(root, "root.json")
     logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
