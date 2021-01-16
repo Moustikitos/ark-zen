@@ -272,7 +272,7 @@ def init():
     root["name"] = network
     root["env"] = os.path.expanduser(
         os.path.join(config_folder, network, ".env")
-    s)
+    )
     dumpJson(root, "root.json")
     logMsg("node configuration saved in %s" % os.path.join(JSON, "root.json"))
 
