@@ -32,8 +32,12 @@ INTEROPERABILITY = {
 }
 
 APPS = {
-    "relay": INTEROPERABILITY["relay"].get(zen.rest.cfg.network, "yarn exec ark relay:start"),
-    "forger": INTEROPERABILITY["forger"].get(zen.rest.cfg.network, "yarn exec ark relay:start"),
+    "relay": INTEROPERABILITY["relay"].get(
+        zen.rest.cfg.network, "yarn exec ark relay:start"
+    ),
+    "forger": INTEROPERABILITY["forger"].get(
+        zen.rest.cfg.network, "yarn exec ark relay:start"
+    ),
     "zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
     "zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
 }
@@ -62,19 +66,29 @@ def delegateIsForging(username):
 
 
 def regenerateUnapplied(username, filename):
-    registry = zen.loadJson("%s.registry" % filename, os.path.join(zen.DATA, username))
-    tbw = zen.loadJson("%s.tbw" % filename, os.path.join(zen.TBW, username, "history"))
+    registry = zen.loadJson(
+        "%s.registry" % filename, os.path.join(zen.DATA, username)
+    )
+    tbw = zen.loadJson(
+        "%s.tbw" % filename, os.path.join(zen.TBW, username, "history")
+    )
 
     for tx in registry.values():
         if not transactionApplied(tx["id"]):
-            zen.logMsg('tx %(id)s [%(amount)s --> %(recipientId)s] unapplied' % tx)
+            zen.logMsg(
+                'tx %(id)s [%(amount)s --> %(recipientId)s] unapplied' % tx
+            )
         else:
             tbw["weight"].pop(tx["recipientId"], False)
 
-    zen.dumpJson(tbw,'%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username))
+    zen.dumpJson(
+        tbw, '%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username)
+    )
 
 
-def loadPages(endpoint, pages=None, quiet=True, nb_tries=10, peer=None, condition=[]):
+def loadPages(
+    endpoint, pages=None, quiet=True, nb_tries=10, peer=None, condition=[]
+):
     if not isinstance(endpoint, uio_req.EndPoint):
         raise Exception("Invalid endpoint class")
     count, pageCount, data = 0, 1, []
@@ -179,7 +193,9 @@ def notify(body):
     ]:
         response = func(title, body)
         if isinstance(response, dict):
-            zen.logMsg("%s: notification response:\n%s" % (func.__name__, response))
+            zen.logMsg(
+                "%s: notification response:\n%s" % (func.__name__, response)
+            )
             if response.get("status", 1000) < 300:
                 return response
 
@@ -188,7 +204,7 @@ def start_pm2_app(appname):
     _appname = appname
     if appname in INTEROPERABILITY:
         appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system('''
+    os.system(r'''
 if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     %(pm2_app_cmd)s
 else
@@ -196,34 +212,36 @@ else
     pm2 restart %(appname)s -s
 fi
 ''' % {
-    "appname": appname,
-    "pm2_app_cmd": APPS.get(_appname, "echo pm2 cmd line not defined in zen script")
-}
-)
+            "appname": appname,
+            "pm2_app_cmd": APPS.get(
+                _appname, "echo pm2 cmd line not defined in zen script"
+            )
+        }
+    )
 
 
 def stop_pm2_app(appname):
     if appname in INTEROPERABILITY:
         appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system('''
+    os.system(r'''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     echo stoping %(appname)s...
     pm2 stop %(appname)s -s
 fi
 ''' % {"appname": appname}
-)
+    )
 
 
 def del_pm2_app(appname):
     if appname in INTEROPERABILITY:
         appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system('''
+    os.system(r'''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     echo deleting %(appname)s...
     pm2 delete %(appname)s -s
 fi
 ''' % {"appname": appname}
-)
+    )
 
 
 def generateChart(username):
@@ -231,8 +249,13 @@ def generateChart(username):
     timestamp = time.time() - (30*24*60*60)
     return chartTimedData(
         (
-            [datetime.datetime.fromtimestamp(row["timestamp"]), row["value"]] for row in 
-            cursor.execute("SELECT * FROM dilution WHERE timestamp > ? ORDER BY timestamp DESC", (timestamp,)).fetchall()
+            [
+                datetime.datetime.fromtimestamp(row["timestamp"]),
+                row["value"]
+            ] for row in cursor.execute(
+                "SELECT * FROM dilution WHERE timestamp > ? "
+                "ORDER BY timestamp DESC", (timestamp, )
+            ).fetchall()
         ),
         username
     )
@@ -252,10 +275,12 @@ def chartTimedData(data, username=""):
     )
     chart.add(
         "block weight % / Ѧ1000 vote",
-        [(d,round(1000*100*v, 4)) for d,v in data]
+        [(d, round(1000*100*v, 4)) for d, v in data]
     )
 
-    chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "ctd_%s.svg" % username))
+    chart.render_to_file(
+        os.path.join(zen.ROOT, "app", "static", "ctd_%s.svg" % username)
+    )
     # return chart.render_data_uri()
 
 
@@ -265,9 +290,17 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
     blocktime = info.blocktime if not blocktime else blocktime
 
     delegates = _get.api.delegates()["data"][:51]
-    min_vote, max_vote = [int(d["votes"])/100000000. for d in sorted(delegates[:info.activeDelegates][::info.activeDelegates-1], key=lambda d:d["votes"], reverse=True)]
+    min_vote, max_vote = [
+        int(d["votes"])/100000000.
+        for d in sorted(
+            delegates[:info.activeDelegates][::info.activeDelegates-1],
+            key=lambda d: d["votes"],
+            reverse=True
+        )
+    ]
 
-    yearly_share = 365 * 24 * info.blockreward * 3600./(info.activeDelegates * blocktime)
+    yearly_share = \
+        365 * 24 * info.blockreward * 3600./(info.activeDelegates * blocktime)
 
     chart = pygal.XY(
         title=u'Public delegates Annual Interest Rate (AIR)',
@@ -275,8 +308,8 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
         show_legend=False,
         show_x_labels=True,
         show_y_labels=True,
-        x_value_formatter=lambda x:"%.2f m%s" % (x/1000000, info.symbol),
-        y_value_formatter=lambda y:"%d%%" % y,
+        x_value_formatter=lambda x: "%.2f m%s" % (x/1000000, info.symbol),
+        y_value_formatter=lambda y: "%d%%" % y,
         x_label_rotation=20,
         x_title="Delegate vote power",
         y_title="Annual Interest Rate in %",
@@ -293,24 +326,37 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
     )
 
     step = (max_vote-min_vote)/nb_points
-    x_lst = [min_vote + i*step for i in range(0,nb_points,1)]
+    x_lst = [min_vote + i*step for i in range(0, nb_points, 1)]
     chart.x_labels = x_lst[::10]
     chart.add(
         "%d%% sharing delegate AIR in %%" % (share*100),
         [(v, 100.0*share*yearly_share/v) for v in x_lst],
         show_dots=False,
-        stroke_style={'width': 4, 'linecap': 'round', 'linejoin': 'round'}
+        stroke_style={
+            'width': 4, 'linecap': 'round', 'linejoin': 'round'
+        }
     )
 
     if zen.rest.cfg.network == "ark":
         try:
-            arkdelegates = _get.api.delegates(peer="https://arkdelegates.live", limit=51)["data"][:51]
-            data = dict([d["name"], d["payout_percent"]] for d in arkdelegates if not d["is_private"] and d["payout_percent"] not in [None, 0])
-            delegates = [dict(d, payout_percent=data[d["username"]]) for d in delegates if d["username"] in data]
+            arkdelegates = _get.api.delegates(
+                peer="https://arkdelegates.live", limit=51
+            )["data"][:51]
+            data = dict(
+                [d["name"], d["payout_percent"]] for d in arkdelegates
+                if not d["is_private"] and d["payout_percent"] not in [None, 0]
+            )
+            delegates = [
+                dict(d, payout_percent=data[d["username"]]) for d in delegates
+                if d["username"] in data
+            ]
 
             for name, votes, _share in [
-                (d["username"], float(d["votes"])/100000000., d['payout_percent']) for d in delegates \
-                if d["username"] != username
+                (
+                    d["username"],
+                    float(d["votes"])/100000000.,
+                    d["payout_percent"]
+                ) for d in delegates if d["username"] != username
             ]:
                 chart.add(
                     name,
@@ -325,16 +371,28 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 
     if username not in ["", None]:
         try:
-            delegate = [d for d in delegates if d.get("name", d.get("username")) == username][0]
-            votes = int(delegate.get("voting_power", delegate.get("votes")))/100000000.
+            delegate = [
+                d for d in delegates
+                if d.get("name", d.get("username")) == username
+            ][0]
+            votes = int(
+                delegate.get("voting_power", delegate.get("votes"))
+            )/100000000.
             chart.add(
                 username,
-                [(votes, delegate.get("payout_percent", share*100)*yearly_share/votes)],
+                [(
+                    votes,
+                    delegate.get(
+                        "payout_percent", share * 100
+                    ) * yearly_share / votes
+                )],
                 dots_size=8,
                 fill=True,
             )
         except Exception as e:
             zen.logMsg('error occured trying to put delegate details : %r' % e)
 
-    chart.render_to_file(os.path.join(zen.ROOT, "app", "static", "air_%s.svg" % username))
+    chart.render_to_file(
+        os.path.join(zen.ROOT, "app", "static", "air_%s.svg" % username)
+    )
     # return chart.render_data_uri()
