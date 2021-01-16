@@ -1,5 +1,7 @@
 # -*- encoding:utf-8 -*-
 import os
+import io
+import sys
 import time
 import traceback
 import threading
@@ -226,14 +228,15 @@ def checkIfForging():
 def checkNode():
     global IS_SYNCING, STATUS, SEED_STATUS, CHECK_RESULT
 
-# int(
-#   subprocess.check_output(
-#       shlex.split(
-#           'psql -qtAX -d ark_mainnet -c '
-#           '"SELECT height FROM blocks ORDER BY height DESC LIMIT 1"'
-#       )
-#   ).strip()
-# )
+    # get database height
+    # int(
+    #     subprocess.check_output(
+    #         shlex.split(
+    #             'psql -qtAX -d ark_mainnet -c '
+    #             '"SELECT height FROM blocks ORDER BY height DESC LIMIT 1"'
+    #         )
+    #     ).strip()
+    # )
 
     api_port = zen.rest.cfg.ports["core-api"]
     IS_SYNCING = zen.rest.GET.api.node.syncing(
@@ -331,6 +334,35 @@ def loop():
     data = zen.loadJson("bg-marker.json")
     if data["stop"] and isinstance(DAEMON, threading._Event):
         DAEMON.set()
+
+
+def deploy():
+    with io.open("./bg.service", "w") as unit:
+        unit.write(u"""[Unit]
+Description=Zen bg tasks
+After=network.target
+
+[Service]
+User=%(usr)s
+WorkingDirectory=%(wkd)s
+Environment=PYTHONPATH=%(path)s:${HOME}/dpos
+Environment=PATH=$(yarn global bin):$PATH
+ExecStart=%(exe)s %(mod)s
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+""" % {
+            "usr": os.environ.get("USER", "unknown"),
+            "wkd": os.path.normpath(sys.prefix),
+            "path": os.path.normpath(os.path.dirname(__file__)),
+            "exe": os.path.normpath(os.path.abspath(sys.executable)),
+            "mod": os.path.normpath(os.path.abspath(__file__))
+        })
+    os.system("chmod +x ./bg.service")
+    os.system("sudo mv --force ./bg.service /etc/systemd/system")
+    os.system("sudo systemctl daemon-reload")
+    os.system("sudo systemctl start bg.service")
 
 
 if __name__ == "__main__":

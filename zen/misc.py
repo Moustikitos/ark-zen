@@ -10,7 +10,7 @@ import zen.tbw
 import pygal
 import pygal.style
 
-from uio import req as uio_req
+from dposlib.rest import req as uio_req
 
 PM2_PREFFIX_NAMES = {
     "ark": "ark",
