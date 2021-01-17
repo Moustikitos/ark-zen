@@ -337,6 +337,8 @@ def loop():
 
 
 def deploy():
+    normpath = os.path.normpath
+
     with io.open("./bg.service", "w") as unit:
         unit.write(u"""[Unit]
 Description=Zen bg tasks
@@ -354,15 +356,17 @@ Restart=always
 WantedBy=multi-user.target
 """ % {
             "usr": os.environ.get("USER", "unknown"),
-            "wkd": os.path.normpath(sys.prefix),
-            "path": os.path.normpath(os.path.dirname(__file__)),
-            "exe": os.path.normpath(os.path.abspath(sys.executable)),
-            "mod": os.path.normpath(os.path.abspath(__file__))
+            "wkd": normpath(sys.prefix),
+            "path": normpath(os.path.dirname(__file__)),
+            "mod": normpath(os.path.abspath(__file__)),
+            "exe": normpath(sys.executable)
         })
+
     os.system("chmod +x ./bg.service")
     os.system("sudo mv --force ./bg.service /etc/systemd/system")
     os.system("sudo systemctl daemon-reload")
-    os.system("sudo systemctl start bg.service")
+    if not os.system("sudo systemctl restart bg"):
+        os.system("sudo systemctl start bg")
 
 
 if __name__ == "__main__":
