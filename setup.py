@@ -29,7 +29,6 @@ kw = {
         "wheel",
         "docopt",
         "flask",
-        "gunicorn",
         "pygal"
     ],
     "dependency_links": [
