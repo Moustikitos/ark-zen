@@ -12,8 +12,9 @@ import socket
 import datetime
 
 # register python familly
-PY3 = True if sys.version_info[0] >= 3 else False
-input = raw_input if not PY3 else input
+PY3 = sys.version_info[0] >= 3
+if not PY3:
+    input = raw_input
 
 # configuration pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -287,15 +288,49 @@ def init():
     logMsg("environement configuration saved in %s" % ENV)
 
 
+def deploy(host="0.0.0.0", port=5000):
+    normpath = os.path.normpath
+    executable = normpath(sys.executable)
+
+    with io.open("./zen.service", "w") as unit:
+        unit.write(u"""[Unit]
+Description=Zen TBW server
+After=network.target
+
+[Service]
+User=%(usr)s
+WorkingDirectory=%(wkd)s
+Environment=PYTHONPATH=%(path)s:${HOME}/dpos
+ExecStart=%(bin)s/gunicorn zen.app:app --bind=%(host)s:%(port)d --workers=5 --timeout 10 --access-logfile -
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+""" % {
+            "host": host,
+            "port": port,
+            "usr": os.environ.get("USER", "unknown"),
+            "wkd": normpath(sys.prefix),
+            "path": normpath(os.path.dirname(__file__)),
+            "bin": os.path.dirname(executable),
+        })
+
+    if os.system("%s -m pip show gunicorn" % executable) != "0":
+        os.system("%s -m pip install gunicorn" % executable)
+    os.system("chmod +x ./zen.service")
+    os.system("sudo mv --force ./zen.service /etc/systemd/system")
+    os.system("sudo systemctl daemon-reload")
+    if not os.system("sudo systemctl restart zen"):
+        os.system("sudo systemctl start zen")
+
+
 # initialize zen
 getIp()
 initPeers()
-
 # initialize blockchain network
 root = loadJson("root.json")
 rest.use(root.get("blockchain", "dark"))
 dposlib.core.stop()
-
 # customize blockchain network
 custom_peers = loadJson("tbw.json").get("custom_peers", [])
 if len(custom_peers) > 0:
