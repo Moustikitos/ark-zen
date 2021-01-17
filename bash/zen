@@ -54,7 +54,9 @@ import docopt
 from dposlib import rest
 
 sys.path.append(os.path.abspath(os.path.expanduser("~/ark-zen")))
+sys.path.append(os.path.abspath(".."))
 
+import bg
 import zen
 import zen.tbw
 import zen.snp
@@ -67,42 +69,14 @@ app_name = os.path.basename(ROOT_JSON.get("config_folder", ""))
 # app_name = ""
 CONFIG = ROOT_JSON.get("config_folder", "")
 # CONFIG = ""
-LOCAL = os.path.expanduser(os.path.join("~", ".local", "share", app_name, ROOT_JSON.get("name", "")))
+LOCAL = os.path.expanduser(
+    os.path.join("~", ".local", "share", app_name, ROOT_JSON.get("name", ""))
+)
 # LOCAL = "~/.local/share//
-CACHE = os.path.expanduser(os.path.join("~", ".cache", app_name, ROOT_JSON.get("name", "")))
+CACHE = os.path.expanduser(
+    os.path.join("~", ".cache", app_name, ROOT_JSON.get("name", ""))
+)
 # CACHE = "~/.cache//"
-
-
-BG_SERVICE = """[Unit]
-Description=Zen bg tasks
-After=network.target
-
-[Service]
-User=${USER}
-WorkingDirectory=${HOME}/.local/share/ark-zen
-Environment=PYTHONPATH=${HOME}/ark-zen:${HOME}/dpos
-Environment=PATH=$(yarn global bin):$PATH
-ExecStart=${HOME}/.local/share/ark-zen/venv/bin/python ${HOME}/ark-zen/bg.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-"""
-
-ZEN_SERVICE = """[Unit]
-Description=Zen TBW server
-After=network.target
-
-[Service]
-User=${USER}
-WorkingDirectory=${HOME}/.local/share/ark-zen
-Environment=PYTHONPATH=${HOME}/ark-zen:${HOME}/dpos
-ExecStart=${HOME}/.local/share/ark-zen/venv/bin/gunicorn zen.app:app --bind=0.0.0.0:5000 --workers=5 --timeout 10 --access-logfile -
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-"""
 
 
 def _fee(value):
@@ -143,13 +117,11 @@ def _addresses(value):
 
 
 def start_srv(args={}, **options):
-    os.system('echo "%s" > ~/zen.service' % ZEN_SERVICE)
-    os.system('echo "%s" > ~/bg.service' % BG_SERVICE)
-    os.system("sudo mv ~/zen.service ~/bg.service /etc/systemd/system")
-    os.system("sudo systemctl daemon-reload")
-    if not os.system("sudo systemctl restart zen"):
-        os.system("sudo systemctl start zen")
-        os.system("sudo systemctl start bg")
+    zen.deploy(
+        options.get("host", "0.0.0.0"),
+        options.get("port", 5000)
+    )
+    bg.deploy()
 
 
 def stop_srv(args={}, **options):
@@ -180,7 +152,9 @@ def initialize(args={}, **options):
     zen.init()
     zen.misc.start_pm2_app("relay")
     zen.logMsg("waiting for synced relay (it may takes one or two minutes)...")
-    while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get("data", {}).get("synced", False):
+    while not zen.rest.GET.api.node.status(peer=zen.API_PEER).get(
+        "data", {}
+    ).get("synced", False):
         time.sleep(5)
     zen.tbw.init()
     zen.tbw.printNewLine()
@@ -220,9 +194,14 @@ def remove_delegate(args={}, **options):
     username = args["<username>"]
 
     if not username:
-        webhooks = [name for name in os.listdir(os.path.join(zen.JSON)) if name.endswith("-webhook.json")]
+        webhooks = [
+            name for name in os.listdir(os.path.join(zen.JSON))
+            if name.endswith("-webhook.json")
+        ]
         usernames = [name.split("-")[0] for name in webhooks]
-        username = zen.chooseItem("Select listener to destroy:", *[u for u in usernames if u])
+        username = zen.chooseItem(
+            "Select listener to destroy:", *[u for u in usernames if u]
+        )
         if not username:
             return
 
@@ -277,7 +256,9 @@ def append_custom_peer(args={}, **options):
 
 def remove_custom_peer(args={}, **options):
     tbw = zen.loadJson("tbw.json")
-    items = zen.chooseMultipleItem("> select peers to remove", *tbw["custom_peers"])
+    items = zen.chooseMultipleItem(
+        "> select peers to remove", *tbw["custom_peers"]
+    )
     if len(items):
         for item in items:
             tbw["custom_peers"].remove(item)
@@ -304,19 +285,29 @@ if __name__ == "__main__":
 
     def getAction(args):
         for action in [k for k in args if k[0] not in ["-", "<"]]:
-            if args[action] == True:
+            if args[action] is True:
                 return action
         return False
 
     def getOptions(args):
         options = {}
-        for option,value in [(k,v) for k,v in args.items() if k.startswith("--") and v != None]:
+        for option, value in [
+            (k, v) for k, v in args.items()
+            if k.startswith("--") and v is not None
+        ]:
             try:
-                options[option[2:].replace("-", "_")] = FILTER.get(option, lambda v:v)(value)
+                options[option[2:].replace("-", "_")] = FILTER.get(
+                    option, lambda v: v
+                )(value)
             except Exception as error:
-                zen.logMsg("error in command line\n\t%s=%s : %s" % (option, value, error))
+                zen.logMsg(
+                    "error in command line\n\t%s=%s : %s" %
+                    (option, value, error)
+                )
                 sys.exit(1)
-        return dict((k,v) for k,v in options.items() if v not in [None, False])
+        return dict(
+            (k, v) for k, v in options.items() if v not in [None, False]
+        )
 
     args = docopt.docopt(__doc__, argv=sys.argv[1:])
     action = getAction(args)
