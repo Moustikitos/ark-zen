@@ -72,7 +72,7 @@ CONFIG = ROOT_JSON.get("config_folder", "")
 LOCAL = os.path.expanduser(
     os.path.join("~", ".local", "share", app_name, ROOT_JSON.get("name", ""))
 )
-# LOCAL = "~/.local/share//
+# LOCAL = "~/.local/share//"
 CACHE = os.path.expanduser(
     os.path.join("~", ".cache", app_name, ROOT_JSON.get("name", ""))
 )
@@ -209,7 +209,7 @@ def remove_delegate(args={}, **options):
     webhook = zen.loadJson(webhook_path)
     w_id = webhook.get("id", False)
     if w_id:
-        rest.DELETE.api.webhooks("%s"%webhook["id"], peer=webhook["peer"])
+        rest.DELETE.api.webhooks("%s" % webhook["id"], peer=webhook["peer"])
         os.remove(webhook_path)
         zen.logMsg("%s webhook destroyed" % username)
     else:
