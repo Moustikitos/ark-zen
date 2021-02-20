@@ -345,9 +345,6 @@ def getKeys(username):
         KEYS01 = dposlib.core.crypto.getKeys(config["#1"])
     else:
         pkey = getPublicKeyFromUsername(username)
-        # for testing purpose
-        # pkey = \
-        #  "030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe110d60a15e9"
         delegates = loadJson(
             "delegates.json", os.path.join(root["env"], "config")
         )
@@ -376,65 +373,6 @@ def dumpRegistry(username, chunk_size=50):
 
     KEYS01, KEYS02 = getKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
-
-    # for testing purpose
-    # wallet = {
-    # "address":"ARfDVWZ7Zwkox3ZXtMQQY1HYSANMB88vWE",
-    # "publicKey":
-    #   "030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe110d60a15e9",
-    # "nonce":"16973",
-    # "balance":"160032168390",
-    # "attributes":{
-    #   "delegate":{
-    #       "username":"arky",
-    #       "voteBalance":"182267782242191",
-    #       "forgedFees":"447838954643",
-    #       "forgedRewards":"44064800000000",
-    #       "producedBlocks":221746,
-    #       "rank":8,
-    #       "lastBlock":{
-    #           "version":0,"timestamp":93163312,
-    #           "height":11498689,
-    #           "previousBlockHex":
-    #               "23ccc346f07fe6a22e2cb8420faf7ed53675e14b85ded3d55d5f3e118"
-    #               "d987043",
-    #           "previousBlock":
-    #               "23ccc346f07fe6a22e2cb8420faf7ed53675e14b85ded3d55d5f3e118"
-    #               "d987043",
-    #           "numberOfTransactions":0,
-    #           "totalAmount":"0",
-    #           "totalFee":"0",
-    #           "reward":"200000000",
-    #           "payloadLength":0,
-    #           "payloadHash":
-    #               "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7"
-    #               "852b855",
-    #           "generatorPublicKey":
-    #               "030da05984d579395ce276c0dd6ca0a60140a3c3d964423a04e7abe11"
-    #               "0d60a15e9",
-    #           "blockSignature":
-    #               "304402207026213f4376fa0270f257600b6825e559e1a43e1402182e1"
-    #               "d6a9e2388573b1402202d631c2cc54ed8e9aeff0014d0d8efb31b706b"
-    #               "e1b38774be13a279ef239647da",
-    #           "idHex":
-    #               "e3dbd0b2647647bc5cb853f78d82fc9949dd2dc669469f5973622ce04"
-    #               a27fc0c",
-    #           "id":
-    #               "e3dbd0b2647647bc5cb853f78d82fc9949dd2dc669469f5973622ce04"
-    #               "a27fc0c"
-    #       },
-    #       "round":225466
-    #   },
-    #   "vote":
-    #       "02b54f00d9de5a3ace28913fe78a15afcfe242926e94d9b517d06d2705b261f99"
-    #       "2"
-    # },
-    # "isDelegate":True,
-    # "isResigned":False,
-    # "vote":
-    #   "02b54f00d9de5a3ace28913fe78a15afcfe242926e94d9b517d06d2705b261f992",
-    # "username":"arky"
-    # }
 
     if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
@@ -701,11 +639,7 @@ def checkApplied(username):
 
 
 def computeDelegateBlock(username, generatorPublicKey, block):
-    # get reward and fees from block data
-    rewards = float(block["reward"])/100000000.
-    fees = float(block["totalFee"])/100000000.
-    logMsg("%s forged %s : %.8f|%.8f" % (username, block["id"], rewards, fees))
-    blocks = 1
+    rewards, fees, blocks = 0., 0., 0
     # Because sometime network is not in good health, the spread function
     # can exit with exception. So compare the ids of last forged blocks
     # to compute rewards and fees...
@@ -721,7 +655,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         last_blocks = req.get("data", [])
         # raise Exceptions if issues with API call
         if not len(last_blocks):
-            raise Exception("No new block found in peer response")
+            raise Exception("No block found in peer response")
         elif req.get("error", False) is not False:
             raise Exception("Api error : %r" % req.get("error", "?"))
         # compute fees, blocs and rewards from the last saved block
@@ -730,18 +664,22 @@ def computeDelegateBlock(username, generatorPublicKey, block):
             # stop the loop when last forged block is reach in the last blocks
             # list
             if _id == last_block["id"]:
+                logMsg("    nothing more since block %s" % _id)
                 break
             # if bc is not synch and response is too bad, also check timestamp
-            elif (
-                _id != block["id"] and
-                blk["timestamp"]["epoch"] > last_block["timestamp"]
-            ):
-                logMsg("    getting rewards and fees from block %s..." % _id)
-                rewards += float(blk["forged"]["reward"])/100000000.
-                fees += float(blk["forged"]["fee"])/100000000.
-                blocks += 1
             else:
-                logMsg("    ignoring block %s (previously forged)" % _id)
+                if blk["timestamp"]["epoch"] > last_block["timestamp"]:
+                    reward = float(blk["forged"]["reward"])/100000000.
+                    fee = float(blk["forged"]["fee"])/100000000.
+                    logMsg(
+                        "    getting rewards and fees from block %s: %.8f|%.8f"
+                        % (_id, reward, fee)
+                    )
+                    rewards += reward
+                    fees += fee
+                    blocks += 1
+                else:
+                    logMsg("    ignoring block %s (previously forged)" % _id)
     # else initiate <username>.last.block
     else:
         dumpJson(block, filename, folder=folder)
