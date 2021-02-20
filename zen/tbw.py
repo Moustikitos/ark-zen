@@ -200,15 +200,21 @@ def askSecret(account, cmp_key="publicKey"):
         return keys["privateKey"]
 
 
-def distributeRewards(rewards, pkey, minvote=0, excludes=[]):
+def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
     minvote *= 100000000
+    if isinstance(maxvote, (int, float)):
+        maxvote *= 100000000
+        _max = lambda v, max=maxvote: min(max, v)
+    else:
+        _max = lambda v, max=maxvote: v
+
     voters = zen.misc.loadPages(
         rest.GET.api.delegates.__getattr__(pkey).voters
     )
     if len(voters) == 0:
         raise Exception("No voter found during distribution computation...")
     voters = dict(
-        [v["address"], float(v["balance"])] for v in voters if
+        [v["address"], _max(float(v["balance"]))] for v in voters if
         v["address"] not in excludes and
         float(v["balance"]) >= minvote
     )
@@ -750,7 +756,9 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         excludes.append(address)
     contributions = distributeRewards(
         rewards, username,
-        minvote=forger.get("minimum_vote", 0), excludes=excludes
+        minvote=forger.get("minimum_vote", 0),
+        maxvote=forger.get("maximum_vote", None),
+        excludes=excludes
     )
     # dump true block weight data
     _ctrb = forgery.get("contributions", {})
