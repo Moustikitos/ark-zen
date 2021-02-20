@@ -19,7 +19,7 @@
 			{%- for key,value in config.items() %}
 			<tr>
 				<th>{{ key }}</th>
-				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value) if key in ["minimum_vote", "threshold"] else _address(value) if key == "wallet" else value) | safe }}</td>
+				<td width="100%">{{ ("%.1f&nbsp;%%"%(value*100) if key == "share" else _currency(value) if key in ["minimum_vote", "maximum_vote", "threshold"] else _address(value) if key == "wallet" else value) | safe }}</td>
 			</tr>
 			{%- endfor %}
 		</table>
