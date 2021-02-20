@@ -639,9 +639,16 @@ def checkApplied(username):
 
 
 def computeDelegateBlock(username, generatorPublicKey, block):
-    rewards, fees, blocks = 0., 0., 0
     # Because sometime network is not in good health, the spread function
-    # can exit with exception. So compare the ids of last forged blocks
+    # can exit with exception.
+    rewards = float(block["reward"])/100000000.
+    fees = float(block["totalFee"])/100000000.
+    blocks = 1
+    logMsg(
+        "getting rewards and fees from forged block %s: %.8f|%.8f"
+        % (block["id"], rewards, fees)
+    )
+    # Compare the ids of last forged blocks
     # to compute rewards and fees...
     filename = "%s.last.block" % username
     folder = os.path.join(zen.DATA, username)
