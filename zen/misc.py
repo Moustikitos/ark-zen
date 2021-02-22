@@ -370,14 +370,28 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
             zen.logMsg('error occured using arkdelegates.io API : %r' % e)
 
     if username not in ["", None]:
+        forger = zen.loadJson("%s.json" % username)
         try:
+            minvote = forger.get("minimum_vote", 0.) * 100000000
+            maxvote = forger.get("maximum_vote", None)
+            if isinstance(maxvote, (int, float)):
+                maxvote *= 100000000
+                _max = lambda v, maxi=maxvote: min(maxi, v)
+            else:
+                _max = lambda v, maxi=maxvote: v
+            _min = lambda v, mini=minvote: v if v >= mini else 0
+
+            votes = sum([
+                _min(_max(float(v["balance"]))) for v in
+                zen.misc.loadPages(
+                    zen.rest.GET.api.delegates.__getattr__(username).voters
+                )
+            ])/100000000
+
             delegate = [
                 d for d in delegates
                 if d.get("name", d.get("username")) == username
             ][0]
-            votes = int(
-                delegate.get("voting_power", delegate.get("votes"))
-            )/100000000.
             chart.add(
                 username,
                 [(

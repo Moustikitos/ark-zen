@@ -38,6 +38,11 @@ def index():
 
 @app.route("/faq")
 def faq():
+    registered_usernames = [
+        name.split("-")[0] for name in os.listdir(zen.JSON)
+        if name.endswith("-webhook.json")
+    ]
+
     data = dict(
         (k, v) for k, v in dposlib.core.cfg.__dict__.items()
         if not k.startswith('_')
@@ -47,6 +52,7 @@ def faq():
         data["blocktime"] = dposlib.core.mixin.deltas()["real blocktime"]
     except Exception as e:
         zen.logMsg('error occured computing deltas : %s' % e)
+
     delegates = dict(
         [
             username,
@@ -54,11 +60,25 @@ def faq():
                 zen.loadJson(username+".json", zen.JSON),
                 **dposlib.rest.GET.api.delegates(username, returnKey="data")
             )
-        ] for username in [
-            name.split("-")[0] for name in os.listdir(zen.JSON)
-            if name.endswith("-webhook.json")
-        ]
+        ] for username in registered_usernames
     )
+
+    for username in registered_usernames:
+        minvote = delegates[username].get("minimum_vote", 0.) * 100000000
+        maxvote = delegates[username].get("maximum_vote", None)
+        if isinstance(maxvote, (int, float)):
+            maxvote *= 100000000
+            _max = lambda v, maxi=maxvote: min(maxi, v)
+        else:
+            _max = lambda v, maxi=maxvote: v
+        _min = lambda v, mini=minvote: v if v >= mini else 0
+        delegates[username]["votes"] = sum([
+            _min(_max(float(v["balance"]))) for v in
+            zen.misc.loadPages(
+                zen.rest.GET.api.delegates.__getattr__(username).voters
+            )
+        ])/100000000
+
     return flask.render_template("faq.html", info=data, delegates=delegates)
 
 
