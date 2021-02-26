@@ -311,7 +311,7 @@ WantedBy=multi-user.target
             "port": port,
             "usr": os.environ.get("USER", "unknown"),
             "wkd": normpath(sys.prefix),
-            "path": normpath(os.path.dirname(__file__)),
+            "path": normpath(os.path.dirname(__path__[0])),
             "bin": os.path.dirname(executable),
         })
 
