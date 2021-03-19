@@ -174,7 +174,7 @@ def add_delegate(args={}, **options):
 def backup_data(args={}, **options):
     os.system('''
 cd %(path)s
-tar --create --file=data-bkp.tar *.db app/.tbw app/.data
+tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
 ''' % {"path": os.path.abspath(zen.__path__[0])}
     )
 
