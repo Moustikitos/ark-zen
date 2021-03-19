@@ -381,12 +381,15 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
                 _max = lambda v, maxi=maxvote: v
             _min = lambda v, mini=minvote: v if v >= mini else 0
 
-            votes = sum([
-                _min(_max(float(v["balance"]))) for v in
-                zen.misc.loadPages(
+            vote_weights = [
+                float(v["balance"]) for v in zen.misc.loadPages(
                     zen.rest.GET.api.delegates.__getattr__(username).voters
                 )
-            ])/100000000
+            ]
+            real_votes = sum(vote_weights) / 100000000
+            votes = sum(
+                [_min(_max(weight)) for weight in vote_weights]
+            )/100000000
 
             delegate = [
                 d for d in delegates
@@ -395,7 +398,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
             chart.add(
                 username,
                 [(
-                    votes,
+                    real_votes,
                     delegate.get(
                         "payout_percent", share * 100
                     ) * yearly_share / votes
