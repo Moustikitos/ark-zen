@@ -1,7 +1,8 @@
-#!/bin/bash
+#! /bin/bash
 . ~/.local/share/ark-zen/venv/bin/activate
 export PYTHONPATH=${PYTHONPATH}:${HOME}/ark-zen
 export PATH=$(yarn global bin):$PATH
+$HOME/zen backup-data
 $HOME/zen snap-blockchain
 deactivate
 exit
