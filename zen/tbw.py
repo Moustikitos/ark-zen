@@ -376,11 +376,9 @@ def dumpRegistry(username, chunk_size=50):
 
     if KEYS01 and len(wallet):
         config = loadJson("%s.json" % username)
-        fee_level = config.get("fee_level", False)
-        if fee_level:
-            dposlib.core.Transaction.useDynamicFee(fee_level)
-        else:
-            dposlib.core.Transaction.useStaticFee()
+        dposlib.core.Transaction.useDynamicFee(
+            config.get("fee_level", None)
+        )
 
         for name in tbw_files:
             data = loadJson(name, folder)
@@ -668,9 +666,11 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         # compute fees, blocs and rewards from the last saved block
         for blk in last_blocks:
             _id = blk["id"]
+            if _id == block["id"]:
+                pass
             # stop the loop when last forged block is reach in the last blocks
             # list
-            if _id == last_block["id"]:
+            elif _id == last_block["id"]:
                 logMsg("    nothing more since block %s" % _id)
                 break
             # if bc is not synch and response is too bad, also check timestamp
