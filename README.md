@@ -47,11 +47,12 @@ $HOME/ark-zen/bash/activate
 ```
 ```
 Usage:
-    zen (reset | initialize | snap-blockchain | rebuild | remove-custom-peer)
-    zen (start-srv | stop-srv | log-zen | log-bg)
-    zen configure <username> [-s <share> -w <wallet> -t <threshold> -e <excludes> -b <block-delay> -f <fee-level>]
+    zen (reset | initialize | snap-blockchain | backup-data | rebuild | remove-custom-peer)
+    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
+    zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
+    zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
     zen add-delegate <username> [-h <webhook-peer>]
-    zen configure [--max-per-sender <max-per-sender> --fee-coverage --chunk-size <chubk-size>]
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
@@ -66,6 +67,8 @@ Options:
     -s --share=<share>                : delegate share rate (0.0<=share<=1.0)
     -t --threshold=<threshold>        : minimum amount for a payment
     -n --name-list=<name-list>        : *.tbw coma-separated name list
+    -m --minimum-vote=<minimum-vote>  : set a minimum vote level
+    -M --maximum-vote=<maximum-vote>  : set a maximum vote level
     --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
     --chunk-size=<chunk-size>         : max transaction per request [default:30]
     --fee-coverage                    : delegate covers transaction fees (flag)
@@ -74,17 +77,19 @@ Subcommands:
     reset              : initialization starting from ark-core config folder
     initialize         : initialization starting from delegates configuration
     rebuild            : rebuild database from snapshots
-    configure          : configure options for a given <username>
-    start-srv          : start the true block weight server tasks
+    configure          : configure global or delegate-specific options
+    deploy-srv         : deploy services and start the true block weight server tasks
+    restart-srv        : restart the true block weight server tasks
     stop-srv           : stop the true block weight server tasks
     log-zen/bg         : log true block weight server or background tasks
+    backup-data        : store delegate public data in a data-bkp.tar.bz2
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add <username> without relay initialization (use if bip39 secret protection)
     remove-delegate    : remove delegate from list or specified by <username>
     snap-blockchain    : update snapshot or create it if no snapshot initialized yet
-    append-custom-peer : append custom peer from comma-separated-peer or newline-separated-peer file
+    append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
 
