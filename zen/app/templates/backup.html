@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{%- block title %}
+<title>Download backup</title>
+{%- endblock title %}
+
+{%- block body %}
+<div class="container">
+	<h1>Security check</h1>
+	<form action="/backup/download" method="POST">
+		<input type="text" id="value" name="value" placeholder="Enter your code" />
+		<input value="Download backup" type="submit" />
+	</form>
+</div>
+{%- endblock body %}

@@ -2,13 +2,15 @@
 import os
 import zen
 import math
-
+import time
+import hashlib
+import binascii
 from collections import OrderedDict
 
 import flask
-import zen.misc
 import dposlib
 
+import zen.misc
 from zen.app.core import app
 from zen.tbw import initDb
 
@@ -34,6 +36,37 @@ def index():
         "index.html",
         accounts=[a for a in accounts if a.get("username", False)]
     )
+
+
+@app.route('/backup/download', methods=["GET", "POST"])
+def download_backup():
+    if flask.request.method == "POST":
+        challenge = zen.loadJson("challenge.json")
+        value = flask.request.form.get("value")
+        if time.time() > challenge.get("expiration", 0):
+            return "", 408
+        elif challenge.get("value", "") != value:
+            return "", 403
+        else:
+            return flask.send_file(
+                os.path.abspath(
+                    os.path.join(zen.__path__[0], "data-bkp.tar.bz2")
+                ),
+                as_attachment=True
+            )
+
+    challenge = "%s" % int(
+        hashlib.sha256(
+            binascii.hexlify(os.urandom(32))
+        ).hexdigest()[:5],
+        16
+    )
+    zen.dumpJson(
+        {"value": challenge, "expiration": time.time()+60},
+        "challenge.json"
+    )
+    zen.misc.notify("Your challenge code is:\n%s" % challenge)
+    return flask.render_template("backup.html")
 
 
 @app.route("/faq")
