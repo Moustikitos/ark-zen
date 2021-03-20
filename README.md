@@ -110,6 +110,7 @@ Notice that `relay` have to be restarted then.
 4 notification types are available. Notification service is activated if a json configuration file is present in `.json` folder.
 
 **freemobile (french only)**
+
 Notification option must be enabled in your Free mobile account. Then, copy your parameters in `freemobile.json` file&nbsp;:
 ```json
 {
@@ -119,6 +120,7 @@ Notification option must be enabled in your Free mobile account. Then, copy your
 ```
 
 **twilio**
+
 Copy your parameters in `twilio.json` file&nbsp;:
 ```json
 {
@@ -130,6 +132,7 @@ Copy your parameters in `twilio.json` file&nbsp;:
 ```
 
 **Pushover**
+
 Copy your parameters in `pushover.json` file&nbsp;:
 ```json
 {
@@ -139,6 +142,7 @@ Copy your parameters in `pushover.json` file&nbsp;:
 ```
 
 **Pushbullet**
+
 Copy your API token in `pushbullet.json` file&nbsp;:
 ```json
 {
