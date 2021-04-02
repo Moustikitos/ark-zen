@@ -286,6 +286,7 @@ def checkNode():
 def start():
     global DAEMON, IS_SYNCING, STATUS, SEED_STATUS
     sleep_time = zen.rest.cfg.blocktime * zen.rest.cfg.activeDelegates
+    sys.path.append(os.path.expanduser("~/.yarn/bin"))
 
     data = zen.loadJson("bg-marker.json")
     data["stop"] = False
@@ -347,7 +348,7 @@ After=network.target
 [Service]
 User=%(usr)s
 WorkingDirectory=%(wkd)s
-Environment=PYTHONPATH=%(path)s:${HOME}/dpos
+Environment=PYTHONPATH=%(path)s
 Environment=PATH=$(yarn global bin):$PATH
 ExecStart=%(exe)s %(mod)s
 Restart=always
