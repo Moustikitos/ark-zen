@@ -173,7 +173,7 @@ def initialize(args={}, **options):
         snap_blockchain()
     else:
         zen.logMsg("snapshot creation skipped")
-    start_srv()
+    restart_srv()
 
 
 def add_delegate(args={}, **options):
