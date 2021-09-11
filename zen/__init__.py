@@ -251,7 +251,6 @@ def init():
         )
     except IndexError:
         raise Exception("configuration folder not found")
-        sys.exit(1)
     else:
         if not network:
             logMsg("node configuration skipped (%s)" % network)
