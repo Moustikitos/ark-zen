@@ -290,6 +290,11 @@ def init():
 def deploy(host="0.0.0.0", port=5000):
     normpath = os.path.normpath
     executable = normpath(sys.executable)
+    gunicorn_conf = os.path.normpath(
+        os.path.abspath(
+            os.path.expanduser("~/ark-zen/gunicorn.conf.py")
+        )
+    )
 
     with io.open("./zen.service", "w") as unit:
         unit.write(u"""[Unit]
@@ -300,7 +305,8 @@ After=network.target
 User=%(usr)s
 WorkingDirectory=%(wkd)s
 Environment=PYTHONPATH=%(path)s:${HOME}/dpos
-ExecStart=%(bin)s/gunicorn zen.app:app --bind=%(host)s:%(port)d --workers=5 --timeout 10 --access-logfile -
+ExecStart=%(bin)s/gunicorn zen.app:app \
+--bind=%(host)s:%(port)d --workers=5 --timeout 10 --access-logfile -
 Restart=always
 
 [Install]
@@ -317,6 +323,7 @@ WantedBy=multi-user.target
     if os.system("%s -m pip show gunicorn" % executable) != "0":
         os.system("%s -m pip install gunicorn" % executable)
     os.system("chmod +x ./zen.service")
+    os.system("sudo cp %s %s" % (gunicorn_conf, normpath(sys.prefix)))
     os.system("sudo mv --force ./zen.service /etc/systemd/system")
     os.system("sudo systemctl daemon-reload")
     if not os.system("sudo systemctl restart zen"):
@@ -326,11 +333,3 @@ WantedBy=multi-user.target
 # initialize zen
 getIp()
 initPeers()
-# initialize blockchain network
-root = loadJson("root.json")
-rest.use(root.get("blockchain", "dark"))
-dposlib.core.stop()
-# customize blockchain network
-custom_peers = loadJson("tbw.json").get("custom_peers", [])
-if len(custom_peers) > 0:
-    dposlib.rest.cfg.peers = custom_peers
