@@ -266,6 +266,8 @@ def init():
         if not blockchain:
             logMsg("node configuration skipped (%s)" % network)
             sys.exit(1)
+        else:
+            dposlib.rest.use(blockchain)
 
     root["config_folder"] = config_folder
     root["blockchain"] = blockchain

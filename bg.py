@@ -371,5 +371,7 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
+    # initialize blockchain network
+    zen.rest.use(zen.loadJson("root.json").get("blockchain", "dark"))
     loop()
     start()

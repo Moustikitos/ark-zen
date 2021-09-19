@@ -169,10 +169,6 @@ def initialize(args={}, **options):
         time.sleep(5)
     zen.tbw.init()
     zen.tbw.printNewLine()
-    if zen.input("initialize snapshot ?[y-N]> ") in ["Y", "y"]:
-        snap_blockchain()
-    else:
-        zen.logMsg("snapshot creation skipped")
     restart_srv()
 
 
