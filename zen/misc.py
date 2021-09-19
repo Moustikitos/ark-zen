@@ -22,21 +22,19 @@ INTEROPERABILITY = {
     "relay": {
         "ark": "yarn exec ark relay:start",
         "dark": "yarn exec ark relay:start",
-        "prs": "bash ~/core-control/ccontrol.sh start relay"
     },
     "forger": {
         "ark": "yarn exec ark forger:start",
         "dark": "yarn exec ark forger:start",
-        "prs": "bash ~/core-control/ccontrol.sh start forger"
     }
 }
 
 APPS = {
     "relay": INTEROPERABILITY["relay"].get(
-        zen.rest.cfg.network, "yarn exec ark relay:start"
+        getattr(zen.rest.cfg, "network", "?"), "yarn exec ark relay:start"
     ),
     "forger": INTEROPERABILITY["forger"].get(
-        zen.rest.cfg.network, "yarn exec ark relay:start"
+        getattr(zen.rest.cfg, "network", "?"), "yarn exec ark relay:start"
     ),
     "zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
     "zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
