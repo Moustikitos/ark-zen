@@ -16,7 +16,7 @@ import dposlib
 import zen.misc
 
 from dposlib import rest
-from dposlib.blockchain import slots
+from dposlib.ark import slots
 from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
 
 if zen.PY3:
@@ -414,7 +414,7 @@ def dumpRegistry(username, chunk_size=50):
                 dict.__setitem__(transaction, "nonce", nonce)
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
-                transaction.setFee()
+                transaction.fee = config.get("feeLevel", None)
                 transaction.signature = \
                     dposlib.core.crypto.getSignatureFromBytes(
                         dposlib.core.crypto.getBytes(transaction),
@@ -450,7 +450,7 @@ def dumpRegistry(username, chunk_size=50):
                 dict.__setitem__(transaction0, "nonce", nonce)
                 transaction0.senderId = wallet["address"]
                 transaction0.timestamp = timestamp
-                transaction0.setFee()
+                transaction0.fee = config.get("feeLevel", None)
                 transaction0.feeIncluded = True
                 transaction0.signature = \
                     dposlib.core.crypto.getSignatureFromBytes(
