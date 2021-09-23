@@ -238,7 +238,8 @@ def checkNode():
     #     ).strip()
     # )
 
-    api_port = zen.rest.cfg.ports["core-api"]
+    env = zen.loadEnv(zen.loadJson("root.json")["env"])
+    api_port = env["CORE_API_PORT"]
     IS_SYNCING = zen.rest.GET.api.node.syncing(
         peer="http://127.0.0.1:%s" % api_port
     ).get("data", {})
