@@ -3,8 +3,6 @@ import zen
 
 
 def post_worker_init(worker):
-    # initialize blockchain network
-    zen.rest.use(zen.loadJson("root.json").get("blockchain", "dark"))
     # customize blockchain network
     custom_peers = zen.loadJson("tbw.json").get("custom_peers", [])
     if len(custom_peers) > 0:

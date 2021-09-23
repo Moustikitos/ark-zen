@@ -335,3 +335,5 @@ WantedBy=multi-user.target
 # initialize zen
 getIp()
 initPeers()
+# initialize blockchain network
+rest.use(loadJson("root.json").get("blockchain", "dark"))
