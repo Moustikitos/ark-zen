@@ -59,13 +59,18 @@ def checkVersion():
         peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc").get(
             "data", []
         )
+        peers = [
+            p for p in peers if "@alessiodf/core-bridge-2.7" not in p["ports"]
+        ]
         if len(peers):
             # pop the very first update
-            versions = set([p["version"] for p in peers[1:]])
+            versions = set([p["version"].split("-")[0] for p in peers[1:]])
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join(["%s" % i for i in last])
             if (last.encode("utf-8") if zen.PY3 else last) \
-               not in subprocess.check_output(["ark", "version"]).split()[0]:
+               not in subprocess.check_output(
+                   "ark version", shell=True
+               ).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
@@ -296,7 +301,7 @@ def start():
     DAEMON = threading.Event()
     # check health status every minutes
     daemon_1 = setInterval(60)(checkNode)()
-    # generate svg charts every round
+    # generate svg charts every 3 round
     daemon_2 = setInterval(3 * sleep_time)(generateCharts)()
     # check all registries
     daemon_3 = setInterval(sleep_time)(checkRegistries)()
@@ -350,7 +355,7 @@ After=network.target
 User=%(usr)s
 WorkingDirectory=%(wkd)s
 Environment=PYTHONPATH=%(path)s
-Environment=PATH=$(yarn global bin):$PATH
+Environment=PATH=$(/usr/bin/yarn global bin):$PATH
 ExecStart=%(exe)s %(mod)s
 Restart=always
 
