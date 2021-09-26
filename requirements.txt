@@ -2,6 +2,4 @@ wheel
 docopt
 flask
 pygal
-git+https://github.com/Moustikitos/dpos@0.3.5#egg=dposlib
-git+https://github.com/Moustikitos/elliptic-curve#egg=pySecp256k1
-git+https://github.com/Moustikitos/micro-server#egg=usrv
+git+https://github.com/Moustikitos/dpos@master#egg=dposlib
