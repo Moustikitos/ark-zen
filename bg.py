@@ -9,8 +9,9 @@ import subprocess
 
 import zen
 import zen.tbw
-import zen.misc
 import zen.app
+import zen.misc
+import zen.biom
 
 from dposlib.ark.v2 import mixin
 
@@ -56,7 +57,7 @@ def setInterval(interval):
 
 def checkVersion():
     try:
-        peers = zen.dposlib.rest.GET.api.peers(orderBy="version:desc").get(
+        peers = zen.biom.dposlib.rest.GET.api.peers(orderBy="version:desc").get(
             "data", []
         )
         peers = [
@@ -121,7 +122,7 @@ def generateCharts():
                 username,
                 dict(
                     zen.loadJson(username+".json", zen.JSON),
-                    **zen.dposlib.rest.GET.api.delegates(
+                    **zen.biom.dposlib.rest.GET.api.delegates(
                         username, returnKey="data")
                     )
                 ] for username in [
@@ -150,13 +151,13 @@ def checkIfForging():
             name.split("-")[0] for name in os.listdir(zen.JSON)
             if name.endswith("-webhook.json")
         ]
-        delegate_number = zen.dposlib.rest.cfg.activeDelegates
+        delegate_number = zen.biom.dposlib.rest.cfg.activeDelegates
         notification_delay = 10 * 60  # 10 minutes in seconds
 
         for username in usernames:
-            data = zen.dposlib.rest.GET.api.delegates(username) \
+            data = zen.biom.dposlib.rest.GET.api.delegates(username) \
                 .get("data", {}).get("blocks", {}).get("last", {})
-            height = zen.dposlib.rest.GET.api.blockchain() \
+            height = zen.biom.dposlib.rest.GET.api.blockchain() \
                 .get("data", {}).get("block", {}).get("height", 0)
             last_block = zen.loadJson(
                 "%s.last.block" % username, folder=zen.DATA
@@ -178,7 +179,7 @@ def checkIfForging():
                 delay = now - last_notification
 
                 if diff > 1:
-                    rank = zen.dposlib.rest.GET.api.delegates(
+                    rank = zen.biom.dposlib.rest.GET.api.delegates(
                         username
                     ).get("data", {}).get("rank", -1)
                     if not rank:
@@ -243,7 +244,7 @@ def checkNode():
     #     ).strip()
     # )
 
-    env = zen.loadEnv(zen.loadJson("root.json")["env"])
+    env = zen.biom.loadEnv(zen.loadJson("root.json")["env"])
     api_port = env["CORE_API_PORT"]
     IS_SYNCING = zen.rest.GET.api.node.syncing(
         peer="http://127.0.0.1:%s" % api_port
@@ -252,7 +253,7 @@ def checkNode():
         peer="http://127.0.0.1:%s" % api_port
     ).get("data", {})
     SEED_STATUS = zen.rest.GET.api.node.status(
-        peer="https://explorer.ark.io:8443"
+        peer="https://api.ark.io"
     ).get("data", {})
 
     try:
@@ -289,26 +290,36 @@ def checkNode():
         zen.logMsg("node check error:\n%r\n%s" % (e, traceback.format_exc()))
 
 
-def start():
+def start(relay=False):
     global DAEMON, IS_SYNCING, STATUS, SEED_STATUS
-    sleep_time = zen.rest.cfg.blocktime * zen.rest.cfg.activeDelegates
-    sys.path.append(os.path.expanduser("~/.yarn/bin"))
+
+    for username in [
+        n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
+        if n.endswith("-webhook.json")
+    ]:
+        zen.biom.getUsernameKeys(username)
+        zen.logMsg("%s secrets pulled." % username)
 
     data = zen.loadJson("bg-marker.json")
     data["stop"] = False
     zen.dumpJson(data, "bg-marker.json")
 
+    sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
+    sys.path.append(os.path.expanduser("~/.yarn/bin"))
+
     DAEMON = threading.Event()
-    # check health status every minutes
-    daemon_1 = setInterval(60)(checkNode)()
+    if relay:
+        # check health status every minutes
+        daemon_1 = setInterval(60)(checkNode)()
+        # check updates
+        daemon_2 = setInterval(5 * sleep_time)(checkVersion)()
+        # check forge
+        daemon_3 = setInterval(30)(checkIfForging)()
     # generate svg charts every 3 round
-    daemon_2 = setInterval(3 * sleep_time)(generateCharts)()
+    daemon_4 = setInterval(3 * sleep_time)(generateCharts)()
     # check all registries
-    daemon_3 = setInterval(sleep_time)(checkRegistries)()
-    # check updates
-    daemon_4 = setInterval(5 * sleep_time)(checkVersion)()
-    # check forge
-    daemon_5 = setInterval(30)(checkIfForging)()
+    daemon_5 = setInterval(sleep_time)(checkRegistries)()
+
     zen.logMsg("Background tasks started !")
     zen.misc.notify("Background tasks started !")
 
@@ -320,26 +331,23 @@ def start():
             )
     except KeyboardInterrupt:
         zen.logMsg("Background tasks interrupted !")
+        DAEMON.set()
 
-    daemon_1.set()
-    daemon_2.set()
-    daemon_3.set()
+    if relay:
+        daemon_1.set()
+        daemon_2.set()
+        daemon_3.set()
     daemon_4.set()
     daemon_5.set()
+
+    zen.biom.pushBackKeys()
     zen.misc.notify("Background tasks stoped !")
+    zen.dropJson("bg-marker.json")
 
 
 def stop():
-    data = zen.loadJson("bg-marker.json")
-    data["stop"] = True
-    zen.dumpJson(data, "bg-marker.json")
-
-
-@setInterval(60)
-def loop():
     global DAEMON
-    data = zen.loadJson("bg-marker.json")
-    if data["stop"] and isinstance(DAEMON, threading._Event):
+    if isinstance(DAEMON, threading.Event):
         DAEMON.set()
 
 
@@ -377,7 +385,6 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
-    # initialize blockchain network
-    zen.rest.use(zen.loadJson("root.json").get("blockchain", "dark"))
-    loop()
-    start()
+    root = zen.loadJson("root.json")
+    zen.biom.dposlib.rest.use(root.get("blockchain", "dark"))
+    start(relay="env" in root)
