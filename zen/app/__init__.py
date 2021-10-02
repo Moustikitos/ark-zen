@@ -11,6 +11,7 @@ import flask
 import dposlib
 
 import zen.misc
+import zen.biom
 from zen.app.core import app
 from zen.tbw import initDb
 
@@ -108,7 +109,9 @@ def faq():
         delegates[username]["votes"] = sum([
             _min(_max(float(v["balance"]))) for v in
             zen.misc.loadPages(
-                zen.rest.GET.api.delegates.__getattr__(username).voters
+                zen.biom.dposlib.rest.GET.api.delegates.__getattr__(
+                    username
+                ).voters
             )
         ])/100000000
 

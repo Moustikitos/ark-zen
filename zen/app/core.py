@@ -86,8 +86,8 @@ def tweak():
 
 def dhm(last_blocks):
     days = \
-        last_blocks * zen.rest.cfg.blocktime * \
-        zen.rest.cfg.activeDelegates / (3600.*24)
+        last_blocks * zen.biom.dposlib.rest.cfg.blocktime * \
+        zen.biom.dposlib.rest.cfg.activeDelegates / (3600.*24)
     hours = (days - math.floor(days)) * 24
     minutes = (hours - math.floor(hours)) * 60
     return math.floor(days), math.floor(hours), math.floor(minutes)
