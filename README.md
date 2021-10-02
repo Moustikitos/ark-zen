@@ -241,3 +241,7 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 
 ### Monoceros (v3.1.0)
  - [X] Ark core 3.0 compliancy
+
+### Normae (v4.0.0)
+ - [X] Packagin improvement
+ - [X] improved secret protection
