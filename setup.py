@@ -32,7 +32,7 @@ kw = {
         "pygal"
     ],
     "dependency_links": [
-        "git+https://github.com/Moustikitos/dpos@master#egg=dposlib"
+        "https://github.com/Moustikitos/dpos@master#egg=dposlib"
     ],
     "license": "Cpyright 2016-2019 Toons",
     "classifiers": [
