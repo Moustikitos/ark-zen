@@ -145,16 +145,12 @@ def deploy_srv(args={}, **options):
 
 def stop_srv(args={}, **options):
     os.system("sudo systemctl stop zen")
-    bg.stop()
-    marker = os.path.join(zen.JSON, "bg-marker.json")
-    while os.path.exists(marker):
-        zen.logMsg("Waiting for background task daemons...")
-        time.sleep(5)
-    # os.system("sudo systemctl stop bg")
+    os.system("sudo systemctl stop bg")
 
 
 def restart_srv(args={}, **options):
     stop_srv()
+    secrets()
     os.system("sudo systemctl start zen")
     os.system("sudo systemctl start bg")
 
