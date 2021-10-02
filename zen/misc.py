@@ -12,34 +12,6 @@ import pygal.style
 
 from dposlib.rest import req as uio_req
 
-PM2_PREFFIX_NAMES = {
-    "ark": "ark",
-    "dark": "ark",
-    "prs": "persona"
-}
-
-INTEROPERABILITY = {
-    "relay": {
-        "ark": "yarn exec ark relay:start",
-        "dark": "yarn exec ark relay:start",
-    },
-    "forger": {
-        "ark": "yarn exec ark forger:start",
-        "dark": "yarn exec ark forger:start",
-    }
-}
-
-APPS = {
-    "relay": INTEROPERABILITY["relay"].get(
-        getattr(zen.rest.cfg, "network", "?"), "yarn exec ark relay:start"
-    ),
-    "forger": INTEROPERABILITY["forger"].get(
-        getattr(zen.rest.cfg, "network", "?"), "yarn exec ark relay:start"
-    ),
-    "zen-srv": "cd ~/ark-zen && pm2 start srv.json -s",
-    "zen-bg": "cd ~/ark-zen && pm2 start bg.json -s",
-}
-
 
 def shorten(address, chunk=5):
     return address[:chunk]+"..."+address[-chunk:]
@@ -47,41 +19,6 @@ def shorten(address, chunk=5):
 
 def urlWallet(address):
     return zen.rest.cfg.explorer+"/wallets/"+address
-
-
-def transactionApplied(id):
-    data = zen.rest.GET.api.transactions(id).get("data", {})
-    if isinstance(data, dict):
-        return data.get("confirmations", 0) >= 10
-    else:
-        return False
-
-
-def delegateIsForging(username):
-    dlgt = zen.rest.GET.api.delegates(username).get("data", {})
-    rank = dlgt.get("rank", dlgt.get("attributes", {}).get("rank", -1))
-    return rank != -1 and rank <= zen.rest.cfg.activeDelegates
-
-
-def regenerateUnapplied(username, filename):
-    registry = zen.loadJson(
-        "%s.registry" % filename, os.path.join(zen.DATA, username)
-    )
-    tbw = zen.loadJson(
-        "%s.tbw" % filename, os.path.join(zen.TBW, username, "history")
-    )
-
-    for tx in registry.values():
-        if not transactionApplied(tx["id"]):
-            zen.logMsg(
-                'tx %(id)s [%(amount)s --> %(recipientId)s] unapplied' % tx
-            )
-        else:
-            tbw["weight"].pop(tx["recipientId"], False)
-
-    zen.dumpJson(
-        tbw, '%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username)
-    )
 
 
 def loadPages(
@@ -196,50 +133,6 @@ def notify(body):
             )
             if response.get("status", 1000) < 300:
                 return response
-
-
-def start_pm2_app(appname):
-    _appname = appname
-    if appname in INTEROPERABILITY:
-        appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system(r'''
-if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    %(pm2_app_cmd)s
-else
-    echo "(re)starting %(appname)s..."
-    pm2 restart %(appname)s -s
-fi
-''' % {
-            "appname": appname,
-            "pm2_app_cmd": APPS.get(
-                _appname, "echo pm2 cmd line not defined in zen script"
-            )
-        }
-    )
-
-
-def stop_pm2_app(appname):
-    if appname in INTEROPERABILITY:
-        appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system(r'''
-if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    echo stoping %(appname)s...
-    pm2 stop %(appname)s -s
-fi
-''' % {"appname": appname}
-    )
-
-
-def del_pm2_app(appname):
-    if appname in INTEROPERABILITY:
-        appname = PM2_PREFFIX_NAMES[zen.rest.cfg.network]+"-"+appname
-    os.system(r'''
-if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    echo deleting %(appname)s...
-    pm2 delete %(appname)s -s
-fi
-''' % {"appname": appname}
-    )
 
 
 def generateChart(username):

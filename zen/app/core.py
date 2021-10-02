@@ -8,8 +8,8 @@ import dposlib
 import zen
 import zen.tbw
 import zen.misc
-from zen import logMsg, loadJson, getUsernameFromPublicKey
-
+import zen.biom
+from zen import logMsg, loadJson
 
 # create the application instance
 app = flask.Flask(__name__)
@@ -49,7 +49,7 @@ def spread():
             raise Exception("Error: can not read data")
         else:
             generatorPublicKey = block["generatorPublicKey"]
-        username = getUsernameFromPublicKey(generatorPublicKey)
+        username = zen.biom.getUsernameFromPublicKey(generatorPublicKey)
         if not username:
             raise Exception("Error: can not reach username")
         # check autorization and exit if bad one

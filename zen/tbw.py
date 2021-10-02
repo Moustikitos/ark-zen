@@ -1,10 +1,8 @@
 # -*- coding:utf-8 -*-
 import os
-import sys
 import time
 import json
 import sqlite3
-import getpass
 import datetime
 import threading
 
@@ -13,16 +11,17 @@ from collections import OrderedDict
 import zen
 import pytz
 import dposlib
-import zen.misc
 
 from dposlib import rest
 from dposlib.ark import slots
-from zen import loadJson, dumpJson, logMsg, getPublicKeyFromUsername
+from zen import misc, biom, loadJson, dumpJson, logMsg
 
 if zen.PY3:
     import queue
 else:
     import Queue as queue
+
+biom.load()
 
 
 def initDb(username):
@@ -43,163 +42,6 @@ def initDb(username):
     return sqlite
 
 
-def printNewLine():
-    sys.stdout.write("\n")
-    sys.stdout.flush()
-
-
-def init(**kwargs):
-    webhook_peer = kwargs.get("webhook_peer", zen.WEBHOOK_PEER)
-    root = loadJson("root.json")
-
-    # if no options given, initialize forgers set on the node
-    if not len(kwargs):
-        # find delegates secrets and generate publicKeys
-        env_folder = os.path.dirname(root["env"])
-        if os.path.exists(os.path.join(env_folder, "delegates.json")):
-            # ark core >= v2.1.x
-            delegates = loadJson("delegates.json", env_folder)
-        else:
-            # ark core <= v2.0.x
-            delegates = loadJson(
-                "delegates.json", os.path.join(env_folder, "config")
-            )
-        pkeys = [
-            dposlib.core.crypto.getKeys(secret)["publicKey"]
-            for secret in delegates["secrets"]
-        ]
-
-        for pkey in set(pkeys):
-            setDelegate(pkey, webhook_peer, webhook_peer != zen.WEBHOOK_PEER)
-
-    elif "usernames" in kwargs:
-        pkeys = []
-        for username in kwargs.pop("usernames", []):
-            req = rest.GET.api.delegates(username).get("data", {})
-            if len(req):
-                pkeys.append(req["publicKey"])
-
-        for pkey in pkeys:
-            account = setDelegate(
-                pkey, webhook_peer, webhook_peer != zen.WEBHOOK_PEER
-            )
-            if account:
-                config = loadJson("%s.json" % account["username"])
-                config["#1"] = askSecret(account, cmp_key="publicKey")
-                config.update(**kwargs)
-                dumpJson(config, "%s.json" % account["username"])
-
-    elif "username" in kwargs:
-        username = kwargs.pop("username")
-        if getPublicKeyFromUsername(username):
-            config = loadJson("%s.json" % username)
-            config.update(**kwargs)
-            if not(config.get("fee_level", True)):
-                config.pop("fee_level", None)
-                logMsg("Dynamic fees disabled")
-            dumpJson(config, "%s.json" % username)
-            logMsg("%s delegate set" % username)
-        else:
-            logMsg("can not find delegate %s" % username)
-
-    else:
-        tbw = loadJson("tbw.json")
-        for key in [
-            k for k in ["target_delegate", "fee_coverage"] if k in kwargs
-        ]:
-            value = kwargs.pop(key)
-            if value:
-                if key in tbw:
-                    tbw.pop(key)
-                    logMsg("%s disabled" % key)
-                else:
-                    tbw[key] = value
-                    logMsg("%s enabled" % key)
-
-        max_per_sender = int(kwargs.pop("max_per_sender", False))
-        if max_per_sender is not False:
-            env = zen.loadEnv(root["env"])
-            env["CORE_TRANSACTION_POOL_MAX_PER_SENDER"] = max_per_sender
-            zen.dumpEnv(env, root["env"])
-            zen.logMsg(
-                "env parameter CORE_TRANSACTION_POOL_MAX_PER_SENDER set to %d"
-                "\n    ark-core-relay have to be restarted" % (max_per_sender)
-            )
-
-        tbw.update(**kwargs)
-        dumpJson(tbw, "tbw.json")
-
-
-def setDelegate(pkey, webhook_peer, public=False):
-    printNewLine()
-    # for each publicKey, get account data (merge delegate and wallet info)
-    req = rest.GET.api.delegates(pkey).get("data", {})
-    account = rest.GET.api.wallets(pkey).get("data", {})
-    account.update(req)
-
-    if account != {}:
-        username = account["username"]
-        logMsg("setting up %s delegate..." % username)
-        # load forger configuration and update with minimum data
-        config = loadJson("%s.json" % username)
-        config.update(**{
-            "publicKey": pkey,
-            "#2": askSecret(account, cmp_key="secondPublicKey")
-        })
-        dumpJson(config, "%s.json" % username)
-        # create a webhook if no one is set
-        webhook = loadJson("%s-webhook.json" % username)
-        if not webhook.get("token", False):
-            data = rest.POST.api.webhooks(
-                peer=webhook_peer,
-                event="block.forged",
-                target="http://%s:5000/block/forged" % (
-                    zen.PUBLIC_IP if public else "127.0.0.1"
-                ),
-                conditions=[{
-                    "key": "generatorPublicKey",
-                    "condition": "eq",
-                    "value": pkey
-                }]
-            )
-            webhook = data.get("data", False)
-            if webhook:
-                webhook["peer"] = webhook_peer
-                dumpJson(webhook, "%s-webhook.json" % username)
-                logMsg("%s webhook set" % username)
-            else:
-                logMsg("error occur on webhook creation:\n%s" % data)
-        else:
-            logMsg("webhook already set for delegate %s" % username)
-        logMsg("%s delegate set" % username)
-        return account
-
-    else:
-        logMsg(
-            "%s: %s" % (
-                req.get("error", "API Error"),
-                req.get("message", "...")
-            )
-        )
-
-
-def askSecret(account, cmp_key="publicKey"):
-    if account.get(cmp_key, False):
-        keys = dposlib.core.crypto.getKeys("01")
-        while keys["publicKey"] != account[cmp_key]:
-            try:
-                secret = getpass.getpass(
-                    "> enter %s secret for %s: " %
-                    (account["username"], cmp_key)
-                )
-                keys = dposlib.core.crypto.getKeys(secret)
-            except KeyboardInterrupt:
-                printNewLine()
-                logMsg("delegate configuration skipped")
-                sys.exit(1)
-        return keys["privateKey"]
-
-
 def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
     minvote *= 100000000
     if isinstance(maxvote, (int, float)):
@@ -208,7 +50,7 @@ def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
     else:
         _max = lambda v, max=maxvote: v
 
-    voters = zen.misc.loadPages(
+    voters = misc.loadPages(
         rest.GET.api.delegates.__getattr__(pkey).voters
     )
     if len(voters) == 0:
@@ -252,7 +94,7 @@ def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
 
 
 def adjust(username, value):
-    if getPublicKeyFromUsername(username):
+    if biom.getPublicKeyFromUsername(username):
         folder = os.path.join(zen.DATA, username)
         forgery = loadJson("%s.forgery" % username, folder=folder)
         total = sum(forgery["contributions"].values())
@@ -280,7 +122,7 @@ def adjust(username, value):
 def extract(username):
     now = datetime.datetime.now(tz=pytz.UTC)
 
-    if getPublicKeyFromUsername(username):
+    if biom.getPublicKeyFromUsername(username):
         param = loadJson("%s.json" % username)
         threshold = param.get("threshold", 0.2)
         share = param.get("share", 1.0)
@@ -334,44 +176,13 @@ def extract(username):
         )
 
 
-def getKeys(username):
-    KEYS01 = None
-    KEYS02 = None
-
-    root = loadJson("root.json")
-    config = loadJson("%s.json" % username)
-
-    if "#1" in config:
-        KEYS01 = dposlib.core.crypto.getKeys(config["#1"])
-    else:
-        pkey = getPublicKeyFromUsername(username)
-        delegates = loadJson(
-            "delegates.json", os.path.join(root["env"], "config")
-        )
-        if delegates == {}:
-            delegates = loadJson(
-                "delegates.json", os.path.dirname(root["env"])
-            )
-        for secret in delegates["secrets"]:
-            KEYS01 = dposlib.core.crypto.getKeys(secret)
-            if KEYS01["publicKey"] == pkey:
-                break
-            else:
-                KEYS01 = False
-
-    if config.get("#2", None):
-        KEYS02 = dposlib.core.crypto.getKeys(config["#2"])
-
-    return KEYS01, KEYS02
-
-
 def dumpRegistry(username, chunk_size=50):
     folder = os.path.join(zen.ROOT, "app", ".tbw", username)
     tbw_files = [n for n in os.listdir(folder) if n.endswith(".tbw")]
     if not len(tbw_files):
         return False
 
-    KEYS01, KEYS02 = getKeys(username)
+    KEYS01, KEYS02 = biom.getUsernameKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
 
     if KEYS01 and len(wallet):
@@ -502,14 +313,14 @@ def broadcast(username, chunk_size=30):
             response = rest.POST.api.transactions(
                 transactions=chunk, **(
                     {"peer": zen.API_PEER}
-                    if zen.misc.delegateIsForging(username) else {}
+                    if biom.delegateIsForging(username) else {}
                 )
             )
             logMsg(
                 "broadcasting chunk of transactions...\n%s" %
                 json.dumps(response, indent=2)
             )
-        zen.misc.notify(
+        misc.notify(
             "New payroll started : %d transactions sent to delegate node..." %
             len(transactions)
         )
@@ -521,7 +332,7 @@ def updateRegistryNonces(username):
     if not len(registries):
         return False
 
-    KEYS01, KEYS02 = getKeys(username)
+    KEYS01, KEYS02 = biom.getUsernameKeys(username)
     wallet = rest.GET.api.wallets(username).get("data", {})
     nonce = int(wallet["nonce"]) + 1
 
@@ -555,6 +366,27 @@ def updateRegistryNonces(username):
     return True
 
 
+def regenerateUnapplied(username, filename):
+    registry = zen.loadJson(
+        "%s.registry" % filename, os.path.join(zen.DATA, username)
+    )
+    tbw = zen.loadJson(
+        "%s.tbw" % filename, os.path.join(zen.TBW, username, "history")
+    )
+
+    for tx in registry.values():
+        if not biom.transactionApplied(tx["id"]):
+            zen.logMsg(
+                'tx %(id)s [%(amount)s --> %(recipientId)s] unapplied' % tx
+            )
+        else:
+            tbw["weight"].pop(tx["recipientId"], False)
+
+    zen.dumpJson(
+        tbw, '%s-unapplied.tbw' % filename, os.path.join(zen.TBW, username)
+    )
+
+
 def checkApplied(username):
     folder = os.path.join(zen.DATA, username)
     sqlite = initDb(username)
@@ -576,7 +408,7 @@ def checkApplied(username):
         start = time.time()
         transactions = list(registry.values())
         for tx in transactions:
-            if zen.misc.transactionApplied(tx["id"]):
+            if biom.transactionApplied(tx["id"]):
                 logMsg(
                     "transaction %(id)s <type %(type)s> applied" %
                     registry.pop(tx["id"])
@@ -616,7 +448,7 @@ def checkApplied(username):
             except Exception:
                 pass
             checked_tx = full_registry.values()
-            zen.misc.notify(
+            misc.notify(
                 "Payroll successfully broadcasted !\n"
                 "%.8f token sent trough %d transactions" % (
                     sum(
@@ -631,7 +463,7 @@ def checkApplied(username):
                 )
             )
         else:
-            zen.misc.notify(
+            misc.notify(
                 "Transactions are still to be checked (%d)..." % len(registry)
             )
 
@@ -731,10 +563,10 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     msg = "\n".join(
         [
             "%s removed from %s list [%.8f Arks]" %
-            (zen.misc.shorten(wallet), username, _ctrb[wallet])
+            (misc.shorten(wallet), username, _ctrb[wallet])
             for wallet in [w for w in _ctrb if w not in contributions]
         ] + [
-            "%s added to %s list" % (zen.misc.shorten(wallet), username)
+            "%s added to %s list" % (misc.shorten(wallet), username)
             for wallet in [w for w in contributions if w not in _ctrb]
         ]
     )
@@ -743,7 +575,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
         (" nothing hapened !" if msg == "" else ("\n%s" % msg))
     )
     if msg != "":
-        zen.misc.notify(msg)
+        misc.notify(msg)
 
 
 class TaskExecutioner(threading.Thread):
