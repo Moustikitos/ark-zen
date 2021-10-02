@@ -137,7 +137,8 @@ def secrets(args={}, **options):
                     secondPublicKey
                 )
 
-            zen.dumpJson(config, "%s.json" % username)
+            if any([config.get("#1", False), config.get("#2", False)]):
+                zen.dumpJson(config, "%s.json" % username)
 
 
 def deploy_srv(args={}, **options):
