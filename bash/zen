@@ -150,7 +150,6 @@ def stop_srv(args={}, **options):
 
 def restart_srv(args={}, **options):
     stop_srv()
-    secrets()
     os.system("sudo systemctl start zen")
     os.system("sudo systemctl start bg")
 
