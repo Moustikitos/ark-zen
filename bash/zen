@@ -12,9 +12,9 @@ Usage:
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
+    zen secrets [<username>]
     zen append-custom-peer <peer-list>
     zen remove-custom-peer
-    zen secrets
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -108,10 +108,15 @@ def _addresses(value):
 
 
 def secrets(args={}, **options):
-    for username in [
-        n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
-        if n.endswith("-webhook.json")
-    ]:
+    if args["<username>"]:
+        list = [args["<username>"]]
+    else:
+        list = [
+            n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
+            if n.endswith("-webhook.json")
+        ]
+
+    for username in list:
         config = zen.loadJson("%s.json" % username)
         wlt = zen.biom.dposlib.rest.GET.api.wallets(username).get("data", {})
 
@@ -191,6 +196,7 @@ tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
 
 
 def launch_payroll(args={}, **options):
+    secrets(args={}, **options)
     username = args["<username>"]
     zen.tbw.extract(username)
     zen.tbw.dumpRegistry(username)
@@ -198,12 +204,14 @@ def launch_payroll(args={}, **options):
 
 
 def resume_payroll(args={}, **options):
+    secrets(args={}, **options)
     username = args["<username>"]
     zen.tbw.dumpRegistry(username)
     zen.tbw.broadcast(username)
 
 
 def retry_payroll(args={}, **options):
+    secrets(args={}, **options)
     username = args["<username>"]
     zen.tbw.updateRegistryNonces(username)
     zen.tbw.broadcast(username)
