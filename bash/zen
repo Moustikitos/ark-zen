@@ -13,6 +13,8 @@ Usage:
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
     zen append-custom-peer <peer-list>
+    zen remove-custom-peer
+    zen secrets
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -41,10 +43,11 @@ Subcommands:
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add <username> without relay initialization (use if bip39 secret protection)
+    add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate from list or specified by <username>
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
+    zen secrets        : reset delegate secrets
 """
 
 #    zen (reset | initialize | snap-blockchain | backup-data | rebuild | remove-custom-peer)
@@ -55,11 +58,9 @@ Subcommands:
 import io
 import os
 import sys
-# import time
+import time
 import base58
 import docopt
-
-# from dposlib import rest
 
 sys.path.append(os.path.abspath(os.path.expanduser("~/ark-zen")))
 sys.path.append(os.path.abspath(".."))
@@ -67,25 +68,7 @@ sys.path.append(os.path.abspath(".."))
 import bg
 import zen
 import zen.tbw
-# import zen.snp
-# import zen.misc
 import zen.biom
-
-
-# ROOT_JSON = zen.loadJson("root.json")
-# # if ROOT_JSON == {}:
-# app_name = os.path.basename(ROOT_JSON.get("config_folder", ""))
-# # app_name = ""
-# CONFIG = ROOT_JSON.get("config_folder", "")
-# # CONFIG = ""
-# LOCAL = os.path.expanduser(
-#     os.path.join("~", ".local", "share", app_name, ROOT_JSON.get("name", ""))
-# )
-# # LOCAL = "~/.local/share//"
-# CACHE = os.path.expanduser(
-#     os.path.join("~", ".cache", app_name, ROOT_JSON.get("name", ""))
-# )
-# # CACHE = "~/.cache//"
 
 
 def _fee(value):
@@ -124,7 +107,7 @@ def _addresses(value):
         return result
 
 
-def _secrets():
+def secrets(args={}, **options):
     for username in [
         n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
         if n.endswith("-webhook.json")
@@ -162,8 +145,12 @@ def deploy_srv(args={}, **options):
 
 def stop_srv(args={}, **options):
     os.system("sudo systemctl stop zen")
-    os.system("sudo systemctl stop bg")
-    _secrets()
+    bg.stop()
+    marker = os.path.join(zen.JSON, "bg-marker.json")
+    while os.path.exists(marker):
+        zen.logMsg("Waiting for background task daemons...")
+        time.sleep(5)
+    # os.system("sudo systemctl stop bg")
 
 
 def restart_srv(args={}, **options):
@@ -178,10 +165,6 @@ def log_bg(args={}, **options):
 
 def log_zen(args={}, **options):
     os.system("sudo journalctl -u zen -ef")
-
-
-# def rebuild(args={}, **options):
-#     zen.snp.rollbackAndRebuild()
 
 
 def reset(args={}, **options):
@@ -231,61 +214,14 @@ def retry_payroll(args={}, **options):
     zen.tbw.broadcast(username)
 
 
-def remove_delegate(args={}, **options):
-    pass
-    # username = args["<username>"]
-
-    # if not username:
-    #     webhooks = [
-    #         name for name in os.listdir(os.path.join(zen.JSON))
-    #         if name.endswith("-webhook.json")
-    #     ]
-    #     usernames = [name.split("-")[0] for name in webhooks]
-    #     username = zen.chooseItem(
-    #         "Select listener to destroy:", *[u for u in usernames if u]
-    #     )
-    #     if not username:
-    #         return
-
-    # webhook_path = os.path.join(zen.JSON, "%s-webhook.json" % username)
-    # webhook = zen.loadJson(webhook_path)
-    # w_id = webhook.get("id", False)
-    # if w_id:
-    #     rest.DELETE.api.webhooks("%s" % webhook["id"], peer=webhook["peer"])
-    #     os.remove(webhook_path)
-    #     zen.logMsg("%s webhook destroyed" % username)
-    # else:
-    #     zen.logMsg("%s webhook not found" % username)
-
-    # username_path = os.path.join(zen.JSON, "%s.json" % username)
-    # delegate = zen.loadJson(username_path)
-    # if len(delegate):
-    #     os.remove(username_path)
-    #     zen.logMsg("%s destroyed" % username)
-    # else:
-    #     zen.logMsg("%s not found" % username)
-
-
-# def configure(args={}, **options):
-#     username = args["<username>"]
-#     if username:
-#         zen.tbw.init(username=username, **options)
-#     else:
-#         zen.tbw.init(**options)
-
-
 def adjust_forge(args={}, **options):
     username = args["<username>"]
     zen.tbw.adjust(username, float(args["<value>"]))
 
 
-# def snap_blockchain(args={}, **options):
-#     try:
-#         zen.snp.getSnapshots(os.path.join(LOCAL, "snapshots"))
-#     except Exception:
-#         zen.snp.createSnapshot()
-#     else:
-#         zen.snp.updateSnapshot()
+def remove_delegate(args={}, **options):
+    username = args["<username>"]
+    zen.biom.removeDelegate(username)
 
 
 def append_custom_peer(args={}, **options):
