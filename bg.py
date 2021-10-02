@@ -299,7 +299,6 @@ def start(relay=False):
         if n.endswith("-webhook.json")
     ]:
         zen.biom.getUsernameKeys(username)
-        zen.logMsg("%s secrets pulled." % username)
 
     sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
     sys.path.append(os.path.expanduser("~/.yarn/bin"))
@@ -327,6 +326,8 @@ def start(relay=False):
                 "sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT)
             )
     except KeyboardInterrupt:
+        # zen.biom.pushBackKeys()
+        # zen.logMsg("Secrets pushed back.")
         zen.logMsg("Background tasks interrupted !")
         DAEMON.set()
 
@@ -337,8 +338,6 @@ def start(relay=False):
     daemon_4.set()
     daemon_5.set()
 
-    zen.biom.pushBackKeys()
-    zen.logMsg("Secrets pushed back.")
     zen.misc.notify("Background tasks stoped !")
 
 
@@ -382,6 +381,15 @@ WantedBy=multi-user.target
 
 
 if __name__ == "__main__":
+    import signal
+
     root = zen.loadJson("root.json")
     zen.biom.dposlib.rest.use(root.get("blockchain", "dark"))
+
+    def signal_handler(signal, frame):
+        zen.biom.pushBackKeys()
+        zen.logMsg("Secrets pushed back.")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
     start(relay="env" in root)

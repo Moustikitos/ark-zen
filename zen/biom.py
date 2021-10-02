@@ -347,6 +347,7 @@ def getUsernameKeys(username):
         setattr(module, "_%s_#2" % username, config.pop("#2"))
         hide = True
     if hide:
+        zen.logMsg("%s secrets pulled." % username)
         zen.dumpJson(config, "%s.json" % username)
 
     H1 = module.__dict__.get("_%s_#1" % username, None)
