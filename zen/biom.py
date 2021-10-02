@@ -294,7 +294,9 @@ def removeDelegate(username):
 
 def waitForPeer(peer):
     try:
-        while dposlib.rest.GET(peer=peer, timeout=2).get("status", False) != 200:
+        while dposlib.rest.GET(
+            peer=peer, timeout=2
+        ).get("status", False) != 200:
             time.sleep(2)
             zen.logMsg("Wating for peer %s..." % peer)
         return True

@@ -57,9 +57,9 @@ def setInterval(interval):
 
 def checkVersion():
     try:
-        peers = zen.biom.dposlib.rest.GET.api.peers(orderBy="version:desc").get(
-            "data", []
-        )
+        peers = zen.biom.dposlib.rest.GET.api.peers(
+            orderBy="version:desc"
+        ).get("data", [])
         peers = [
             p for p in peers if "@alessiodf/core-bridge-2.7" not in p["ports"]
         ]
@@ -301,10 +301,6 @@ def start(relay=False):
         zen.biom.getUsernameKeys(username)
         zen.logMsg("%s secrets pulled." % username)
 
-    data = zen.loadJson("bg-marker.json")
-    data["stop"] = False
-    zen.dumpJson(data, "bg-marker.json")
-
     sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
     sys.path.append(os.path.expanduser("~/.yarn/bin"))
 
@@ -342,8 +338,8 @@ def start(relay=False):
     daemon_5.set()
 
     zen.biom.pushBackKeys()
+    zen.logMsg("Secrets pushed back.")
     zen.misc.notify("Background tasks stoped !")
-    zen.dropJson("bg-marker.json")
 
 
 def stop():
