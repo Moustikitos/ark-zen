@@ -33,16 +33,15 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 
 ```bash
 cd ~
-$HOME/ark-zen/bash/activate
+ark-zen/bash/activate
 ./zen initialize
 ```
-This command restarts `relay`.
 
 ## `zen` command
 
 ```bash
 cd ~
-$HOME/ark-zen/bash/activate
+ark-zen/bash/activate
 ./zen --help
 ```
 ```
@@ -77,7 +76,7 @@ Options:
 
 Subcommands:
     reset              : initialization starting from ark-core config folder
-    initialize         : initialization starting from delegates configuration
+    initialize         : initialization starting from peer selection
     configure          : configure global or delegate-specific options
     deploy-srv         : deploy services and start the true block weight server tasks
     restart-srv        : restart the true block weight server tasks
@@ -89,9 +88,9 @@ Subcommands:
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate from list or specified by <username>
+    zen secrets        : reset delegate secrets
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
-    zen secrets        : reset delegate secrets
 ```
 
 ## Specific tweak
