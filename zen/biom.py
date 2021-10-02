@@ -14,7 +14,6 @@ import dposlib
 import dposlib.rest
 import dposlib.net
 
-
 if not zen.PY3:
     input = raw_input
 
@@ -266,15 +265,31 @@ def configure(**kwargs):
         if getPublicKeyFromUsername(username):
             config = zen.loadJson("%s.json" % username)
             if not len(config):
-                if not setDelegate(username):
+                if not setDelegate(
+                    username, peer=kwargs.get("webhook_peer", None)
+                ):
                     return
             # reload JSON config file
-            config = zen.loadJson("%s.json" % username)
-            config.update(**kwargs)
+            # config = zen.loadJson("%s.json" % username)
+            config.update(zen.loadJson("%s.json" % username), **kwargs)
             zen.dumpJson(config, "%s.json" % username)
             zen.logMsg("%s delegate set" % username)
         else:
             zen.logMsg("can not find delegate %s" % username)
+
+
+def removeDelegate(username):
+    webhook = zen.loadJson("%s-webhook.json" % username)
+    if len(webhook):
+        resp = deleteWebhook(webhook["id"], peer=webhook["peer"])
+        if resp.get("status", 500) < 300:
+            zen.dropJson("%s-webhook.json" % username)
+            zen.dropJson("%s.json" % username)
+            if input("Remove %s data ?[Y/n] " % username) in "yY":
+                shutil.rmtree(os.path.join(zen.ROOT, "app", ".data", username))
+                shutil.rmtree(os.path.join(zen.ROOT, "app", ".tbw", username))
+    else:
+        zen.logMsg("%s not found" % username)
 
 
 def waitForPeer(peer):
@@ -332,6 +347,18 @@ def getUsernameKeys(username):
     )
 
 
+def pushBackKeys():
+    module = sys.modules[__name__]
+    for key, value in [
+        (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
+    ]:
+        username, num = key.replace("_", "").split("#")
+        num = "#" + num
+        config = zen.loadJson("%s.json" % username)
+        config[num] = value
+        zen.dumpJson(config, "%s.json" % username)
+
+
 def transactionApplied(id):
     data = dposlib.rest.GET.api.transactions(id).get("data", {})
     if isinstance(data, dict):
@@ -361,7 +388,13 @@ def setWebhook(publicKey):
     return data.get("data", data)
 
 
-def setDelegate(uname_or_puk):
+def deleteWebhook(id, peer):
+    data = dposlib.rest.DELETE.api.webhooks(id, peer=peer)
+    return data.get("data", data)
+
+
+def setDelegate(uname_or_puk, peer=None):
+    peer = zen.WEBHOOK_PEER if peer is None else peer
     account = dposlib.rest.GET.api.wallets(uname_or_puk).get("data", {})
     attributes = account.get("attributes", {})
 
@@ -385,11 +418,11 @@ def setDelegate(uname_or_puk):
             ) else "y"
 
         if overwrite in "yY":
-            if not waitForPeer(zen.WEBHOOK_PEER):
-                zen.logMsg("%s peer unreachable" % zen.WEBHOOK_PEER)
+            if not waitForPeer(peer):
+                zen.logMsg("%s peer unreachable" % peer)
                 return False
             webhook = setWebhook(config["publicKey"])
-            webhook["peer"] = zen.WEBHOOK_PEER
+            webhook["peer"] = peer
             if "token" in webhook:
                 zen.dumpJson(webhook, "%s-webhook.json" % username)
             else:
