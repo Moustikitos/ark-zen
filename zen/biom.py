@@ -283,11 +283,20 @@ def removeDelegate(username):
     if len(webhook):
         resp = deleteWebhook(webhook["id"], peer=webhook["peer"])
         if resp.get("status", 500) < 300:
+            zen.logMsg("Webhook subscription removed")
             zen.dropJson("%s-webhook.json" % username)
             zen.dropJson("%s.json" % username)
             if input("Remove %s data ?[Y/n] " % username) in "yY":
-                shutil.rmtree(os.path.join(zen.ROOT, "app", ".data", username))
-                shutil.rmtree(os.path.join(zen.ROOT, "app", ".tbw", username))
+                try:
+                    shutil.rmtree(
+                        os.path.join(zen.ROOT, "app", ".data", username)
+                    )
+                    shutil.rmtree(
+                        os.path.join(zen.ROOT, "app", ".tbw", username)
+                    )
+                except FileNotFoundError:
+                    pass
+        zen.logMsg("%s removed" % username)
     else:
         zen.logMsg("%s not found" % username)
 
