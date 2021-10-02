@@ -293,13 +293,6 @@ def checkNode():
 
 def start(relay=False):
     global DAEMON, IS_SYNCING, STATUS, SEED_STATUS
-
-    for username in [
-        n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
-        if n.endswith("-webhook.json")
-    ]:
-        zen.biom.getUsernameKeys(username)
-
     sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
     sys.path.append(os.path.expanduser("~/.yarn/bin"))
 
@@ -326,8 +319,6 @@ def start(relay=False):
                 "sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT)
             )
     except KeyboardInterrupt:
-        # zen.biom.pushBackKeys()
-        # zen.logMsg("Secrets pushed back.")
         zen.logMsg("Background tasks interrupted !")
         DAEMON.set()
 
@@ -383,14 +374,23 @@ WantedBy=multi-user.target
 if __name__ == "__main__":
     import signal
 
-    root = zen.loadJson("root.json")
-    zen.biom.dposlib.rest.use(root.get("blockchain", "dark"))
+    # pull all secrets from config files so they are not visible
+    for username in [
+        n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
+        if n.endswith("-webhook.json")
+    ]:
+        zen.biom.getUsernameKeys(username)
 
+    # push back all secrets into config files for next bg task start
     def signal_handler(signal, frame):
         zen.biom.pushBackKeys()
         zen.logMsg("Secrets pushed back.")
         sys.exit(0)
 
+    # register CTRL+C signal and SYSTEMCTL terminal signal
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
+
+    root = zen.loadJson("root.json")
+    zen.biom.dposlib.rest.use(root.get("blockchain", "dark"))
     start(relay="env" in root)
