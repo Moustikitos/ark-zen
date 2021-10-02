@@ -7,6 +7,7 @@ import datetime
 
 import zen
 import zen.tbw
+import zen.biom
 import pygal
 import pygal.style
 
@@ -18,7 +19,7 @@ def shorten(address, chunk=5):
 
 
 def urlWallet(address):
-    return zen.rest.cfg.explorer+"/wallets/"+address
+    return zen.biom.dposlib.rest.cfg.explorer+"/wallets/"+address
 
 
 def loadPages(
@@ -47,7 +48,7 @@ def loadPages(
 
 
 def loadCryptoCompareYearData(year, reference, interest):
-    req = zen.rest.GET.data.histoday(
+    req = zen.biom.dposlib.rest.GET.data.histoday(
         peer="https://min-api.cryptocompare.com",
         fsym=reference,
         tsym=interest,
@@ -64,7 +65,7 @@ def freemobile_sendmsg(title, body):
     freemobile = zen.loadJson("freemobile.json")
     if freemobile != {}:
         freemobile["msg"] = title + ":\n" + body
-        return zen.rest.POST.sendmsg(
+        return zen.biom.dposlib.rest.POST.sendmsg(
             peer="https://smsapi.free-mobile.fr",
             jsonify=freemobile
         )
@@ -73,7 +74,7 @@ def freemobile_sendmsg(title, body):
 def pushbullet_pushes(title, body):
     pushbullet = zen.loadJson("pushbullet.json")
     if pushbullet != {}:
-        return zen.rest.POST.v2.pushes(
+        return zen.biom.dposlib.rest.POST.v2.pushes(
             peer="https://api.pushbullet.com",
             body=body, title=title, type="note",
             headers={
@@ -85,7 +86,7 @@ def pushbullet_pushes(title, body):
 def pushover_messages(title, body):
     pushover = zen.loadJson("pushover.json")
     if pushover != {}:
-        return zen.rest.POST(
+        return zen.biom.dposlib.rest.POST(
             "1", "messages.json",
             peer="https://api.pushover.net",
             urlencode=dict(
@@ -102,7 +103,7 @@ def twilio_messages(title, body):
         authentication = base64.b64encode(
             ("%s:%s" % (twilio["sid"], twilio["auth"])).encode('utf-8')
         )
-        return zen.rest.POST(
+        return zen.biom.dposlib.rest.POST(
             "2010-04-01", "Accounts", twilio["sid"], "Messages.json",
             peer="https://api.twilio.com",
             urlencode={
@@ -117,7 +118,7 @@ def twilio_messages(title, body):
 
 
 def notify(body):
-    title = "ark-zen@%s" % zen.dposlib.core.cfg.network
+    title = "ark-zen@%s" % zen.biom.dposlib.core.cfg.network
     body = body.decode("utf-8") if isinstance(body, bytes) else body
 
     for func in [
@@ -176,8 +177,8 @@ def chartTimedData(data, username=""):
 
 
 def chartAir(share, nb_points=100, username="", blocktime=None):
-    info = zen.dposlib.rest.cfg
-    _get = zen.dposlib.rest.GET
+    info = zen.biom.dposlib.rest.cfg
+    _get = zen.biom.dposlib.rest.GET
     blocktime = info.blocktime if not blocktime else blocktime
 
     delegates = _get.api.delegates()["data"][:51]
@@ -228,7 +229,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
         }
     )
 
-    if zen.rest.cfg.network == "ark":
+    if zen.biom.dposlib.rest.cfg.network == "ark":
         try:
             arkdelegates = _get.api.delegates(
                 peer="https://arkdelegates.live", limit=51
@@ -274,7 +275,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 
             vote_weights = [
                 float(v["balance"]) for v in zen.misc.loadPages(
-                    zen.rest.GET.api.delegates.__getattr__(username).voters
+                    zen.biom.dposlib.rest.GET.api.delegates.__getattr__(username).voters
                 )
             ]
             real_votes = sum(vote_weights) / 100000000

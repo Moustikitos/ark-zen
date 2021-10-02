@@ -133,7 +133,8 @@ def generateCharts():
         real_blocktime = mixin.deltas()["real blocktime"]
         [
             zen.misc.chartAir(
-                delegates[username]["share"], 50, username, real_blocktime
+                delegates[username].get("share", 1.0), 50,
+                username, real_blocktime
             ) for username in delegates
         ]
         [zen.misc.generateChart(username) for username in delegates]
