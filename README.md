@@ -47,7 +47,7 @@ $HOME/ark-zen/bash/activate
 ```
 ```
 Usage:
-    zen (reset | initialize | snap-blockchain | backup-data | rebuild | remove-custom-peer)
+    zen (reset | initialize | backup-data | remove-custom-peer)
     zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
     zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
@@ -56,7 +56,9 @@ Usage:
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
+    zen secrets [<username>]
     zen append-custom-peer <peer-list>
+    zen remove-custom-peer
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -76,7 +78,6 @@ Options:
 Subcommands:
     reset              : initialization starting from ark-core config folder
     initialize         : initialization starting from delegates configuration
-    rebuild            : rebuild database from snapshots
     configure          : configure global or delegate-specific options
     deploy-srv         : deploy services and start the true block weight server tasks
     restart-srv        : restart the true block weight server tasks
@@ -86,11 +87,11 @@ Subcommands:
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add <username> without relay initialization (use if bip39 secret protection)
+    add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate from list or specified by <username>
-    snap-blockchain    : update snapshot or create it if no snapshot initialized yet
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
+    zen secrets        : reset delegate secrets
 ```
 
 ## Specific tweak
