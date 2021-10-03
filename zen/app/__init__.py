@@ -9,9 +9,9 @@ from collections import OrderedDict
 
 import flask
 import dposlib
+import dposlib.rest
 
 import zen.misc
-import zen.biom
 from zen.app.core import app
 from zen.tbw import initDb
 
@@ -109,9 +109,7 @@ def faq():
         delegates[username]["votes"] = sum([
             _min(_max(float(v["balance"]))) for v in
             zen.misc.loadPages(
-                zen.biom.dposlib.rest.GET.api.delegates.__getattr__(
-                    username
-                ).voters
+                dposlib.rest.GET.api.delegates.__getattr__(username).voters
             )
         ])/100000000
 

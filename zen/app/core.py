@@ -9,7 +9,6 @@ import zen
 import zen.tbw
 import zen.misc
 import zen.biom
-from zen import logMsg, loadJson
 
 # create the application instance
 app = flask.Flask(__name__)
@@ -31,15 +30,6 @@ app.config.update(
 )
 
 
-@app.route("/block/missed", methods=["POST", "GET"])
-def check():
-    if flask.request.method == "POST":
-        data = json.loads(flask.request.data).get("data", False)
-        logMsg("missing block :\n%s" % json.dumps(data, indent=2))
-        zen.misc.notify("missed a block !\n%s" % json.dumps(data, indent=2))
-    return json.dumps({"zen-tbw::block/missed": True}, indent=2)
-
-
 # compute true block weight
 @app.route("/block/forged", methods=["POST", "GET"])
 def spread():
@@ -53,7 +43,7 @@ def spread():
         if not username:
             raise Exception("Error: can not reach username")
         # check autorization and exit if bad one
-        webhook = loadJson("%s-webhook.json" % username)
+        webhook = zen.loadJson("%s-webhook.json" % username)
         if not webhook["token"].startswith(
             flask.request.headers["Authorization"]
         ):
