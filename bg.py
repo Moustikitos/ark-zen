@@ -70,7 +70,7 @@ def checkVersion():
             last = ".".join(["%s" % i for i in last])
             if (last.encode("utf-8") if zen.PY3 else last) \
                not in subprocess.check_output(
-                   "ark version", shell=True
+                   "~/.yarn/bin/ark version", shell=True
                ).split()[0]:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
