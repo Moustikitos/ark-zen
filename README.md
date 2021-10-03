@@ -159,90 +159,89 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 ## Releases
 
 ### Normae - 4.0.0 [current work]
- - [X] Packagin improvement
- - [X] securoty improvmenet
- - [X] SIGINT and SIGTERM handling for bg tasks
+  * [X] Packagin improvement
+  * [X] securoty improvmenet
+  * [X] SIGINT and SIGTERM handling for bg tasks
 
 ### Monoceros
- - 3.1.0
-   * [X] Ark core 3.0 compliancy
- - 3.0.0)
-   * [X] virtualenv target choice on zen installation
-   * [X] `zen` and `bg` run as system services
+#### 3.1.0
+  * [X] Ark core 3.0 compliancy
+#### 3.0.0
+  * [X] virtualenv target choice on zen installation
+  * [X] `zen` and `bg` run as system services
 
 ### Lupus 
- - 2.0.1
-   * [X] nonce bugfix
-   * [X] `retry-payroll` updated
-   * [X] `bg` module updated
- - 2.0.0
-   * [x] ark-core 2.6 compliancy
-   * [x] dposlib 0.3 compliancy
-   * [x] use multipayment transaction
+#### 2.0.1
+  * [X] nonce bugfix
+  * [X] `retry-payroll` updated
+  * [X] `bg` module updated
+#### 2.0.0
+  * [x] ark-core 2.6 compliancy
+  * [x] dposlib 0.3 compliancy
+  * [x] use multipayment transaction
 
 ### Hydrus - 1.9.0
- - [x] dposlib 0.2.2 compliancy
- - [x] background tasks added
- - [x] block computation daemonization
- - [x] logging improvement
- - [x] better error handling
+  * [x] dposlib 0.2.2 compliancy
+  * [x] background tasks added
+  * [x] block computation daemonization
+  * [x] logging improvement
+  * [x] better error handling
 
 ### Gemini
- - 1.8.1
-   * [x] ark v2.5.1 compliancy
- - 1.8.0
-   * [x] dposlib 0.2.1 compliancy
-   * [x] ark v2.4.1 compliancy
+#### 1.8.1
+  * [x] ark v2.5.1 compliancy
+#### 1.8.0
+  * [x] dposlib 0.2.1 compliancy
+  * [x] ark v2.4.1 compliancy
 
 ### Fornax
- - 1.7.3
-   * [x] persona network compliancy
- - 1.7.2
-   * [x] front-end improvement
-   * [x] added FAQ page
-   * [x] background tasks merged
- - 1.7.1
-   * [x] setup script improvement
-   * [x] initialization improvement
-   * [x] added relay checker
- - 1.7.0
-   * [x] ark-zen now runs in virtualenv
-   * [x] server auto-configuration using gunicorn and nginx 
-   * [x] minor bugfixes and improvements
+#### 1.7.3
+  * [x] persona network compliancy
+#### 1.7.2
+  * [x] front-end improvement
+  * [x] added FAQ page
+  * [x] background tasks merged
+#### 1.7.1
+  * [x] setup script improvement
+  * [x] initialization improvement
+  * [x] added relay checker
+#### 1.7.0
+  * [x] ark-zen now runs in virtualenv
+  * [x] server auto-configuration using gunicorn and nginx 
+  * [x] minor bugfixes and improvements
 
 ### Eridanus - 1.6.0
- - [x] notification system added (SMS or push)
- - [x] ark-zen runs with ark-core 2.2.x
- - [x] added node checker
+  * [x] notification system added (SMS or push)
+  * [x] ark-zen runs with ark-core 2.2.x
+  * [x] added node checker
 
 ### Delphinus - 1.5.0
- - [x] ark-zen runs with ark-core 2.1.x
- - [x] html front-end improvement
+  * [x] ark-zen runs with ark-core 2.1.x
+  * [x] html front-end improvement
 
 ### Cassiopeia
- - 1.4.2
-   * [x] ark-zen runs with both ark-core mainnet and devnet
- - 1.4.1
-   * [x] fee coverage is now optional
-   * [x] delegate targetting is now optional
- - 1.4.0
-   * [x] automatic fee coverage
-   * [x] transaction history rebuild
-   * [x] delegate targetting
+#### 1.4.2
+  * [x] ark-zen runs with both ark-core mainnet and devnet
+#### 1.4.1
+  * [x] fee coverage is now optional
+  * [x] delegate targetting is now optional
+#### 1.4.0
+  * [x] automatic fee coverage
+  * [x] transaction history rebuild
+  * [x] delegate targetting
 
 ### Boötis
- - 1.3.1
-   * [x] reward distribution improvement
- - 1.3.0
-   * [x] enable remote delegate management
-   * [x] blockchain database rebuild
-   * [x] snapshot management
-   * [x] custom peer management
+#### 1.3.1
+  * [x] reward distribution improvement
+#### 1.3.0
+  * [x] enable remote delegate management
+  * [x] blockchain database rebuild
+  * [x] snapshot management
+  * [x] custom peer management
 
 ### Andromeda - 1.2.0
- - [x] true block weight
- - [x] secured payrolls
- - [x] command line interface
- - [x] light weight HTML front-end
- - [x] multiple pool management
-
+  * [x] true block weight
+  * [x] secured payrolls
+  * [x] command line interface
+  * [x] light weight HTML front-end
+  * [x] multiple pool management
