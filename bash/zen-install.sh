@@ -16,7 +16,6 @@ echo
 echo installing system dependencies
 echo ==============================
 sudo apt-get -qq install libudev-dev libusb-1.0.0-dev
-sudo apt-get -qq install python python-dev python-setuptools python-pip
 sudo apt-get -qq install python3 python3-dev python3-setuptools python3-pip
 sudo apt-get -qq install pypy
 sudo apt-get -qq install virtualenv
@@ -48,7 +47,7 @@ echo "done"
 
 echo
 echo creating virtual environment
-echo =============================
+echo ============================
 
 if [ -d $VENVDIR ]; then
     read -p "remove previous virtual environement ? [y/N]> " r
@@ -61,11 +60,11 @@ fi
 
 if [ ! -d $VENVDIR ]; then
     echo -e "select environment:\n  1) python3\n  2) pypy"
-    read -p "[default:python]> " n
+    read -p "[default:python3]> " n
     case $n in
     1) TARGET="$(which python3)";;
     2) TARGET="$(which pypy)";;
-    *) TARGET="$(which python)";;
+    *) TARGET="$(which python3)";;
     esac
     mkdir $VENVDIR -p
     virtualenv -p $TARGET $VENVDIR -q
