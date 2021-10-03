@@ -4,12 +4,12 @@
 
 ### Support this project
  
- [![Liberapay receiving](https://img.shields.io/liberapay/goal/Toons?logo=liberapay)](https://liberapay.com/Toons/donate)
- 
- [Buy &#1126;](https://bittrex.com/Account/Register?referralCode=NW5-DQO-QMT) and:
- 
-   * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
-   * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
+[![Liberapay receiving](https://img.shields.io/liberapay/goal/Toons?logo=liberapay)](https://liberapay.com/Toons/donate)
+
+[Buy &#1126;](https://bittrex.com/Account/Register?referralCode=NW5-DQO-QMT) and:
+
+  * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
+  * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
 
 ## Supported blockchain
 
@@ -159,9 +159,9 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 ## Releases
 
 ### Normae - 4.0.0 [current work]
-  * [X] Packagin improvement
-  * [X] securoty improvmenet
-  * [X] SIGINT and SIGTERM handling for bg tasks
+  * [X] Packaging improvement
+  * [X] security improvmenet
+  * [X] `SIGINT` and `SIGTERM` handlers for bg tasks
 
 ### Monoceros
 #### 3.1.0
