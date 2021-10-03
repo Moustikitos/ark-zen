@@ -42,7 +42,19 @@ def initDb(username):
     return sqlite
 
 
-def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
+def vacuumDb(username):
+    sqlite = initDb(username)
+    cursor = sqlite.cursor()
+    # sql command to remove double values in value column keeping the first one
+    cursor.execute(
+        "DELETE FROM dilution WHERE timestamp NOT IN "
+        "(SELECT MIN(timestamp) as timestamp FROM dilution GROUP BY value)"
+    )
+    sqlite.commit()
+    sqlite.close()
+
+
+def distributeRewards(rewards, uname, minvote=0, maxvote=None, excludes=[]):
     minvote *= 100000000
     if isinstance(maxvote, (int, float)):
         maxvote *= 100000000
@@ -51,7 +63,7 @@ def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
         _max = lambda v, max=maxvote: v
 
     voters = misc.loadPages(
-        rest.GET.api.delegates.__getattr__(pkey).voters
+        rest.GET.api.delegates.__getattr__(uname).voters
     )
     if len(voters) == 0:
         raise Exception("No voter found during distribution computation...")
@@ -63,13 +75,10 @@ def distributeRewards(rewards, pkey, minvote=0, maxvote=None, excludes=[]):
     total_balance = sum(voters.values())
     # ARK Vote Dilution
     dilution_value = 100000000.0 / total_balance
-    sqlite = initDb(pkey)
+    sqlite = initDb(uname)
     req = sqlite.execute(
         "SELECT * FROM dilution ORDER BY timestamp DESC LIMIT 1"
     ).fetchall()
-    # sql command to remove double values in value column keeping the first one
-    # DELETE FROM dilution WHERE timestamp NOT IN
-    # (SELECT MIN(timestamp) as timestamp FROM dilution GROUP BY value)
     if len(req):
         value = req[0]["value"]
         if value != dilution_value:
