@@ -437,6 +437,7 @@ def setDelegate(uname_or_puk, peer=None):
             webhook = setWebhook(config["publicKey"])
             webhook["peer"] = peer
             if "token" in webhook:
+                zen.logMsg("Webhook subscription succeded")
                 zen.dumpJson(webhook, "%s-webhook.json" % username)
             else:
                 zen.logMsg(
