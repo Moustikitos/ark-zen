@@ -287,14 +287,15 @@ def removeDelegate(username):
             zen.dropJson("%s-webhook.json" % username)
             zen.dropJson("%s.json" % username)
             if input("Remove %s data ?[Y/n] " % username) in "yY":
+                shutil.rmtree(
+                    os.path.join(zen.DATA, username), ignore_errors=True
+                )
+                shutil.rmtree(
+                    os.path.join(zen.TBW, username), ignore_errors=True
+                )
                 try:
-                    shutil.rmtree(
-                        os.path.join(zen.ROOT, "app", ".data", username)
-                    )
-                    shutil.rmtree(
-                        os.path.join(zen.ROOT, "app", ".tbw", username)
-                    )
-                except FileNotFoundError:
+                    os.remove(os.path.join(zen.ROOT, "%s.db" % username))
+                except Exception:
                     pass
         zen.logMsg("%s removed" % username)
     else:

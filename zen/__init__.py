@@ -15,6 +15,7 @@ if not PY3:
 ROOT = os.path.abspath(os.path.dirname(__file__))
 JSON = os.path.abspath(os.path.join(ROOT, ".json"))
 DATA = os.path.abspath(os.path.join(ROOT, "app", ".data"))
+TBW = os.path.abspath(os.path.join(ROOT, "app", ".tbw"))
 LOG = os.path.abspath(os.path.join(ROOT, "app", ".log"))
 
 ENV = None
