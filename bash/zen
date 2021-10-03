@@ -160,11 +160,11 @@ def restart_srv(args={}, **options):
 
 
 def log_bg(args={}, **options):
-    os.system("sudo journalctl -u bg -ef")
+    os.system("journalctl -u bg -ef")
 
 
 def log_zen(args={}, **options):
-    os.system("sudo journalctl -u zen -ef")
+    os.system("journalctl -u zen -ef")
 
 
 def reset(args={}, **options):
