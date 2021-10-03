@@ -3,6 +3,7 @@ import os
 import io
 import sys
 import time
+import json
 import traceback
 import threading
 import subprocess
@@ -390,13 +391,16 @@ if __name__ == "__main__":
         sys.exit(0)
 
     def show_keys(signal, frame):
-        module = zen.biom
+        report = {}
         for key, value in [
-            (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
+            (k, v) for k, v in zen.biom.__dict__.items() if k[-2:] in "#1#2"
         ]:
             username, num = key.replace("_", "").split("#")
-            num = "#" + num
-            zen.logMsg("got %s %s keys" % (username, num))
+            if value is not None:
+                report[username] = report.get(username, []) + ["puk#" + num]
+        msg = "Private keys:\n%s" % json.dumps(report)
+        zen.logMsg(msg)
+        zen.misc.notify(msg)
 
     # register CTRL+C signal and SYSTEMCTL terminal signal
     signal.signal(signal.SIGINT, show_keys)
