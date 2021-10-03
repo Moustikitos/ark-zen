@@ -244,4 +244,5 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 
 ### Normae (v4.0.0)
  - [X] Packagin improvement
- - [X] improved secret protection
+ - [X] securoty improvmenet
+ - [X] SIGINT and SIGTERM handling for bg tasks
