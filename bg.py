@@ -18,7 +18,7 @@ from dposlib.ark.v2 import mixin
 DAEMON = False
 STATUS = SEED_STATUS = IS_SYNCING = {}
 CHECK_RESULT = {}
-
+ARK_API_PEER = "https://api.ark.io"
 
 def setInterval(interval):
     """ threaded decorator
@@ -156,10 +156,13 @@ def checkIfForging():
         notification_delay = 10 * 60  # 10 minutes in seconds
 
         for username in usernames:
-            data = zen.biom.dposlib.rest.GET.api.delegates(username) \
-                .get("data", {}).get("blocks", {}).get("last", {})
-            height = zen.biom.dposlib.rest.GET.api.blockchain() \
-                .get("data", {}).get("block", {}).get("height", 0)
+            dlgt = zen.biom.dposlib.rest.GET.api.delegates(
+                username, peer=ARK_API_PEER
+            ).get("data", {})
+            data = dlgt.get("blocks", {}).get("last", {})
+            height = zen.biom.dposlib.rest.GET.api.blockchain(
+                peer=ARK_API_PEER
+            ).get("data", {}).get("block", {}).get("height", 0)
             last_block = zen.loadJson(
                 "%s.last.block" % username, folder=zen.DATA
             )
@@ -180,9 +183,7 @@ def checkIfForging():
                 delay = now - last_notification
 
                 if diff > 1:
-                    rank = zen.biom.dposlib.rest.GET.api.delegates(
-                        username
-                    ).get("data", {}).get("rank", -1)
+                    rank = dlgt.get("rank", -1)
                     if not rank:
                         zen.logMsg("delegate %s not found" % username)
                     send_notification = (
@@ -254,7 +255,7 @@ def checkNode():
         peer="http://127.0.0.1:%s" % api_port
     ).get("data", {})
     SEED_STATUS = zen.biom.dposlib.rest.GET.api.node.status(
-        peer="https://api.ark.io"
+        peer=ARK_API_PEER
     ).get("data", {})
 
     try:
@@ -384,11 +385,21 @@ if __name__ == "__main__":
     # push back all secrets into config files for next bg task start
     def signal_handler(signal, frame):
         zen.biom.pushBackKeys()
+        zen.misc.notify("Background tasks stopped !")
         zen.logMsg("Secrets pushed back.")
         sys.exit(0)
 
+    def show_keys(signal, frame):
+        module = zen.biom
+        for key, value in [
+            (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
+        ]:
+            username, num = key.replace("_", "").split("#")
+            num = "#" + num
+            zen.logMsg("got %s %s keys" % (username, num))
+
     # register CTRL+C signal and SYSTEMCTL terminal signal
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, show_keys)
     signal.signal(signal.SIGTERM, signal_handler)
 
     root = zen.loadJson("root.json")

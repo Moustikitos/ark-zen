@@ -118,7 +118,7 @@ def twilio_messages(title, body):
 
 
 def notify(body):
-    title = "ark-zen@%s" % zen.biom.dposlib.core.cfg.network
+    title = "zen@%s" % zen.biom.dposlib.core.cfg.network
     body = body.decode("utf-8") if isinstance(body, bytes) else body
 
     for func in [
