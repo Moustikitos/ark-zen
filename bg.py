@@ -247,13 +247,13 @@ def checkNode():
 
     env = zen.biom.loadEnv(zen.loadJson("root.json")["env"])
     api_port = env["CORE_API_PORT"]
-    IS_SYNCING = zen.rest.GET.api.node.syncing(
+    IS_SYNCING = zen.biom.dposlib.rest.GET.api.node.syncing(
         peer="http://127.0.0.1:%s" % api_port
     ).get("data", {})
-    STATUS = zen.rest.GET.api.node.status(
+    STATUS = zen.biom.dposlib.rest.GET.api.node.status(
         peer="http://127.0.0.1:%s" % api_port
     ).get("data", {})
-    SEED_STATUS = zen.rest.GET.api.node.status(
+    SEED_STATUS = zen.biom.dposlib.rest.GET.api.node.status(
         peer="https://api.ark.io"
     ).get("data", {})
 
