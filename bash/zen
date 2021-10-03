@@ -13,6 +13,7 @@ Usage:
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
     zen secrets [<username>]
+    zen check-secrets
     zen append-custom-peer <peer-list>
     zen remove-custom-peer
 
@@ -45,7 +46,8 @@ Subcommands:
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate from list or specified by <username>
-    zen secrets        : reset delegate secrets
+    secrets            : reset delegate secrets
+    check-secrets      : check registered private keys
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 """
@@ -138,6 +140,14 @@ def secrets(args={}, **options):
 
             if any([config.get("#1", False), config.get("#2", False)]):
                 zen.dumpJson(config, "%s.json" % username)
+
+
+def check_secrets(args={}, **options):
+    os.system(r'''
+kill -2 $(
+    pgrep -a -u $USER,daemon|grep /bg.py|sed 's/\ / /'|awk 'NR==1{print $1}'
+)
+''')
 
 
 def deploy_srv(args={}, **options):
