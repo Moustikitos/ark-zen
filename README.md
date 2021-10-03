@@ -17,13 +17,13 @@
 
 ## Install
 
-### last release
+### Last release
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 3.1.0
 ```
 
-### development version
+### Development version
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh)
@@ -56,6 +56,7 @@ Usage:
     zen adjust-forge <username> <value>
     zen remove-delegate [<username>]
     zen secrets [<username>]
+    zen check-secrets
     zen append-custom-peer <peer-list>
     zen remove-custom-peer
 
@@ -88,7 +89,8 @@ Subcommands:
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate from list or specified by <username>
-    zen secrets        : reset delegate secrets
+    secrets            : reset delegate secrets
+    check-secrets      : check registered private keys
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
@@ -156,93 +158,91 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 
 ## Releases
 
-### Andromeda (v1.2.0)
- - [x] true block weight
- - [x] secured payrolls
- - [x] command line interface
- - [x] light weight HTML front-end
- - [x] multiple pool management
+### Normae - 4.0.0 [current work]
+ - [X] Packagin improvement
+ - [X] securoty improvmenet
+ - [X] SIGINT and SIGTERM handling for bg tasks
 
-### Boötis (v1.3.0)
- - [x] enable remote delegate management
- - [x] blockchain database rebuild
- - [x] snapshot management
- - [x] custom peer management
+### Monoceros
+ - 3.1.0
+   * [X] Ark core 3.0 compliancy
+ - 3.0.0)
+   * [X] virtualenv target choice on zen installation
+   * [X] `zen` and `bg` run as system services
 
-### Boötis - minor tweaks (v1.3.1)
- - [x] reward distribution improvement
+### Lupus 
+ - 2.0.1
+   * [X] nonce bugfix
+   * [X] `retry-payroll` updated
+   * [X] `bg` module updated
+ - 2.0.0
+   * [x] ark-core 2.6 compliancy
+   * [x] dposlib 0.3 compliancy
+   * [x] use multipayment transaction
 
-### Cassiopeia (v1.4.0)
- - [x] automatic fee coverage
- - [x] transaction history rebuild
- - [x] delegate targetting
-
-### Cassiopeia - minor tweaks (v1.4.1)
- - [x] fee coverage is now optional
- - [x] delegate targetting is now optional
-
-### Cassiopeia - minor tweaks (v1.4.2)
- - [x] ark-zen runs with both ark-core mainnet and devnet
-
-### Delphinus (v1.5.0)
- - [x] ark-zen runs with ark-core 2.1.x
- - [x] html front-end improvement
-
-### Eridanus (v1.6.0)
- - [x] notification system added (SMS or push)
- - [x] ark-zen runs with ark-core 2.2.x
- - [x] added node checker
-
-### Fornax (v1.7.0)
- - [x] ark-zen now runs in virtualenv
- - [x] server auto-configuration using gunicorn and nginx 
- - [x] minor bugfixes and improvements
-
-### Fornax (v1.7.1)
- - [x] setup script improvement
- - [x] initialization improvement
- - [x] added relay checker
-
-### Fornax (v1.7.2)
- - [x] front-end improvement
- - [x] added FAQ page
- - [x] background tasks merged
-
-### Fornax (v1.7.3)
- - [x] persona network compliancy
-
-### Gemini (v1.8.0)
- - [x] dposlib 0.2.1 compliancy
- - [x] ark v2.4.1 compliancy
-
-### Gemini (v1.8.1)
- - [x] ark v2.5.1 compliancy
-
-### Hydrus (v1.9.0)
+### Hydrus - 1.9.0
  - [x] dposlib 0.2.2 compliancy
  - [x] background tasks added
  - [x] block computation daemonization
  - [x] logging improvement
  - [x] better error handling
 
-### Lupus (v2.0.0)
- - [x] ark-core 2.6 compliancy
- - [x] dposlib 0.3 compliancy
- - [x] use multipayment transaction
+### Gemini
+ - 1.8.1
+   * [x] ark v2.5.1 compliancy
+ - 1.8.0
+   * [x] dposlib 0.2.1 compliancy
+   * [x] ark v2.4.1 compliancy
 
-### Lupus (v2.0.1)
- - [X] nonce bugfix
- - [X] `retry-payroll` updated
- - [X] `bg` module updated
+### Fornax
+ - 1.7.3
+   * [x] persona network compliancy
+ - 1.7.2
+   * [x] front-end improvement
+   * [x] added FAQ page
+   * [x] background tasks merged
+ - 1.7.1
+   * [x] setup script improvement
+   * [x] initialization improvement
+   * [x] added relay checker
+ - 1.7.0
+   * [x] ark-zen now runs in virtualenv
+   * [x] server auto-configuration using gunicorn and nginx 
+   * [x] minor bugfixes and improvements
 
-### Monoceros (v3.0.0)
- - [X] virtualenv target choice on zen installation
- - [X] `zen` and `bg` run as system services
+### Eridanus - 1.6.0
+ - [x] notification system added (SMS or push)
+ - [x] ark-zen runs with ark-core 2.2.x
+ - [x] added node checker
 
-### Monoceros (v3.1.0)
- - [X] Ark core 3.0 compliancy
+### Delphinus - 1.5.0
+ - [x] ark-zen runs with ark-core 2.1.x
+ - [x] html front-end improvement
 
-### Normae (v4.0.0)
- - [X] Packagin improvement
- - [X] securoty improvmenet
- - [X] SIGINT and SIGTERM handling for bg tasks
+### Cassiopeia
+ - 1.4.2
+   * [x] ark-zen runs with both ark-core mainnet and devnet
+ - 1.4.1
+   * [x] fee coverage is now optional
+   * [x] delegate targetting is now optional
+ - 1.4.0
+   * [x] automatic fee coverage
+   * [x] transaction history rebuild
+   * [x] delegate targetting
+
+### Boötis
+ - 1.3.1
+   * [x] reward distribution improvement
+ - 1.3.0
+   * [x] enable remote delegate management
+   * [x] blockchain database rebuild
+   * [x] snapshot management
+   * [x] custom peer management
+
+### Andromeda - 1.2.0
+ - [x] true block weight
+ - [x] secured payrolls
+ - [x] command line interface
+ - [x] light weight HTML front-end
+ - [x] multiple pool management
+
