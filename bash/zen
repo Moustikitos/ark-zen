@@ -44,7 +44,7 @@ Subcommands:
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
-    remove-delegate    : remove delegate from list or specified by <username>
+    remove-delegate    : remove delegate <username>
     secrets            : reset delegate secrets
     check-secrets      : check registered private keys
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
