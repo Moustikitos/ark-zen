@@ -9,9 +9,8 @@ Usage:
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
     zen add-delegate <username> [-h <webhook-peer>]
-    zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
+    zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
-    zen remove-delegate [<username>]
     zen secrets [<username>]
     zen check-secrets
     zen append-custom-peer <peer-list>
