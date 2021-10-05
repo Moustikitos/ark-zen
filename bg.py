@@ -64,16 +64,15 @@ def checkVersion():
         peers = [
             p for p in peers if "@alessiodf/core-bridge-2.7" not in p["ports"]
         ]
-        if len(peers):
+        node = zen.biom.dposlib.rest.GET.api.node.configuration(
+            peer=zen.API_PEER
+        ).get("data", {}).get("core", {}).get("version", False)
+        if node and len(peers):
             # pop the very first update
             versions = set([p["version"].split("-")[0] for p in peers[1:]])
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join(["%s" % i for i in last])
-            if (
-                last.encode("utf-8") if zen.PY3 else last
-            ) not in subprocess.check_output(
-                   os.path.expanduser("~/.yarn/bin/ark version").split()
-            ):
+            if node != "last":
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
