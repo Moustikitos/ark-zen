@@ -308,6 +308,7 @@ def broadcast(username, chunk_size=30):
     tbw = loadJson("tbw.json")
     chunk_size = max(5, tbw.get("chunk_size", chunk_size))
     folder = os.path.join(zen.DATA, username)
+    delegate_is_forging = biom.delegateIsForging(username)
 
     # proceed all registry file found in username folder
     for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
@@ -321,8 +322,7 @@ def broadcast(username, chunk_size=30):
         ):
             response = rest.POST.api.transactions(
                 transactions=chunk, **(
-                    {"peer": zen.API_PEER}
-                    if biom.delegateIsForging(username) else {}
+                    {"peer": zen.API_PEER} if delegate_is_forging else {}
                 )
             )
             logMsg(
