@@ -3,12 +3,13 @@
 
 """
 Usage:
-    zen (reset | initialize | backup-data | remove-custom-peer)
-    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
-    zen add-delegate <username> [-h <webhook-peer>]
+    zen deploy-srv [--ip-address <ip-address> -p <port>]
+    zen (reset | initialize | backup-data | remove-custom-peer)
+    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
     zen secrets [<username>]
@@ -27,6 +28,8 @@ Options:
     -n --name-list=<name-list>        : *.tbw coma-separated name list
     -m --minimum-vote=<minimum-vote>  : set a minimum vote level
     -M --maximum-vote=<maximum-vote>  : set a maximum vote level
+    -p --port=<port>                  : port to use for zen server [default:5000]
+    --ip-address=<ip-address>         : ip address to use for zen server [default:127.0.0.1]
     --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
     --chunk-size=<chunk-size>         : max transaction per request [default:30]
     --fee-coverage                    : delegate covers transaction fees (flag)
@@ -50,11 +53,6 @@ Subcommands:
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 """
-
-#    zen (reset | initialize | snap-blockchain | backup-data | rebuild | remove-custom-peer)
-#    rebuild            : rebuild database from snapshots
-#    snap-blockchain    : update snapshot or create it if no snapshot initialized yet
-
 
 import io
 import os
@@ -125,6 +123,9 @@ def secrets(args={}, **options):
                 "Enter %s first secret: " % username,
                 wlt["publicKey"]
             )
+            if config["#1"] is False:
+                zen.logMsg("Configuration aborted...")
+                return
 
             secondPublicKey = wlt.get("attributes", {}).get(
                 "secondPublicKey", None
@@ -136,9 +137,17 @@ def secrets(args={}, **options):
                     "Enter %s second secret: " % username,
                     secondPublicKey
                 )
+                if config["#2"] is False:
+                    zen.logMsg("Configuration aborted...")
+                    return
 
-            if any([config.get("#1", False), config.get("#2", False)]):
-                zen.dumpJson(config, "%s.json" % username)
+            zen.dumpJson(config, "%s.json" % username)
+
+        else:
+            zen.logMsg(
+                "delegate %s not found on %s network" %
+                (username, zen.biom.dposlib.rest.cfg.network)
+            )
 
 
 def check_secrets(args={}, **options):
@@ -151,7 +160,7 @@ kill -2 $(
 
 def deploy_srv(args={}, **options):
     zen.biom.deploy(
-        options.get("host", "0.0.0.0"),
+        options.get("ip-address", "127.0.0.1"),
         options.get("port", 5000)
     )
     bg.deploy()
@@ -182,7 +191,6 @@ def reset(args={}, **options):
 
 def initialize(args={}, **options):
     zen.biom.setup()
-    restart_srv()
 
 
 def configure(args={}, **options):
@@ -271,6 +279,7 @@ if __name__ == "__main__":
         "--chunk-size": lambda value: int(value),
         "--minimum-vote": lambda value: int(value),
         "--maximum-vote": lambda value: int(value),
+        "--port": lambda value: int(value),
     }
 
     def getAction(args):
