@@ -46,15 +46,15 @@ ark-zen/bash/activate
 ```
 ```
 Usage:
-    zen (reset | initialize | backup-data | remove-custom-peer)
-    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
-    zen add-delegate <username> [-h <webhook-peer>]
-    zen (launch-payroll | resume-payroll | retry-payroll | check-applied) <username>
+    zen deploy-srv [--ip-address <ip-address> -p <port>]
+    zen (reset | initialize | backup-data | remove-custom-peer)
+    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
-    zen remove-delegate [<username>]
     zen secrets [<username>]
     zen check-secrets
     zen append-custom-peer <peer-list>
@@ -71,6 +71,8 @@ Options:
     -n --name-list=<name-list>        : *.tbw coma-separated name list
     -m --minimum-vote=<minimum-vote>  : set a minimum vote level
     -M --maximum-vote=<maximum-vote>  : set a maximum vote level
+    -p --port=<port>                  : port to use for zen server [default:5000]
+    --ip-address=<ip-address>         : ip address to use for zen server [default:127.0.0.1]
     --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
     --chunk-size=<chunk-size>         : max transaction per request [default:30]
     --fee-coverage                    : delegate covers transaction fees (flag)
@@ -88,7 +90,7 @@ Subcommands:
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
-    remove-delegate    : remove delegate from list or specified by <username>
+    remove-delegate    : remove delegate <username>
     secrets            : reset delegate secrets
     check-secrets      : check registered private keys
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
