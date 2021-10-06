@@ -4,7 +4,7 @@
 """
 Usage:
     zen add-delegate <username> [-h <webhook-peer>]
-    zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
+    zen configure [--chunk-size <chubk-size> --fee-coverage]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
     zen deploy-srv [--ip-address <ip-address> -p <port>]
@@ -12,10 +12,9 @@ Usage:
     zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
-    zen secrets [<username>]
-    zen check-secrets
+    zen set-secrets [<username>]
     zen append-custom-peer <peer-list>
-    zen remove-custom-peer
+    zen check-secrets
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -28,10 +27,9 @@ Options:
     -n --name-list=<name-list>        : *.tbw coma-separated name list
     -m --minimum-vote=<minimum-vote>  : set a minimum vote level
     -M --maximum-vote=<maximum-vote>  : set a maximum vote level
-    -p --port=<port>                  : port to use for zen server [default:5000]
-    --ip-address=<ip-address>         : ip address to use for zen server [default:127.0.0.1]
-    --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
-    --chunk-size=<chunk-size>         : max transaction per request [default:30]
+    -p --port=<port>                  : port to use for zen server [default: 5000]
+    --ip-address=<ip-address>         : ip address to use for zen server [default: 127.0.0.1]
+    --chunk-size=<chunk-size>         : max transaction per request [default: 30]
     --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:
@@ -48,7 +46,7 @@ Subcommands:
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
     add-delegate       : add delegate if bip39 secret protection used
     remove-delegate    : remove delegate <username>
-    secrets            : reset delegate secrets
+    set-secrets        : reset delegate secrets
     check-secrets      : check registered private keys
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
@@ -105,7 +103,7 @@ def _addresses(value):
         return result
 
 
-def secrets(args={}, **options):
+def set_secrets(args={}, **options):
     if args["<username>"]:
         list = [args["<username>"]]
     else:
@@ -152,7 +150,7 @@ def secrets(args={}, **options):
 
 def check_secrets(args={}, **options):
     os.system(r'''
-kill -2 $(
+kill -10 $(
     pgrep -a -u $USER,daemon|grep /bg.py|sed 's/\ / /'|awk 'NR==1{print $1}'
 )
 ''')
@@ -213,7 +211,7 @@ tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
 
 
 def launch_payroll(args={}, **options):
-    secrets(args={}, **options)
+    set_secrets(args={}, **options)
     username = args["<username>"]
     zen.tbw.extract(username)
     zen.tbw.dumpRegistry(username)
@@ -221,39 +219,48 @@ def launch_payroll(args={}, **options):
 
 
 def resume_payroll(args={}, **options):
-    username = args["<username>"]
-    zen.tbw.broadcast(username)
+    zen.tbw.broadcast(args["<username>"])
 
 
 def retry_payroll(args={}, **options):
-    secrets(args={}, **options)
+    set_secrets(args={}, **options)
     username = args["<username>"]
     zen.tbw.updateRegistryNonces(username)
     zen.tbw.broadcast(username)
 
 
 def adjust_forge(args={}, **options):
-    username = args["<username>"]
-    zen.tbw.adjust(username, float(args["<value>"]))
+    zen.tbw.adjust(args["<username>"], float(args["<value>"]))
 
 
 def remove_delegate(args={}, **options):
-    username = args["<username>"]
-    zen.biom.removeDelegate(username)
+    zen.biom.removeDelegate(args["<username>"])
 
 
 def append_custom_peer(args={}, **options):
     tbw = zen.loadJson("tbw.json")
     custom_peers = tbw.get("custom_peers", [])
-    custom_peers.extend(_split(args["<peer-list>"]))
-    tbw["custom_peers"] = custom_peers
+    for peer in [
+        p for p in _split(args["<peer-list>"]) if p not in custom_peers
+    ]:
+        nethash = zen.biom.dposlib.rest.GET.api.node.configuration(
+            peer=peer, timeout=1
+        ).get("data", {}).get("nethash", None)
+        if nethash == zen.biom.dposlib.rest.cfg.headers["nethash"]:
+            custom_peers.append(peer)
+            zen.logMsg("%s added to custom peers" % peer)
+        elif nethash is not None:
+            zen.logMsg("%s not on same network" % peer)
+        else:
+            zen.logMsg("%s not reachable" % peer)
+    tbw["custom_peers"] = list(custom_peers)
     zen.dumpJson(tbw, "tbw.json")
 
 
 def remove_custom_peer(args={}, **options):
     tbw = zen.loadJson("tbw.json")
     items = zen.chooseMultipleItem(
-        "> select peers to remove", *tbw["custom_peers"]
+        "Select peers to remove", *tbw["custom_peers"]
     )
     if len(items):
         for item in items:
