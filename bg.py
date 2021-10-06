@@ -61,9 +61,7 @@ def checkVersion():
         peers = zen.biom.dposlib.rest.GET.api.peers(
             orderBy="version:desc"
         ).get("data", [])
-        peers = [
-            p for p in peers if "@alessiodf/core-bridge-2.7" not in p["ports"]
-        ]
+        peers = [p for p in peers if int(p["ports"].split(".")[1]) < 10]
         node = zen.biom.dposlib.rest.GET.api.node.configuration(
             peer=zen.API_PEER
         ).get("data", {}).get("core", {}).get("version", False)
