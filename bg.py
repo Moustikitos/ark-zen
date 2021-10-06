@@ -6,7 +6,6 @@ import time
 import json
 import traceback
 import threading
-import subprocess
 
 import zen
 import zen.tbw
@@ -16,10 +15,11 @@ import zen.biom
 
 from dposlib.ark.v2 import mixin
 
-DAEMON = False
+DAEMON = threading.Event()
 STATUS = SEED_STATUS = IS_SYNCING = {}
 CHECK_RESULT = {}
 ARK_API_PEER = "https://api.ark.io"
+
 
 def setInterval(interval):
     """ threaded decorator
@@ -291,53 +291,6 @@ def checkNode():
         zen.logMsg("node check error:\n%r\n%s" % (e, traceback.format_exc()))
 
 
-def start(relay=False):
-    global DAEMON, IS_SYNCING, STATUS, SEED_STATUS
-    sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
-    sys.path.append(os.path.expanduser("~/.yarn/bin"))
-
-    DAEMON = threading.Event()
-    if relay:
-        # check health status every minutes
-        daemon_1 = setInterval(60)(checkNode)()
-        # check updates
-        daemon_2 = setInterval(5 * sleep_time)(checkVersion)()
-        # check forge
-        daemon_3 = setInterval(30)(checkIfForging)()
-    # generate svg charts every 3 round
-    daemon_4 = setInterval(3 * sleep_time)(generateCharts)()
-    # check all registries
-    daemon_5 = setInterval(sleep_time)(checkRegistries)()
-
-    zen.logMsg("Background tasks started !")
-    zen.misc.notify("Background tasks started !")
-
-    try:
-        while not DAEMON.is_set():
-            time.sleep(sleep_time)
-            zen.logMsg(
-                "sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT)
-            )
-    except KeyboardInterrupt:
-        zen.logMsg("Background tasks interrupted !")
-        DAEMON.set()
-
-    if relay:
-        daemon_1.set()
-        daemon_2.set()
-        daemon_3.set()
-    daemon_4.set()
-    daemon_5.set()
-
-    zen.misc.notify("Background tasks stoped !")
-
-
-def stop():
-    global DAEMON
-    if isinstance(DAEMON, threading.Event):
-        DAEMON.set()
-
-
 def deploy():
     normpath = os.path.normpath
 
@@ -371,6 +324,30 @@ WantedBy=multi-user.target
         os.system("sudo systemctl start bg")
 
 
+def start(relay=False):
+    daemons = []
+    sleep_time = zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
+
+    DAEMON.clear()
+    if relay:
+        daemons.extend([
+            setInterval(60)(checkNode)(),
+            setInterval(5 * sleep_time)(checkVersion)(),
+            setInterval(30)(checkIfForging)()
+        ])
+    daemons.extend([
+        setInterval(3 * sleep_time)(generateCharts)(),
+        setInterval(sleep_time)(checkRegistries)()
+    ])
+
+    while not DAEMON.is_set():
+        time.sleep(sleep_time)
+        zen.logMsg("sleep time finished :\n%s" % zen.json.dumps(CHECK_RESULT))
+
+    for daemon in daemons:
+        daemon.set()
+
+
 if __name__ == "__main__":
     import signal
 
@@ -382,13 +359,14 @@ if __name__ == "__main__":
         zen.biom.getUsernameKeys(username)
 
     # push back all secrets into config files for next bg task start
-    def signal_handler(signal, frame):
+    def exit_handler(*args, **kwargs):
+        DAEMON.set()
         zen.biom.pushBackKeys()
+        zen.logMsg("Background tasks stopped !")
         zen.misc.notify("Background tasks stopped !")
-        zen.logMsg("Secrets pushed back.")
         sys.exit(0)
 
-    def show_keys(signal, frame):
+    def show_keys(*args, **kwargs):
         report = {}
         for key, value in [
             (k, v) for k, v in zen.biom.__dict__.items() if k[-2:] in "#1#2"
@@ -396,14 +374,17 @@ if __name__ == "__main__":
             username, num = key.replace("_", "").split("#")
             if value is not None:
                 report[username] = report.get(username, []) + ["puk#" + num]
-        msg = "Private keys:\n%s" % json.dumps(report)
+        msg = "Loaded private keys = %s" % json.dumps(report)
         zen.logMsg(msg)
         zen.misc.notify(msg)
 
-    # register CTRL+C signal and SYSTEMCTL terminal signal
-    signal.signal(signal.SIGINT, show_keys)
-    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGTERM, exit_handler)
+    if "win" not in sys.platform:
+        signal.signal(signal.SIGUSR1, show_keys)
 
-    root = zen.loadJson("root.json")
-    zen.biom.dposlib.rest.use(root.get("blockchain", "dark"))
-    start(relay="env" in root)
+    zen.logMsg("Background tasks started !")
+    zen.misc.notify("Background tasks started !")
+    try:
+        start(relay="env" in zen.loadJson("root.json"))
+    except KeyboardInterrupt:
+        exit_handler()
