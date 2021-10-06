@@ -369,6 +369,7 @@ def pushBackKeys():
         num = "#" + num
         config = zen.loadJson("%s.json" % username)
         config[num] = value
+        zen.logMsg("%s secrets pushed back." % username)
         zen.dumpJson(config, "%s.json" % username)
 
 

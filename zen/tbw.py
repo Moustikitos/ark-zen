@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import os
+import math
 import time
 import json
 import sqlite3
@@ -104,13 +105,14 @@ def distributeRewards(rewards, uname, minvote=0, maxvote=None, excludes=[]):
 
 def adjust(username, value):
     if biom.getPublicKeyFromUsername(username):
+        blockreward = rest.cfg.blockreward
         folder = os.path.join(zen.DATA, username)
         forgery = loadJson("%s.forgery" % username, folder=folder)
         total = sum(forgery["contributions"].values())
         dumpJson(
             {
                 "fees": forgery.get("fees", 0.),
-                "blocks": forgery.get("blocks", 0),
+                "blocks": int(math.ceil(value / blockreward)),
                 "contributions": OrderedDict(
                     sorted(
                         [
