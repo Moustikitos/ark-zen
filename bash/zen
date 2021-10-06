@@ -27,9 +27,9 @@ Options:
     -n --name-list=<name-list>        : *.tbw coma-separated name list
     -m --minimum-vote=<minimum-vote>  : set a minimum vote level
     -M --maximum-vote=<maximum-vote>  : set a maximum vote level
-    -p --port=<port>                  : port to use for zen server [default: 5000]
-    --ip-address=<ip-address>         : ip address to use for zen server [default: 127.0.0.1]
-    --chunk-size=<chunk-size>         : max transaction per request [default: 30]
+    -p --port=<port>                  : port to use for zen server        [default: 5000]
+    --ip-address=<ip-address>         : ip address to use for zen server  [default: 127.0.0.1]
+    --chunk-size=<chunk-size>         : max transaction per multitransfer [default: 30]
     --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:

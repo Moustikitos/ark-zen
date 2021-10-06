@@ -29,25 +29,23 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh)
 ```
 
-## Configure
+### First launch
 
 ```bash
 cd ~
 ark-zen/bash/activate
 ./zen initialize
+./zen deploy-srv
 ```
 
 ## `zen` command
 
 ```bash
-cd ~
-ark-zen/bash/activate
 ./zen --help
-```
-```
+
 Usage:
     zen add-delegate <username> [-h <webhook-peer>]
-    zen configure [--max-per-sender <max-per-sender> --chunk-size <chubk-size> --fee-coverage]
+    zen configure [--chunk-size <chubk-size> --fee-coverage]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
     zen deploy-srv [--ip-address <ip-address> -p <port>]
@@ -55,10 +53,9 @@ Usage:
     zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
-    zen secrets [<username>]
-    zen check-secrets
+    zen set-secrets [<username>]
     zen append-custom-peer <peer-list>
-    zen remove-custom-peer
+    zen check-secrets
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -71,10 +68,9 @@ Options:
     -n --name-list=<name-list>        : *.tbw coma-separated name list
     -m --minimum-vote=<minimum-vote>  : set a minimum vote level
     -M --maximum-vote=<maximum-vote>  : set a maximum vote level
-    -p --port=<port>                  : port to use for zen server [default:5000]
-    --ip-address=<ip-address>         : ip address to use for zen server [default:127.0.0.1]
-    --max-per-sender=<max-per-sender> : max transaction not considered as spam attack [default:300]
-    --chunk-size=<chunk-size>         : max transaction per request [default:30]
+    -p --port=<port>                  : port to use for zen server        [default: 5000]
+    --ip-address=<ip-address>         : ip address to use for zen server  [default: 127.0.0.1]
+    --chunk-size=<chunk-size>         : max transaction per multitransfer [default: 30]
     --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:
@@ -96,18 +92,6 @@ Subcommands:
     append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
     remove-custom-peer : remove one or more custom peer from a selection list
 ```
-
-## Specific tweak
-
-You should tweak the ``env.CORE_TRANSACTION_POOL_MAX_PER_SENDER`` value to fit the number of voter. If not, part of payroll will be considered as spam.
-
-For example, if your delegate is upvoted by 100 wallets, set the value to 110 (100+10%) :
-```bash
-$HOME/ark-zen/bash/activate
-./zen configure --max-per-sender 110
-```
-
-Notice that `relay` have to be restarted then.
 
 ## Notification system
 
