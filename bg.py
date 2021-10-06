@@ -72,7 +72,7 @@ def checkVersion():
             versions = set([p["version"].split("-")[0] for p in peers[1:]])
             last = sorted([int(e) for e in v.split(".")] for v in versions)[-1]
             last = ".".join(["%s" % i for i in last])
-            if node != "last":
+            if node != last:
                 zen.logMsg("your node have to be updated to %s" % last)
                 zen.misc.notify("your node have to be upgraded to %s" % last)
             else:
