@@ -40,9 +40,7 @@ ark-zen/bash/activate
 
 ## `zen` command
 
-```bash
-./zen --help
-
+```
 Usage:
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--chunk-size <chubk-size> --fee-coverage]
