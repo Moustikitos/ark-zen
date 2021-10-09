@@ -9,6 +9,8 @@ import time
 import socket
 import shutil
 import getpass
+import hashlib
+import binascii
 
 import dposlib
 import dposlib.rest
@@ -179,12 +181,6 @@ def setup(clear=False):
                      "Restart now ?[Y:n] ") in "yY":
                 start_pm2_app("relay")
 
-        root["webhook"] = "http://127.0.0.1:%s" % zen.ENV.get(
-            "CORE_WEBHOOKS_PORT", "4004"
-        )
-        root["api"] = "http://127.0.0.1:%s" % zen.ENV.get(
-            "CORE_API_PORT", "4003"
-        )
     else:
         root["webhook"] = "127.0.0.1:4004"
         try:
@@ -231,10 +227,15 @@ def load():
     if "env" in root:
         zen.ENV = loadEnv(root["env"])
         zen.PUBLIC_IP = '127.0.0.1'
-    if "webhook" in root:
-        zen.WEBHOOK_PEER = root["webhook"]
-    if "api" in root:
-        zen.API_PEER = root["api"]
+        zen.WEBHOOK_PEER = "http://127.0.0.1:%s" % zen.ENV.get(
+            "CORE_WEBHOOKS_PORT", "4004"
+        )
+        zen.API_PEER = "http://127.0.0.1:%s" % zen.ENV.get(
+            "CORE_API_PORT", "4003"
+        )
+    else:
+        zen.WEBHOOK_PEER = root.get("webhook", False)
+        zen.API_PEER = root.get("api", False)
 
     dposlib.rest.use(root.get("blockchain", "dark"))
 
@@ -263,16 +264,18 @@ def configure(**kwargs):
     elif "username" in kwargs:
         username = kwargs.pop("username")
         if getPublicKeyFromUsername(username):
-            config = zen.loadJson("%s.json" % username)
-            if not len(config):
+            if not os.path.exists(
+                os.path.join(zen.JSON, "%s-webhook.json" % username)
+            ):
                 if not setDelegate(
                     username, peer=kwargs.get("webhook_peer", None)
                 ):
                     return
-            # reload JSON config file
-            # config = zen.loadJson("%s.json" % username)
-            config.update(zen.loadJson("%s.json" % username), **kwargs)
-            zen.dumpJson(config, "%s.json" % username)
+            # load update and save in a row
+            zen.dumpJson(
+                dict(zen.loadJson("%s.json" % username), **kwargs),
+                "%s.json" % username
+            )
             zen.logMsg("%s delegate set" % username)
         else:
             zen.logMsg("can not find delegate %s" % username)
@@ -314,6 +317,38 @@ def waitForPeer(peer):
         return False
 
 
+def pullKeys():
+    module = sys.modules[__name__]
+    for username in [
+        n.replace("-webhook.json", "") for n in next(os.walk(zen.JSON))[-1]
+        if n.endswith("-webhook.json")
+    ]:
+        config = zen.loadJson("%s.json" % username)
+        hide = False
+        if "#1" in config:
+            setattr(module, "_%s_#1" % username, config.pop("#1"))
+            hide = True
+        if "#2" in config:
+            setattr(module, "_%s_#2" % username, config.pop("#2"))
+            hide = True
+        if hide:
+            zen.logMsg("%s secrets pulled." % username)
+            zen.dumpJson(config, "%s.json" % username)
+
+
+def pushBackKeys():
+    module = sys.modules[__name__]
+    for key, value in [
+        (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
+    ]:
+        username, num = key.replace("_", "").split("#")
+        num = "#" + num
+        config = zen.loadJson("%s.json" % username)
+        config[num] = value
+        zen.logMsg("%s secrets pushed back." % username)
+        zen.dumpJson(config, "%s.json" % username)
+
+
 # BLOCKCHAIN INTERACTIONS
 
 def askPrivateKey(msg, puk):
@@ -338,39 +373,12 @@ def getUsernameFromPublicKey(publicKey):
 
 def getUsernameKeys(username):
     module = sys.modules[__name__]
-
-    config = zen.loadJson("%s.json" % username)
-    hide = False
-    if "#1" in config:
-        setattr(module, "_%s_#1" % username, config.pop("#1"))
-        hide = True
-    if "#2" in config:
-        setattr(module, "_%s_#2" % username, config.pop("#2"))
-        hide = True
-    if hide:
-        zen.logMsg("%s secrets pulled." % username)
-        zen.dumpJson(config, "%s.json" % username)
-
     H1 = module.__dict__.get("_%s_#1" % username, None)
     H2 = module.__dict__.get("_%s_#2" % username, None)
-
     return (
         H1 if H1 is None else dposlib.core.crypto.getKeys(H1),
         H2 if H2 is None else dposlib.core.crypto.getKeys(H2)
     )
-
-
-def pushBackKeys():
-    module = sys.modules[__name__]
-    for key, value in [
-        (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
-    ]:
-        username, num = key.replace("_", "").split("#")
-        num = "#" + num
-        config = zen.loadJson("%s.json" % username)
-        config[num] = value
-        zen.logMsg("%s secrets pushed back." % username)
-        zen.dumpJson(config, "%s.json" % username)
 
 
 def transactionApplied(id):
@@ -385,26 +393,6 @@ def delegateIsForging(username):
     dlgt = dposlib.rest.GET.api.delegates(username).get("data", {})
     rank = dlgt.get("rank", dlgt.get("attributes", {}).get("rank", -1))
     return rank != -1 and rank <= dposlib.rest.cfg.activeDelegates
-
-
-def setWebhook(publicKey):
-    data = dposlib.rest.POST.api.webhooks(
-        peer=zen.WEBHOOK_PEER,
-        event="block.forged" if zen.PUBLIC_IP == "127.0.0.1" else
-              "block.applied",
-        target="http://%s:5000/block/forged" % zen.PUBLIC_IP,
-        conditions=[{
-            "key": "generatorPublicKey",
-            "condition": "eq",
-            "value": publicKey
-        }]
-    )
-    return data.get("data", data)
-
-
-def deleteWebhook(id, peer):
-    data = dposlib.rest.DELETE.api.webhooks(id, peer=peer)
-    return data.get("data", data)
 
 
 def setDelegate(uname_or_puk, peer=None):
@@ -456,3 +444,62 @@ def setDelegate(uname_or_puk, peer=None):
         return False
 
     return True
+
+
+def setWebhook(publicKey):
+    data = dposlib.rest.POST.api.webhooks(
+        peer=zen.WEBHOOK_PEER,
+        event="block.forged" if zen.PUBLIC_IP == "127.0.0.1" else
+              "block.applied",
+        target="http://%s:5000/block/forged" % zen.PUBLIC_IP,
+        conditions=[{
+            "key": "generatorPublicKey",
+            "condition": "eq",
+            "value": publicKey
+        }]
+    )
+    return data.get("data", data)
+
+
+def deleteWebhook(id, peer):
+    data = dposlib.rest.DELETE.api.webhooks(id, peer=peer)
+    return data.get("data", data)
+
+
+# https://github.com/ArkEcosystem/core/blob/master/packages/core-state/src/round-state.ts#L230-L249
+def getRoundOrder(height=None):
+    _get = dposlib.rest.GET
+    if height is None:
+        last_block = _get.api.blockchain(returnKey="data").get("block", {})
+        height = last_block.get("height", 0)
+
+    activeDelegates = dposlib.rest.cfg.activeDelegates
+    rnd = (height-1) // activeDelegates +1
+
+    puks = [
+        dlgt["publicKey"] for dlgt in 
+        _get.api.rounds("%s" % rnd, "delegates").get("data", [])
+    ]
+
+    print(
+        "height:", height,
+        "- round:", rnd,
+        "- remaining block:", activeDelegates - height % activeDelegates
+    )
+
+    seed = hashlib.sha256(b"%d" % rnd).digest()
+    i = 0
+    while i < activeDelegates:
+        for x in seed[:4]:
+            if i < activeDelegates:
+                new_i = x % activeDelegates
+                puk = puks[new_i]
+                puks[new_i] = puks[i]
+                puks[i] = puk
+                i += 1
+            else:
+                break
+        seed = hashlib.sha256(seed).digest()
+        i += 1
+
+    return puks
