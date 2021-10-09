@@ -3,18 +3,17 @@
 
 """
 Usage:
-    zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--chunk-size <chubk-size> --fee-coverage]
+    zen add-delegate <username> [-h <webhook-peer>]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
-    zen deploy-srv [--ip-address <ip-address> -p <port>]
-    zen (reset | initialize | backup-data | remove-custom-peer)
-    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
-    zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
+    zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen set-secrets [<username>]
     zen append-custom-peer <peer-list>
-    zen check-secrets
+    zen deploy-srv [--ip-address <ip-address> -p <port>]
+    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen (reset | initialize | backup-data | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -65,6 +64,7 @@ import bg
 import zen
 import zen.tbw
 import zen.biom
+import zen.task
 
 
 def _fee(value):
@@ -146,6 +146,29 @@ def set_secrets(args={}, **options):
                 "delegate %s not found on %s network" %
                 (username, zen.biom.dposlib.rest.cfg.network)
             )
+
+
+def enable_tasks(args={}, **options):
+    tasks = zen.loadJson("bg.json").get("tasks-enabled", {})
+    for task in zen.chooseMultipleItem(
+        "Select task to enable:", *[
+            tsk for tsk in zen.task._tasks() if tsk not in tasks
+        ]
+    ):
+        zen.task._enableTask(
+            eval(input("interval in second for %s: "% task)),
+            task
+        )
+
+
+def disable_tasks(args={}, **options):
+    tasks = zen.loadJson("bg.json").get("tasks-enabled", {})
+    for task in zen.chooseMultipleItem(
+        "Select task to disable:", *[
+            tsk for tsk in zen.task._tasks() if tsk in tasks
+        ]
+    ):
+        zen.task._disableTask(task)
 
 
 def check_secrets(args={}, **options):
