@@ -1,9 +1,11 @@
 # -*- coding:utf-8 -*-
 import zen
 import zen.biom
+import zen.tbw
 
 
 def post_worker_init(worker):
+    setattr(zen.tbw, "DAEMON", zen.tbw.TaskExecutionner())
     custom_peers = zen.loadJson("tbw.json").get("custom_peers", [])
     if len(custom_peers) > 0:
         zen.biom.dposlib.core.stop()
