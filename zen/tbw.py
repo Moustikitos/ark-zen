@@ -612,6 +612,3 @@ class TaskExecutioner(threading.Thread):
                 computeDelegateBlock(*TaskExecutioner.JOB.get())
             except Exception as error:
                 logMsg("%r" % error)
-
-
-DAEMON = TaskExecutioner()
