@@ -149,7 +149,7 @@ def set_secrets(args={}, **options):
 
 
 def enable_tasks(args={}, **options):
-    tasks = zen.loadJson("bg.json").get("tasks-enabled", {})
+    tasks = zen.loadJson("root.json").get("tasks-enabled", {})
     for task in zen.chooseMultipleItem(
         "Select task to enable:", *[
             tsk for tsk in zen.task._tasks() if tsk not in tasks
@@ -162,7 +162,7 @@ def enable_tasks(args={}, **options):
 
 
 def disable_tasks(args={}, **options):
-    tasks = zen.loadJson("bg.json").get("tasks-enabled", {})
+    tasks = zen.loadJson("root.json").get("tasks-enabled", {})
     for task in zen.chooseMultipleItem(
         "Select task to disable:", *[
             tsk for tsk in zen.task._tasks() if tsk in tasks
@@ -261,8 +261,8 @@ def remove_delegate(args={}, **options):
 
 
 def append_custom_peer(args={}, **options):
-    tbw = zen.loadJson("tbw.json")
-    custom_peers = tbw.get("custom_peers", [])
+    config = zen.loadJson("root.json")
+    custom_peers = config.get("custom_peers", [])
     for peer in [
         p for p in _split(args["<peer-list>"]) if p not in custom_peers
     ]:
@@ -276,19 +276,19 @@ def append_custom_peer(args={}, **options):
             zen.logMsg("%s not on same network" % peer)
         else:
             zen.logMsg("%s not reachable" % peer)
-    tbw["custom_peers"] = list(custom_peers)
-    zen.dumpJson(tbw, "tbw.json")
+    config["custom_peers"] = list(custom_peers)
+    zen.dumpJson(config, "root.json")
 
 
 def remove_custom_peer(args={}, **options):
-    tbw = zen.loadJson("tbw.json")
+    config = zen.loadJson("root.json")
     items = zen.chooseMultipleItem(
-        "Select peers to remove", *tbw["custom_peers"]
+        "Select peers to remove", *config["custom_peers"]
     )
     if len(items):
         for item in items:
-            tbw["custom_peers"].remove(item)
-    zen.dumpJson(tbw, "tbw.json")
+            config["custom_peers"].remove(item)
+    zen.dumpJson(config, "root.json")
 
 
 def check_applied(args={}, **options):
@@ -296,7 +296,7 @@ def check_applied(args={}, **options):
 
 
 if __name__ == "__main__":
-    tbw = zen.loadJson("tbw.json")
+    tbw = zen.loadJson("root.json")
 
     FILTER = {
         "--block-delay": lambda value: int(value),

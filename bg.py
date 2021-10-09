@@ -111,16 +111,16 @@ def checkRegistries():
             )
 
 
-def start(relay=False):
-    info = zen.loadJson("bg.json")
+def start():
+    info = zen.loadJson("root.json")
     tasks = info.get("tasks-enabled", {})
     sleep_time = info.get(
         "seleep-time",
         zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
     )
 
-    zen.logMsg("checkRegistries daemon set: interval=%ds" % (sleep_time))
     daemons = [setInterval(sleep_time)(_launcher)(checkRegistries)]
+    zen.logMsg("checkRegistries daemon set: interval=%ds" % (sleep_time))
     for task, params in tasks.items():
         func = getattr(zen.task, task)
         if callable(func):
@@ -167,6 +167,6 @@ if __name__ == "__main__":
     zen.misc.notify("Background tasks started !")
     try:
         zen.biom.pullKeys()
-        start(relay="env" in zen.loadJson("root.json"))
+        start()
     except KeyboardInterrupt:
         exit_handler()

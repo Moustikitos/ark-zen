@@ -22,21 +22,21 @@ def _tasks():
 
 def _enableTask(delay, func, **params):
     if func not in ["enableTask", "disableTask"]:
-        config = zen.loadJson("bg.json")
+        config = zen.loadJson("root.json")
         params.update(interval=delay)
         config["tasks-enabled"] = dict(
             config.get("tasks-enabled", {}),
-            **{func:params}
+            **{func: params}
         )
-        zen.dumpJson(config, "bg.json")
+        zen.dumpJson(config, "root.json")
 
 
 def _disableTask(func):
-    config = zen.loadJson("bg.json")
+    config = zen.loadJson("root.json")
     tasks = config.get("tasks-enabled", {})
     tasks.pop(func, None)
     config["tasks-enabled"] = tasks
-    zen.dumpJson(config, "bg.json")
+    zen.dumpJson(config, "root.json")
 
 
 def checkVersion():
@@ -86,7 +86,7 @@ def generateCharts():
 
 
 def checkIfForging():
-    config = zen.loadJson("bg.json").get("tasks-enabled", {}).get(
+    config = zen.loadJson("root.json").get("tasks-enabled", {}).get(
         "checkIfForging", {}
     )
     active_delegates = zen.biom.dposlib.rest.cfg.activeDelegates
@@ -137,7 +137,7 @@ def checkIfForging():
                 last_computed_block, "%s.last.block" % user, folder=zen.DATA
             )
             zen.logMsg(
-                "Round check [delegate:%d | blockchain:%d] - %s" %
+                "round check [delegate:%d | blockchain:%d] - %s" %
                 (dlgt_round, current_round, msg)
             )
 

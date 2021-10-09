@@ -332,7 +332,7 @@ def pullKeys():
             setattr(module, "_%s_#2" % username, config.pop("#2"))
             hide = True
         if hide:
-            zen.logMsg("%s secrets pulled." % username)
+            zen.logMsg("%s secrets pulled" % username)
             zen.dumpJson(config, "%s.json" % username)
 
 
@@ -345,7 +345,7 @@ def pushBackKeys():
         num = "#" + num
         config = zen.loadJson("%s.json" % username)
         config[num] = value
-        zen.logMsg("%s secrets pushed back." % username)
+        zen.logMsg("%s secrets pushed back" % username)
         zen.dumpJson(config, "%s.json" % username)
 
 

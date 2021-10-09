@@ -307,8 +307,8 @@ def dumpRegistry(username, chunk_size=50):
 
 def broadcast(username, chunk_size=30):
     # initialize options
-    tbw = loadJson("tbw.json")
-    chunk_size = max(5, tbw.get("chunk_size", chunk_size))
+    config = loadJson("root.json")
+    chunk_size = max(5, config.get("chunk_size", chunk_size))
     folder = os.path.join(zen.DATA, username)
     delegate_is_forging = biom.delegateIsForging(username)
 
