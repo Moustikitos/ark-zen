@@ -30,7 +30,6 @@ app.config.update(
 )
 
 
-# compute true block weight
 @app.route("/block/forged", methods=["POST", "GET"])
 def spread():
     if flask.request.method == "POST":
