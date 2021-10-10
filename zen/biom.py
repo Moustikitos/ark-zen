@@ -19,7 +19,9 @@ if not zen.PY3:
     input = raw_input
 
 
-# OS INTERACTION
+###################
+# OS INTERACTIONS #
+###################
 
 def deploy(host="0.0.0.0", port=5000):
     normpath = os.path.normpath
@@ -65,7 +67,7 @@ WantedBy=multi-user.target
 
 
 def start_pm2_app(appname):
-    os.system(r'''
+    return os.system(r'''
 if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     yarn exec ark %(appname)s:start
 else
@@ -77,7 +79,7 @@ fi
 
 
 def stop_pm2_app(appname):
-    os.system(r'''
+    return os.system(r'''
 if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
     echo stoping %(appname)s...
     pm2 stop %(appname)s -s
@@ -86,12 +88,34 @@ fi
     )
 
 
+def send_signal(signal, pid):
+    return os.system(r'sudo kill -s%s %s' % (signal, pid))
+
+
+def send_signal_grep(signal, grep_arg):
+    return os.system(r'''
+sudo kill -s%s $(
+    pgrep -a -u $USER,daemon|grep '%s'|sed 's/\ / /'|awk 'NR==1{print $1}'
+)
+''' % (signal, grep_arg.replace(r"'", r"\'")))
+
+
+def archive_data():
+    return os.system(r'''
+cd %(path)s
+tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
+''' % {"path": os.path.abspath(zen.__path__[0])}
+    )
+
+
 def printNewLine():
     sys.stdout.write("\n")
     sys.stdout.flush()
 
 
-# SYSTEM INTERACTIONS
+#######################
+# SYSTEM INTERACTIONS #
+#######################
 
 def loadEnv(pathname):
     with io.open(pathname, "r") as environ:
@@ -236,12 +260,6 @@ def load():
         zen.WEBHOOK_PEER = root.get("webhook", False)
         zen.API_PEER = root.get("api", False)
 
-    dposlib.rest.use(root.get("blockchain", "dark"))
-    custom_peers = root.get("custom_peers", [])
-    if len(custom_peers) > 0:
-        zen.biom.dposlib.core.stop()
-        zen.biom.dposlib.rest.cfg.peers = custom_peers
-
     if zen.PUBLIC_IP != '127.0.0.1':
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -252,6 +270,12 @@ def load():
             zen.PUBLIC_IP = '127.0.0.1'
         finally:
             s.close()
+
+    dposlib.rest.use(root.get("blockchain", "dark"))
+    custom_peers = root.get("custom_peers", [])
+    if len(custom_peers) > 0:
+        zen.biom.dposlib.core.stop()
+        zen.biom.dposlib.rest.cfg.peers = custom_peers
 
 
 def configure(**kwargs):
@@ -356,8 +380,9 @@ def pushBackKeys():
         zen.logMsg("%s secrets pushed back" % username)
 
 
-# BLOCKCHAIN INTERACTIONS
-
+###########################
+# BLOCKCHAIN INTERACTIONS #
+###########################
 def askPrivateKey(msg, puk):
     keys = dposlib.core.crypto.getKeys("01")
     while keys["publicKey"] != puk:
@@ -474,6 +499,7 @@ def deleteWebhook(id, peer):
 
 
 # https://github.com/ArkEcosystem/core/blob/master/packages/core-state/src/round-state.ts#L230-L249
+# TOFIX: delegate order is not right
 def getRoundOrder(height=None):
     _get = dposlib.rest.GET
     if height is None:
@@ -481,18 +507,18 @@ def getRoundOrder(height=None):
         height = last_block.get("height", 0)
 
     activeDelegates = dposlib.rest.cfg.activeDelegates
-    rnd = height // activeDelegates + 1
+    rnd = (height-1) // activeDelegates  # ok to be changed with milestones
 
     puks = [
         dlgt["publicKey"] for dlgt in
         _get.api.rounds("%s" % rnd, "delegates").get("data", [])
     ]
 
-    print(
-        "height:", height,
-        "- round:", rnd,
-        "- remaining block:", activeDelegates - height % activeDelegates
-    )
+    # print(
+    #     "height:", height,
+    #     "- round:", rnd,
+    #     "- remaining block:", activeDelegates - height % activeDelegates
+    # )
 
     seed = b"%d" % rnd
     i = 0
@@ -508,3 +534,35 @@ def getRoundOrder(height=None):
         i += 1
 
     return puks
+
+
+def _testOrderDelegate():
+    _get = dposlib.rest.GET
+    dlgt = dict(
+        [d["publicKey"], d["username"]]
+        for d in _get.api.delegates(returnKey="data")
+    )
+    last_block = _get.api.blockchain(returnKey="data").get("block", {})
+    height = last_block.get("height", 0)
+    activeDelegates = dposlib.rest.cfg.activeDelegates
+
+    rnd = (height - 1) // activeDelegates
+    prev_rnf = rnd + 1
+
+    first_height = rnd * activeDelegates + 1
+    prev_first_height = prev_rnf * activeDelegates + 1
+
+    data = {}
+    for height in [prev_first_height, first_height]:
+        order = getRoundOrder(height)
+        data[height] = [dlgt[puk] for puk in order]
+
+    print(str(prev_first_height).ljust(20, " "), first_height)
+    for i in range(activeDelegates):
+        print(
+            data[prev_first_height][i].ljust(20, " "),
+            data[first_height][i],
+        )
+
+
+   
