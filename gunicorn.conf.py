@@ -6,7 +6,7 @@ import zen.tbw
 
 def post_worker_init(worker):
     setattr(zen.tbw, "DAEMON", zen.tbw.TaskExecutionner())
-    custom_peers = zen.loadJson("tbw.json").get("custom_peers", [])
+    custom_peers = zen.loadJson("root.json").get("custom_peers", [])
     if len(custom_peers) > 0:
         zen.biom.dposlib.core.stop()
         zen.biom.dposlib.rest.cfg.peers = custom_peers
