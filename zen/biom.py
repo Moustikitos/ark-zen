@@ -237,6 +237,10 @@ def load():
         zen.API_PEER = root.get("api", False)
 
     dposlib.rest.use(root.get("blockchain", "dark"))
+    custom_peers = root.get("custom_peers", [])
+    if len(custom_peers) > 0:
+        zen.biom.dposlib.core.stop()
+        zen.biom.dposlib.rest.cfg.peers = custom_peers
 
     if zen.PUBLIC_IP != '127.0.0.1':
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -477,7 +481,7 @@ def getRoundOrder(height=None):
         height = last_block.get("height", 0)
 
     activeDelegates = dposlib.rest.cfg.activeDelegates
-    rnd = (height-1) // activeDelegates + 1
+    rnd = height // activeDelegates + 1
 
     puks = [
         dlgt["publicKey"] for dlgt in
@@ -490,9 +494,10 @@ def getRoundOrder(height=None):
         "- remaining block:", activeDelegates - height % activeDelegates
     )
 
-    seed = hashlib.sha256(b"%d" % rnd).digest()
+    seed = b"%d" % rnd
     i = 0
     while i < activeDelegates:
+        seed = hashlib.sha256(seed).digest()
         for x in seed[:4]:
             if i < activeDelegates:
                 new_i = x % activeDelegates
@@ -500,7 +505,6 @@ def getRoundOrder(height=None):
                 puks[new_i] = puks[i]
                 puks[i] = puk
                 i += 1
-        seed = hashlib.sha256(seed).digest()
         i += 1
 
     return puks

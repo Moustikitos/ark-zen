@@ -10,6 +10,8 @@ import zen.tbw
 import zen.misc
 import zen.biom
 
+DAEMON = zen.tbw.TaskExecutioner()
+
 # create the application instance
 app = flask.Flask(__name__)
 app.config.update(
@@ -102,3 +104,4 @@ def dated_url_for(endpoint, **values):
                 pass
     return flask.url_for(endpoint, **values)
 ########################
+

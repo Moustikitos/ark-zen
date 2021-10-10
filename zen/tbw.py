@@ -603,6 +603,7 @@ class TaskExecutioner(threading.Thread):
         threading.Thread.__init__(self)
         self.daemon = True
         self.start()
+        zen.logMsg("TaskExecutioner instance set: %r" % self)
 
     def run(self):
         # controled infinite loop
