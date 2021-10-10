@@ -13,7 +13,7 @@ Usage:
     zen append-custom-peer <peer-list>
     zen deploy-srv [--ip-address <ip-address> -p <port>]
     zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
-    zen (reset | initialize | backup-data | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
+    zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -39,7 +39,6 @@ Subcommands:
     restart-srv        : restart the true block weight server tasks
     stop-srv           : stop the true block weight server tasks
     log-zen/bg         : log true block weight server or background tasks
-    backup-data        : store delegate public data in a data-bkp.tar.bz2
     launch-payroll     : create a payroll for <username> (true block weight status reseted)
     retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
     resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
@@ -172,11 +171,7 @@ def disable_tasks(args={}, **options):
 
 
 def check_secrets(args={}, **options):
-    os.system(r'''
-kill -10 $(
-    pgrep -a -u $USER,daemon|grep /bg.py|sed 's/\ / /'|awk 'NR==1{print $1}'
-)
-''')
+    zen.biom.send_signal_grep("SIGUSR1", "/bg.py")
 
 
 def deploy_srv(args={}, **options):
@@ -223,14 +218,6 @@ def configure(args={}, **options):
 
 
 add_delegate = configure
-
-
-def backup_data(args={}, **options):
-    os.system('''
-cd %(path)s
-tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
-''' % {"path": os.path.abspath(zen.__path__[0])}
-    )
 
 
 def launch_payroll(args={}, **options):
