@@ -39,6 +39,15 @@ def _disableTask(func):
     zen.dumpJson(config, "root.json")
 
 
+def backupData():
+    if zen.biom.archive_data():
+        zen.logMsg("data backup successfully done")
+        return True
+    else:
+        zen.logMsg("data backup failed")
+        return False
+
+
 def checkVersion():
     peers = _GET.api.peers(orderBy="version:desc")
     peers = [
