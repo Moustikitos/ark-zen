@@ -563,6 +563,3 @@ def _testOrderDelegate():
             data[prev_first_height][i].ljust(20, " "),
             data[first_height][i],
         )
-
-
-   
