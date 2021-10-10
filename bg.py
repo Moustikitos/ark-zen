@@ -2,7 +2,6 @@
 import os
 import io
 import sys
-import time
 import json
 import traceback
 import threading
@@ -126,13 +125,15 @@ def start():
         if callable(func):
             daemons.append(setInterval(params["interval"])(_launcher)(func))
             zen.logMsg(
-                "%s daemon set: interval=%ss" % (task, params["interval"])
+                "%s daemon set: interval=%ss" %(task, params["interval"])
             )
 
     RELEASE.clear()
     while not RELEASE.is_set():
         RELEASE.wait(timeout=float(sleep_time))
-        zen.logMsg("Sleep time finished :\n%s" % json.dumps(CHECK_RESULT))
+        zen.logMsg(
+            "Sleep time finished :\n%s" % json.dumps(CHECK_RESULT, indent=2)
+        )
 
     for daemon in daemons:
         daemon.set()
