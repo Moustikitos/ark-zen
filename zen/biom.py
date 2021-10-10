@@ -10,7 +10,6 @@ import socket
 import shutil
 import getpass
 import hashlib
-import binascii
 
 import dposlib
 import dposlib.rest
@@ -338,6 +337,7 @@ def pullKeys():
 
 def pushBackKeys():
     module = sys.modules[__name__]
+    delegates = []
     for key, value in [
         (k, v) for k, v in module.__dict__.items() if k[-2:] in "#1#2"
     ]:
@@ -345,8 +345,11 @@ def pushBackKeys():
         num = "#" + num
         config = zen.loadJson("%s.json" % username)
         config[num] = value
-        zen.logMsg("%s secrets pushed back" % username)
         zen.dumpJson(config, "%s.json" % username)
+        delegates.append(username)
+
+    for username in set(delegates):
+        zen.logMsg("%s secrets pushed back" % username)
 
 
 # BLOCKCHAIN INTERACTIONS
@@ -474,10 +477,10 @@ def getRoundOrder(height=None):
         height = last_block.get("height", 0)
 
     activeDelegates = dposlib.rest.cfg.activeDelegates
-    rnd = (height-1) // activeDelegates +1
+    rnd = (height-1) // activeDelegates + 1
 
     puks = [
-        dlgt["publicKey"] for dlgt in 
+        dlgt["publicKey"] for dlgt in
         _get.api.rounds("%s" % rnd, "delegates").get("data", [])
     ]
 
@@ -497,8 +500,6 @@ def getRoundOrder(height=None):
                 puks[new_i] = puks[i]
                 puks[i] = puk
                 i += 1
-            else:
-                break
         seed = hashlib.sha256(seed).digest()
         i += 1
 
