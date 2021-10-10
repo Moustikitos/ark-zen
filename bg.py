@@ -131,7 +131,7 @@ def start():
 
     RELEASE.clear()
     while not RELEASE.is_set():
-        time.sleep(sleep_time)
+        RELEASE.wait(timeout=float(sleep_time))
         zen.logMsg("Sleep time finished :\n%s" % json.dumps(CHECK_RESULT))
 
     for daemon in daemons:
