@@ -103,7 +103,7 @@ sudo kill -s%s $(
 def archive_data():
     return os.system(r'''
 cd %(path)s
-/bin/tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
+/bin/tar -caf data-bkp.tar.bz2 *.db app/.tbw app/.data
 ''' % {"path": os.path.abspath(zen.__path__[0])}
     )
 
@@ -499,7 +499,8 @@ def deleteWebhook(id, peer):
 
 
 # https://github.com/ArkEcosystem/core/blob/master/packages/core-state/src/round-state.ts#L230-L249
-# TOFIX: delegate order is not right
+# https://github.com/ArkEcosystem/explorer/blob/develop/app/Services/Monitor/DelegateTracker.php
+# # TOFIX: delegate order is not right
 def getRoundOrder(height=None):
     _get = dposlib.rest.GET
     if height is None:

@@ -49,7 +49,6 @@ After=network.target
 User=%(usr)s
 WorkingDirectory=%(wkd)s
 Environment=PYTHONPATH=%(path)s
-Environment=PATH=$(/usr/bin/yarn global bin):$PATH
 ExecStart=%(exe)s %(mod)s
 Restart=always
 
