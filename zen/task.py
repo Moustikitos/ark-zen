@@ -42,7 +42,7 @@ def _disableTask(func):
 
 
 def backupData():
-    if zen.biom.archive_data():
+    if not zen.biom.archive_data():
         zen.logMsg("data backup successfully done")
         return True
     else:
@@ -210,6 +210,6 @@ def checkNode():
         zen.logMsg(msg)
         zen.misc.notify(msg)
     else:
-        msg = "%s synced @ height %s" % (api_peer, height_diff)
+        msg = "%s synced @ height %s" % (api_peer, height)
 
     return msg
