@@ -103,7 +103,7 @@ sudo kill -s%s $(
 def archive_data():
     return os.system(r'''
 cd %(path)s
-tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
+/bin/tar -cjf data-bkp.tar.bz2 *.db app/.tbw app/.data
 ''' % {"path": os.path.abspath(zen.__path__[0])}
     )
 
@@ -531,7 +531,7 @@ def getRoundOrder(height=None):
                 puks[new_i] = puks[i]
                 puks[i] = puk
                 i += 1
-        i += 1
+        # i += 1
 
     return puks
 
@@ -547,7 +547,7 @@ def _testOrderDelegate():
     activeDelegates = dposlib.rest.cfg.activeDelegates
 
     rnd = (height - 1) // activeDelegates
-    prev_rnf = rnd + 1
+    prev_rnf = rnd - 1
 
     first_height = rnd * activeDelegates + 1
     prev_first_height = prev_rnf * activeDelegates + 1
