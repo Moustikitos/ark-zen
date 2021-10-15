@@ -2,6 +2,8 @@
 import os
 import sys
 import time
+import subprocess
+import shlex
 
 import zen
 import zen.biom
@@ -149,64 +151,65 @@ def checkIfForging():
                 "round check [delegate:%d | blockchain:%d] - %s" %
                 (dlgt_round, current_round, msg)
             )
-
     return True
 
 
-# def checkNode():
-#     global IS_SYNCING, STATUS, SEED_STATUS, CHECK_RESULT
+def checkNode():
+    global REPORT
+    REPORT = {}
 
-#     # get database height
-#     # int(
-#     #     subprocess.check_output(
-#     #         shlex.split(
-#     #             'psql -qtAX -d ark_mainnet -c '
-#     #             '"SELECT height FROM blocks ORDER BY height DESC LIMIT 1"'
-#     #         )
-#     #     ).strip()
-#     # )
+    root = zen.loadJson("root.json")
+    config = root.get("tasks-enabled", {}).get("checkNode", {})
 
-#     env = zen.biom.loadEnv(zen.loadJson("root.json")["env"])
-#     api_port = env["CORE_API_PORT"]
-#     IS_SYNCING = _GET.api.node.syncing(
-#         peer="http://127.0.0.1:%s" % api_port
-#     ).get("data", {})
-#     STATUS = _GET.api.node.status(
-#         peer="http://127.0.0.1:%s" % api_port
-#     ).get("data", {})
-#     SEED_STATUS = _GET.api.node.status(
-#         peer=ARK_API_PEER
-#     ).get("data", {})
+    seed_peer = config.get("seed-peer", False)
+    if not seed_peer:
+        zen.logMsg("no seed peer defined")
+        return "no seed peer defined"
 
-#     try:
-#         if STATUS == {}:
-#             CHECK_RESULT["not responding"] = True
-#             zen.misc.notify("Your node is not responding")
-#             zen.logMsg("node is not responding")
-#         elif CHECK_RESULT.get("not responding", False):
-#             CHECK_RESULT.pop("not responding")
-#             zen.misc.notify("Your node is back online")
-#         else:
-#             zen.logMsg(zen.json.dumps(STATUS))
-#             if not STATUS.get("synced"):
-#                 if IS_SYNCING["syncing"]:
-#                     zen.misc.notify(
-#                         "Your node is syncing... %d blocks from network height"
-#                         % IS_SYNCING["blocks"]
-#                     )
-#                 else:
-#                     CHECK_RESULT["not syncing"] = True
-#                     zen.misc.notify(
-#                         "Your node is not synced and seems stoped at height "
-#                         "%d, network is at height %d" % (
-#                             IS_SYNCING["height"], SEED_STATUS["now"]
-#                         )
-#                     )
-#             elif CHECK_RESULT.get("not syncing", False):
-#                 CHECK_RESULT.pop("not syncing")
-#                 zen.misc.notify(
-#                     "Your node had recovered network height %d" % STATUS["now"]
-#                 )
+    api_peer = config.get("api-peer", zen.API_PEER)
+    syncing = _GET.api.node.syncing(peer=api_peer).get("data", {})
+    status = _GET.api.node.status(peer=seed_peer).get("data", {})
+    notification_delay = config.get("notification-delay", 5 * 60)
 
-#     except Exception as e:
-#         zen.logMsg("node check error:\n%r\n%s" % (e, traceback.format_exc()))
+    if syncing == {}:
+        msg = "%s not responding" % api_peer
+        now = time.time()
+        if now - REPORT.get("not responding", now) > notification_delay:
+            REPORT["not responding"] = time.time()
+            zen.logMsg(msg)
+            zen.misc.notify(msg)
+        return msg
+    elif REPORT.pop("not responding", False):
+        msg = "%s is active again" % api_peer
+        zen.logMsg(msg)
+        zen.misc.notify(msg)
+
+    if root.get("env", False):
+        height = int(
+            subprocess.check_output(
+                shlex.split(
+                    '/usr/bin/psql -qtAX -d ark_mainnet -c '
+                    '"SELECT height FROM blocks ORDER BY height DESC LIMIT 1"'
+                )
+            ).strip()
+        )
+    else:
+        height = syncing["height"]
+
+    height_diff = status.get("now", height) - height
+
+    if syncing.get("syncing", False):
+        msg = "%s not synced: height diff %s" % (api_peer, height_diff)
+        now = time.time()
+        if now - REPORT.get("not synced", now) > notification_delay:
+            REPORT["not synced"] = time.time()
+            zen.logMsg(msg)
+            zen.misc.notify(msg)
+    elif REPORT.pop("not responding", False):
+        msg = "%s synced at height %s" % (api_peer, height_diff)
+        zen.logMsg(msg)
+        zen.misc.notify(msg)
+    else:
+        msg = "%s synced @ height %s" % (api_peer, height_diff)
+
+    return msg
