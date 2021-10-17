@@ -33,22 +33,25 @@ Options:
     --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:
-    reset              : initialization starting from ark-core config folder
-    initialize         : initialization starting from peer selection
-    configure          : configure global or delegate-specific options
-    deploy-srv         : deploy services and start the true block weight server tasks
-    restart-srv        : restart the true block weight server tasks
-    stop-srv           : stop the true block weight server tasks
-    log-zen/bg         : log true block weight server or background tasks
-    launch-payroll     : create a payroll for <username> (true block weight status reseted)
-    retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
-    resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add delegate if bip39 secret protection used
-    remove-delegate    : remove delegate <username>
-    set-secrets        : reset delegate secrets
-    check-secrets      : check registered private keys
-    append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
-    remove-custom-peer : remove one or more custom peer from a selection list
+    reset               initialization starting from ark-core config folder
+    initialize          initialization starting from peer selection
+    configure           configure global or delegate-specific options
+    deploy-srv          deploy services and start the true block weight server tasks
+    restart-srv         restart the true block weight server tasks
+    stop-srv            stop the true block weight server tasks
+    log-zen/bg          log true block weight server or background tasks
+    launch-payroll      create a payroll for <username> (true block weight status reseted)
+    retry-payroll       retry a specified payroll for <username> (true block weight status unchanged)
+    resume-payroll      resume existing <username> payroll (true block weight status unchanged)
+    add-delegate        add delegate if bip39 secret protection used
+    remove-delegate     remove delegate <username>
+    set-secrets         reset delegate secrets
+    check-secrets       check registered private keys
+    append-custom-peer  append custom peer from coma-separated-peer list or newline-separated-peer file
+    remove-custom-peer  remove one or more custom peer from a selection list
+    enable-tasks        enable available background tasks
+    disable-tasks       disable available background tasks
+    configure-task      edit tak options if any
 """
 
 import io

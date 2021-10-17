@@ -8,12 +8,12 @@
 
 [Buy &#1126;](https://bittrex.com/Account/Register?referralCode=NW5-DQO-QMT) and:
 
-  * [X] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
-  * [X] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
+  * [x] Send &#1126; to `AUahWfkfr5J4tYakugRbfow7RWVTK35GPW`
+  * [x] Vote `arky` on [Ark blockchain](https://explorer.ark.io) and [earn &#1126; weekly](http://dpos.arky-delegate.info/arky)
 
 ## Supported blockchain
 
- * [X] Ark
+ * [x] Ark
 
 ## Install
 
@@ -42,18 +42,18 @@ ark-zen/bash/activate
 
 ```
 Usage:
-    zen add-delegate <username> [-h <webhook-peer>]
     zen configure [--chunk-size <chubk-size> --fee-coverage]
+    zen add-delegate <username> [-h <webhook-peer>]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
-    zen deploy-srv [--ip-address <ip-address> -p <port>]
-    zen (reset | initialize | backup-data | remove-custom-peer)
-    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
     zen adjust-forge <username> <value>
     zen set-secrets [<username>]
     zen append-custom-peer <peer-list>
-    zen check-secrets
+    zen deploy-srv [--ip-address <ip-address> -p <port>]
+    zen (restart-srv | stop-srv | log-zen | log-bg)
+    zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
+    zen configure-task <task> [reset]
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -72,23 +72,25 @@ Options:
     --fee-coverage                    : delegate covers transaction fees (flag)
 
 Subcommands:
-    reset              : initialization starting from ark-core config folder
-    initialize         : initialization starting from peer selection
-    configure          : configure global or delegate-specific options
-    deploy-srv         : deploy services and start the true block weight server tasks
-    restart-srv        : restart the true block weight server tasks
-    stop-srv           : stop the true block weight server tasks
-    log-zen/bg         : log true block weight server or background tasks
-    backup-data        : store delegate public data in a data-bkp.tar.bz2
-    launch-payroll     : create a payroll for <username> (true block weight status reseted)
-    retry-payroll      : retry a specified payroll for <username> (true block weight status unchanged)
-    resume-payroll     : resume existing <username> payroll (true block weight status unchanged)
-    add-delegate       : add delegate if bip39 secret protection used
-    remove-delegate    : remove delegate <username>
-    secrets            : reset delegate secrets
-    check-secrets      : check registered private keys
-    append-custom-peer : append custom peer from coma-separated-peer list or newline-separated-peer file
-    remove-custom-peer : remove one or more custom peer from a selection list
+    reset               initialization starting from ark-core config folder
+    initialize          initialization starting from peer selection
+    configure           configure global or delegate-specific options
+    deploy-srv          deploy services and start the true block weight server tasks
+    restart-srv         restart the true block weight server tasks
+    stop-srv            stop the true block weight server tasks
+    log-zen/bg          log true block weight server or background tasks
+    launch-payroll      create a payroll for <username> (true block weight status reseted)
+    retry-payroll       retry a specified payroll for <username> (true block weight status unchanged)
+    resume-payroll      resume existing <username> payroll (true block weight status unchanged)
+    add-delegate        add delegate if bip39 secret protection used
+    remove-delegate     remove delegate <username>
+    set-secrets         reset delegate secrets
+    check-secrets       check registered private keys
+    append-custom-peer  append custom peer from coma-separated-peer list or newline-separated-peer file
+    remove-custom-peer  remove one or more custom peer from a selection list
+    enable-tasks        enable available background tasks
+    disable-tasks       disable available background tasks
+    configure-task      edit tak options if any
 ```
 
 ## Notification system
@@ -143,22 +145,23 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 ## Releases
 
 ### Normae - 4.0.0 [current work]
-  * [X] Packaging improvement
-  * [X] security improvmenet
+  * [x] packaging improvement
+  * [X] security improvment
+  * [X] background task management improvment
   * [X] `SIGINT` and `SIGTERM` handlers for bg tasks
 
 ### Monoceros
 #### 3.1.0
   * [X] Ark core 3.0 compliancy
 #### 3.0.0
-  * [X] virtualenv target choice on zen installation
-  * [X] `zen` and `bg` run as system services
+  * [x] virtualenv target choice on zen installation
+  * [x] `zen` and `bg` run as system services
 
 ### Lupus 
 #### 2.0.1
-  * [X] nonce bugfix
-  * [X] `retry-payroll` updated
-  * [X] `bg` module updated
+  * [x] nonce bugfix
+  * [x] `retry-payroll` updated
+  * [x] `bg` module updated
 #### 2.0.0
   * [x] ark-core 2.6 compliancy
   * [x] dposlib 0.3 compliancy
