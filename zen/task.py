@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+
 import os
 import sys
 import time
@@ -28,7 +29,9 @@ def _enableTask(delay, func, **params):
         params.update(interval=delay)
         config["tasks-enabled"] = dict(
             config.get("tasks-enabled", {}),
-            **{func: params}
+            **{func: dict(
+                [k.replace("_", "-"), v] for k, v in params.items()
+            )}
         )
         zen.dumpJson(config, "root.json")
 
@@ -41,10 +44,55 @@ def _disableTask(func):
     zen.dumpJson(config, "root.json")
 
 
+def checkRegistries():
+    for username in [
+        name for name in os.listdir(zen.DATA)
+        if os.path.isdir(os.path.join(zen.DATA, name))
+    ]:
+        block_delay = zen.loadJson("%s.json" % username).get(
+            "block_delay", False
+        )
+        blocks = zen.loadJson(
+            "%s.forgery" % username,
+            folder=os.path.join(zen.DATA, username)
+        ).get("blocks", 0)
+        if block_delay and blocks >= block_delay:
+            zen.logMsg(
+                "%s payroll triggered by block delay : %s [>= %s]" %
+                (username, blocks, block_delay)
+            )
+            zen.tbw.extract(username)
+            zen.tbw.dumpRegistry(username)
+            zen.tbw.broadcast(username)
+        else:
+            zen.tbw.checkApplied(username)
+            zen.logMsg(
+                "%s registry checked : %s [< %s]" %
+                (username, blocks, block_delay)
+            )
+
+
 def backupData():
-    if not zen.biom.archive_data():
+    config = zen.loadJson("root.json").get("tasks-enabled", {}).get(
+        "backupData", {}
+    )
+    backup_type = config.get("backup-type", ".tar.bz2")
+    backup_number = config.get("backup-number", 5)
+    backup_folder = os.path.abspath(
+        config.get("backup-folder", zen.__path__[0])
+    )
+    os.makedirs(backup_folder, exist_ok=True)
+    if not zen.biom.archive_data(backup_folder, backup_type):
         zen.logMsg("data backup successfully done")
-        return True
+        backups = [
+            os.path.join(backup_folder, name)
+            for name in os.listdir(backup_folder) if ".tar" in name
+        ]
+        if len(backups) > backup_number:
+            backups.sort(key=lambda p: os.stat(p).st_mtime)
+            for path in backups[:-backup_number]:
+                os.remove(path)
+        return backups[-1]
     else:
         zen.logMsg("data backup failed")
         return False

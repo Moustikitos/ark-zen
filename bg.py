@@ -1,8 +1,10 @@
 # -*- encoding:utf-8 -*-
+
 import os
 import io
 import sys
 import json
+import importlib
 import traceback
 import threading
 
@@ -13,7 +15,7 @@ import zen.biom
 import zen.task
 
 RELEASE = threading.Event()
-CHECK_RESULT = {}
+REPORT = {}
 
 
 def setInterval(interval):
@@ -22,6 +24,7 @@ def setInterval(interval):
         def wrapper(*args, **kwargs):
             """Helper function to create thread."""
             stopped = threading.Event()
+
             # executed in another thread
             def _loop():
                 """Thread entry point."""
@@ -72,66 +75,38 @@ WantedBy=multi-user.target
 def _launcher(func):
     name = func.__name__
     try:
-        CHECK_RESULT[name] = func()
+        REPORT[name] = func()
     except Exception as error:
         zen.logMsg(
             "%s exception:\n%r\n%s" %
             (func.__name__, error, traceback.format_exc())
         )
-        CHECK_RESULT[name] = "%r" % error
-
-
-def checkRegistries():
-    for username in [
-        name for name in os.listdir(zen.DATA)
-        if os.path.isdir(os.path.join(zen.DATA, name))
-    ]:
-        block_delay = zen.loadJson("%s.json" % username).get(
-            "block_delay", False
-        )
-        blocks = zen.loadJson(
-            "%s.forgery" % username,
-            folder=os.path.join(zen.DATA, username)
-        ).get("blocks", 0)
-        if block_delay and blocks >= block_delay:
-            zen.logMsg(
-                "%s payroll triggered by block delay : %s [>= %s]" %
-                (username, blocks, block_delay)
-            )
-            zen.tbw.extract(username)
-            zen.tbw.dumpRegistry(username)
-            zen.tbw.broadcast(username)
-        else:
-            zen.tbw.checkApplied(username)
-            zen.logMsg(
-                "%s registry checked : %s [< %s]" %
-                (username, blocks, block_delay)
-            )
+        REPORT[name] = "%r" % error
 
 
 def start():
     info = zen.loadJson("root.json")
     tasks = info.get("tasks-enabled", {})
     sleep_time = info.get(
-        "seleep-time",
+        "sleep-time",
         zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
     )
 
-    daemons = [setInterval(sleep_time)(_launcher)(checkRegistries)]
-    zen.logMsg("checkRegistries daemon set: interval=%ds" % (sleep_time))
+    daemons = []
     for task, params in tasks.items():
         func = getattr(zen.task, task)
         if callable(func):
             daemons.append(setInterval(params["interval"])(_launcher)(func))
             zen.logMsg(
-                "%s daemon set: interval=%ss" %(task, params["interval"])
+                "%s daemon set: interval=%ss" % (task, params["interval"])
             )
+            importlib.reload(zen.task)
 
     RELEASE.clear()
     while not RELEASE.is_set():
         RELEASE.wait(timeout=float(sleep_time))
         zen.logMsg(
-            "Sleep time finished :\n%s" % json.dumps(CHECK_RESULT, indent=2)
+            "Sleep time finished :\n%s" % json.dumps(REPORT, indent=2)
         )
 
     for daemon in daemons:
