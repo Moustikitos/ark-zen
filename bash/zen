@@ -7,13 +7,14 @@ Usage:
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
     zen configure <username> [-m <minimum-vote> -M <maximum-vote> -t <threshold>]
-    zen adjust-forge <username> <value>
     zen (launch-payroll | resume-payroll | retry-payroll | check-applied | remove-delegate) <username>
+    zen adjust-forge <username> <value>
     zen set-secrets [<username>]
     zen append-custom-peer <peer-list>
     zen deploy-srv [--ip-address <ip-address> -p <port>]
-    zen (deploy-srv | restart-srv | stop-srv | log-zen | log-bg)
+    zen (restart-srv | stop-srv | log-zen | log-bg)
     zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
+    zen configure-task <task> [reset]
 
 Options:
     -b --block-delay=<block-delay>    : block amount to wait beetween payroll
@@ -100,6 +101,61 @@ def _addresses(value):
         return None
     else:
         return result
+
+
+def _ask_task_option(option, value, current=None):
+    result = False
+    if value is not None and "|" in value:
+        typ, value = value.split("|")
+        typ = getattr(__builtins__, typ, "str")
+        value = typ(value)
+    else:
+        typ = str
+
+    if current:
+        value = current
+
+    while result is False:
+        ans = input(
+            " > %s%s: " % (option[2:], " [%r]" % value if value else "")
+        )
+        if ans == "":
+            result = None
+        elif typ is not str:
+            try:
+                result = typ(ans)
+            except Exception:
+                result = False
+        else:
+            result = ans
+
+    return result
+
+
+def configure_task(args={}, **options):
+    func = getattr(zen.task, args["<task>"], False)
+    if callable(func) and func.__doc__ is not None:
+        taskname = args["<task>"]
+        config = zen.loadJson("root.json")
+        task_config = config["tasks-enabled"].get(taskname, {})
+        analyse = docopt.docopt(
+            func.__doc__, argv=sys.argv[sys.argv.index(taskname)+1:]
+        )
+        if analyse.get("reset", False):
+            for key in [k for k in analyse if k[2:] in task_config]:
+                task_config.pop(key[2:], False)
+        else:
+            analyse.pop("reset", False)
+            for key, value in analyse.items():
+                value = _ask_task_option(
+                    key, value, task_config.get(key[2:], None)
+                )
+                if value is not None:
+                    task_config[key[2:]] = value
+        config["tasks-enabled"].update({taskname: task_config})
+        zen.dumpJson(config, "root.json")
+    else:
+        zen.logMsg("'%s' unknown or no option available" % args["<task>"])
 
 
 def set_secrets(args={}, **options):
@@ -300,10 +356,13 @@ if __name__ == "__main__":
     }
 
     def getAction(args):
-        for action in [k for k in args if k[0] not in ["-", "<"]]:
-            if args[action] is True:
-                return action
-        return False
+        action = False
+        for key, value in args.items():
+            if key in FILTER and value is not None:
+                args[key] = FILTER[key](value)
+            elif key[0] not in ["-", "<"] and value:
+                action = key
+        return action
 
     def getOptions(args):
         options = {}
@@ -312,9 +371,7 @@ if __name__ == "__main__":
             if k.startswith("--") and v is not None
         ]:
             try:
-                options[option[2:].replace("-", "_")] = FILTER.get(
-                    option, lambda v: v
-                )(value)
+                options[option[2:].replace("-", "_")] = value
             except Exception as error:
                 zen.logMsg(
                     "error in command line\n\t%s=%s : %s" %

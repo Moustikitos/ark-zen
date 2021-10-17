@@ -150,14 +150,14 @@ def checkIfForging():
     )
     active_delegates = zen.biom.dposlib.rest.cfg.activeDelegates
     notification_delay = config.get("notification-delay", 10 * 60)
-    api_peer = config.get("api-peer", zen.API_PEER)
+    monitored_peer = config.get("monitored-peer", zen.API_PEER)
     usernames = [
         name.split("-")[0] for name in os.listdir(zen.JSON)
         if name.endswith("-webhook.json")
     ]
 
     for user in usernames:
-        dlgt = _GET.api.delegates(user, peer=api_peer).get("data", {})
+        dlgt = _GET.api.delegates(user, peer=monitored_peer).get("data", {})
         last_block = dlgt.get("blocks", {}).get("last", {})
         last_computed_block = zen.loadJson(
             "%s.last.block" % user, folder=zen.DATA
@@ -166,7 +166,7 @@ def checkIfForging():
             zen.dumpJson(last_block, "%s.last.block" % user, folder=zen.DATA)
             return False
         elif dlgt.get("rank", 52) <= active_delegates:
-            blkchn = _GET.api.blockchain(peer=api_peer).get("data", {})
+            blkchn = _GET.api.blockchain(peer=monitored_peer).get("data", {})
             height = blkchn.get("block", {}).get("height", 0)
             current_round = (height - 1) // active_delegates
             dlgt_round = (last_block["height"] - 1) // active_delegates
@@ -214,13 +214,13 @@ def checkNode():
         zen.logMsg("no seed peer defined")
         return "no seed peer defined"
 
-    api_peer = config.get("api-peer", zen.API_PEER)
-    syncing = _GET.api.node.syncing(peer=api_peer).get("data", {})
+    monitored_peer = config.get("monitored-peer", zen.API_PEER)
+    syncing = _GET.api.node.syncing(peer=monitored_peer).get("data", {})
     status = _GET.api.node.status(peer=seed_peer).get("data", {})
     notification_delay = config.get("notification-delay", 5 * 60)
 
     if syncing == {}:
-        msg = "%s not responding" % api_peer
+        msg = "%s not responding" % monitored_peer
         now = time.time()
         if now - REPORT.get("not responding", now) > notification_delay:
             REPORT["not responding"] = time.time()
@@ -228,7 +228,7 @@ def checkNode():
             zen.misc.notify(msg)
         return msg
     elif REPORT.pop("not responding", False):
-        msg = "%s is active again" % api_peer
+        msg = "%s is active again" % monitored_peer
         zen.logMsg(msg)
         zen.misc.notify(msg)
 
@@ -247,17 +247,46 @@ def checkNode():
     height_diff = status.get("now", height) - height
 
     if syncing.get("syncing", False):
-        msg = "%s not synced: height diff %s" % (api_peer, height_diff)
+        msg = "%s not synced: height diff %s" % (monitored_peer, height_diff)
         now = time.time()
         if now - REPORT.get("not synced", now) > notification_delay:
             REPORT["not synced"] = time.time()
             zen.logMsg(msg)
             zen.misc.notify(msg)
     elif REPORT.pop("not responding", False):
-        msg = "%s synced at height %s" % (api_peer, height_diff)
+        msg = "%s synced at height %s" % (monitored_peer, height_diff)
         zen.logMsg(msg)
         zen.misc.notify(msg)
     else:
-        msg = "%s synced @ height %s" % (api_peer, height)
+        msg = "%s synced @ height %s" % (monitored_peer, height)
 
     return msg
+
+
+# must be done as bellow because of docstring formating
+backupData.__doc__ = f"""
+Usage:
+    backupData [(-f <folder> -n <number> -t <type>) | reset]
+
+Options:
+    -t --backup-type=<type>      tar extension [Default: .tar.bz2]
+    -n --backup-number=<number>  backup number to keep [Default: int|5]
+    -f --backup-folder=<folder>  backup folder [Default: {zen.__path__[0]}]
+"""
+checkIfForging.__doc__ = f"""
+Usage:
+    checkIfForging [(-p <peer> -d <delay>) | reset]
+
+Options:
+    -p --monitored-peer=<peer>       monitored peer [Default: {zen.API_PEER}]
+    -d --notification-delay=<delay>  minimum delay [Default: int|600]
+"""
+checkNode.__doc__ = f"""
+Usage:
+    checkNode [(-s <seed> -p <peer> -d <delay>) | reset]
+
+Options:
+    -s --seed-peer=<peer>            reference peer
+    -p --monitored-peer=<peer>       monitored peer [Default: {zen.API_PEER}]
+    -d --notification-delay=<delay>  minimum delay [Default: int|300]
+"""
