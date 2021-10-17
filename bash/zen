@@ -155,7 +155,7 @@ def enable_tasks(args={}, **options):
         ]
     ):
         zen.task._enableTask(
-            eval(input("interval in second for %s: "% task)),
+            eval(input("interval in second for %s: " % task)),
             task
         )
 

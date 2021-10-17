@@ -3,6 +3,7 @@ import os
 import math
 import time
 import json
+import queue
 import sqlite3
 import datetime
 import threading
@@ -16,11 +17,6 @@ import dposlib
 from dposlib import rest
 from dposlib.ark import slots
 from zen import misc, biom, loadJson, dumpJson, logMsg
-
-if zen.PY3:
-    import queue
-else:
-    import Queue as queue
 
 biom.load()
 
@@ -44,13 +40,15 @@ def initDb(username):
 
 
 def vacuumDb(username):
-    sqlite = initDb(username)
-    cursor = sqlite.cursor()
-    # sql command to remove double values in value column keeping the first one
-    cursor.execute(
+    sqlite = sqlite3.connect(
+        os.path.join(zen.ROOT, "%s.db" % username),
+        isolation_level=None
+    )
+    sqlite.execute(
         "DELETE FROM dilution WHERE timestamp NOT IN "
         "(SELECT MIN(timestamp) as timestamp FROM dilution GROUP BY value)"
     )
+    sqlite.execute("VACUUM")
     sqlite.commit()
     sqlite.close()
 
@@ -303,6 +301,35 @@ def dumpRegistry(username, chunk_size=50):
             os.remove(os.path.join(folder, name))
 
     return True
+
+
+# TODO: fix it
+def waitForDelegate(publicKey):
+    slot = zen.biom.getRoundOrder().index(publicKey) + 1
+    if slot > 0:
+        blocktime = rest.cfg.blocktime
+        activeDelegates = rest.cfg.activeDelegates
+        activeDelegatesMilestone = getattr(
+            rest.cfg, "activeDelegatesMilestone", 1
+        )
+        height = rest.GET.api.blockchain(
+            returnKey="data"
+        ).get("block", {}).get("height", False)
+
+        if not height:
+            return
+
+        current_slot = (height - activeDelegatesMilestone) % activeDelegates
+        wait_delay = ((slot - current_slot) % activeDelegates) * blocktime
+        delay = wait_delay + blocktime - time.time() % blocktime
+        zen.logMsg("waiting %.2f seconds for %s slot..." % (delay, publicKey))
+
+        try:
+            threading.Event().wait(
+                wait_delay + blocktime - time.time() % blocktime
+            )
+        except KeyboardInterrupt:
+            pass
 
 
 def broadcast(username, chunk_size=30):

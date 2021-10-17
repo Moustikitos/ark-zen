@@ -15,9 +15,6 @@ import dposlib
 import dposlib.rest
 import dposlib.net
 
-if not zen.PY3:
-    input = raw_input
-
 
 ###################
 # OS INTERACTIONS #
@@ -100,12 +97,15 @@ sudo kill -s%s $(
 ''' % (signal, grep_arg.replace(r"'", r"\'")))
 
 
-def archive_data():
+def archive_data(folder=None, extension=".tar.bz2"):
     return os.system(r'''
 cd %(path)s
-/bin/tar -caf data-bkp.tar.bz2 *.db app/.tbw app/.data
-''' % {"path": os.path.abspath(zen.__path__[0])}
-    )
+/bin/tar -caf data-bkp.%(timestamp)d%(ext)s *.db app/.tbw app/.data
+''' % {
+        "path": os.path.abspath(zen.__path__[0]) if folder is None else folder,
+        "ext": extension,
+        "timestamp": time.time()
+    })
 
 
 def printNewLine():
@@ -145,11 +145,11 @@ def setup(clear=False):
     root = zen.loadJson("root.json")
     if clear:
         root.clear()
-        root["config_folder"] = ""
+        root["config-folder"] = ""
     # first configuration
-    if root.get("config_folder", "") == "":
+    if root.get("config-folder", "") == "":
         if os.path.isdir(os.path.expanduser("~/.config/ark-core")):
-            root["config_folder"] = os.path.abspath(
+            root["config-folder"] = os.path.abspath(
                 os.path.expanduser("~/.config/ark-core")
             )
         else:
@@ -164,26 +164,26 @@ def setup(clear=False):
                 return
 
             if ans in "yY":
-                while not os.path.exists(root["config_folder"]):
+                while not os.path.exists(root["config-folder"]):
                     try:
-                        root["config_folder"] = os.path.abspath(
+                        root["config-folder"] = os.path.abspath(
                             input("Enter config folder: ")
                         )
                     except KeyboardInterrupt:
                         zen.logMsg("\nConfiguration aborted...")
                         return
             else:
-                root["config_folder"] = None
+                root["config-folder"] = None
 
-    if root["config_folder"] is not None:
+    if root["config-folder"] is not None:
         network = zen.chooseItem(
-            "select network:", *list(os.walk(root["config_folder"]))[0][1]
+            "select network:", *list(os.walk(root["config-folder"]))[0][1]
         )
         if not network:
             zen.logMsg("Configuration aborted...")
             return
         root["name"] = network
-        root["env"] = os.path.join(root["config_folder"], network, ".env")
+        root["env"] = os.path.join(root["config-folder"], network, ".env")
 
         blockchain = zen.chooseItem(
             "Select blockchain running on node:",

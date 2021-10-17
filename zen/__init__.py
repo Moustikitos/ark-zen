@@ -6,11 +6,6 @@ import sys
 import json
 import datetime
 
-# register python familly
-PY3 = sys.version_info[0] >= 3
-if not PY3:
-    input = raw_input
-
 # configuration pathes
 ROOT = os.path.abspath(os.path.dirname(__file__))
 JSON = os.path.abspath(os.path.join(ROOT, ".json"))
@@ -48,7 +43,7 @@ def dumpJson(data, name, folder=None):
         os.makedirs(os.path.dirname(filename))
     except OSError:
         pass
-    with io.open(filename, "w" if PY3 else "wb") as out:
+    with io.open(filename, "w") as out:
         json.dump(data, out, indent=4)
     # hack to avoid "OSError: [Errno 24] Too many open files"
     # with pypy
