@@ -4,6 +4,7 @@
 import io
 import os
 import sys
+
 import zen
 import time
 import socket
@@ -53,7 +54,7 @@ WantedBy=multi-user.target
             "bin": os.path.dirname(executable),
         })
 
-    if os.system("%s -m pip show gunicorn" % executable) != "0":
+    if not os.system("%s -m pip show gunicorn" % executable):
         os.system("%s -m pip install gunicorn" % executable)
     os.system("chmod +x ./zen.service")
     os.system("sudo cp %s %s" % (gunicorn_conf, normpath(sys.prefix)))
@@ -143,11 +144,14 @@ def dumpEnv(env, pathname):
 def setup(clear=False):
     # load root.json file. If not exists, root is empty dict
     root = zen.loadJson("root.json")
+    # delete all keys from root dict if asked
     if clear:
         root.clear()
         root["config-folder"] = ""
-    # first configuration
+    # first configuration if no config-folder, it is set to "" because None is
+    # used if zen is not running on a blockchain node
     if root.get("config-folder", "") == "":
+        # if ark config directory found
         if os.path.isdir(os.path.expanduser("~/.config/ark-core")):
             root["config-folder"] = os.path.abspath(
                 os.path.expanduser("~/.config/ark-core")
@@ -156,87 +160,83 @@ def setup(clear=False):
             ans = "None"
             try:
                 while ans not in "nNyY":
-                    ans = input(
-                        "Is zen installed on a running node ?[Y/n] "
-                    )
+                    ans = input("Is zen installed on a running node ?[Y/n] ")
             except KeyboardInterrupt:
-                zen.logMsg("\nConfiguration aborted...")
+                zen.logMsg("\nconfiguration aborted...")
                 return
 
             if ans in "yY":
-                while not os.path.exists(root["config-folder"]):
+                while not os.path.exists(root.get("config-folder", "")):
                     try:
                         root["config-folder"] = os.path.abspath(
                             input("Enter config folder: ")
                         )
                     except KeyboardInterrupt:
-                        zen.logMsg("\nConfiguration aborted...")
+                        zen.logMsg("\nconfiguration aborted...")
                         return
             else:
                 root["config-folder"] = None
-
+    # if zen is running on a blockchain node
     if root["config-folder"] is not None:
+        # get folder containing node configuration
         network = zen.chooseItem(
             "select network:", *list(os.walk(root["config-folder"]))[0][1]
         )
         if not network:
-            zen.logMsg("Configuration aborted...")
+            zen.logMsg("configuration aborted...")
             return
         root["name"] = network
         root["env"] = os.path.join(root["config-folder"], network, ".env")
-
-        blockchain = zen.chooseItem(
-            "Select blockchain running on node:",
-            *[name for name in dir(dposlib.net) if not name.startswith("_")]
-        )
-        if not blockchain:
-            zen.logMsg("Configuration aborted...")
+        root["blockchain"] = zen.loadJson(
+            "config.json", folder=os.path.join(root["config-folder"], network)
+        ).get("token", None)
+        # load .env file and enable webhooks if disabled
+        if not os.path.exists(root["env"]):
+            zen.logMsg("no env file available...")
             return
-        root["blockchain"] = blockchain
-
         zen.ENV = loadEnv(root["env"])
         if not zen.ENV.get("CORE_WEBHOOKS_ENABLED", "") == "true":
             zen.ENV["CORE_WEBHOOKS_ENABLED"] = "true"
             zen.ENV["CORE_WEBHOOKS_HOST"] = "0.0.0.0"
             zen.ENV["CORE_WEBHOOKS_PORT"] = "4004"
             dumpEnv(zen.ENV, root["env"])
-            if input("Relay have to be restarted. "
-                     "Restart now ?[Y:n] ") in "yY":
+            if input(
+                "webhooks now enabled, relay have to be restarted :[Y/n] "
+            ) in "yY":
                 start_pm2_app("relay")
-
+    # if zen is not running on a blockchain node
     else:
-        root["webhook"] = "127.0.0.1:4004"
+        # get webhook subscription peer address
         try:
             while dposlib.rest.GET.api.webhooks(
-                peer="http://"+root["webhook"], timeout=2
+                peer=root.get("webhook", "http://127.0.0.1:4004"), timeout=2
             ).get("status", False) != 200:
                 root["webhook"] = input("Peer address for webhook submition: ")
         except KeyboardInterrupt:
-            zen.logMsg("\nConfiguration aborted...")
+            zen.logMsg("\nconfiguration aborted...")
             return
-        root["webhook"] = "http://" + root["webhook"]
-
-        root["api"] = "127.0.0.1:4003"
+        root["webhook"] = root["webhook"]
+        # get monitored node api address
         try:
             while "data" not in dposlib.rest.GET.api.blockchain(
-                peer="http://"+root["api"], timeout=2
+                peer=root.get("api", "http://127.0.0.1:4003"), timeout=2
             ):
                 root["api"] = input("Peer address for API requests: ")
         except KeyboardInterrupt:
-            zen.logMsg("\nConfiguration aborted...")
+            zen.logMsg("\nconfiguration aborted...")
             return
-        root["api"] = "http://" + root["api"]
-
-        blockchain = zen.chooseItem(
-            "Select blockchain running on peer:",
+        root["api"] = root["api"]
+    # final check
+    if root.get("blockchain", "") not in dir(dposlib.net):
+        root["blockchain"] = zen.chooseItem(
+            "Select blockchain running on node:",
             *[name for name in dir(dposlib.net) if not name.startswith("_")]
         )
-        if not blockchain:
-            zen.logMsg("Configuration aborted...")
-            return
-        root["blockchain"] = blockchain
+    if not root["blockchain"]:
+        zen.logMsg("blockchain can not be determined...")
+        return
 
-    zen.logMsg("Configuration done.")
+    zen.logMsg("configuration done")
     zen.dumpJson(root, "root.json")
 
 
@@ -313,7 +313,7 @@ def removeDelegate(username):
     if len(webhook):
         resp = deleteWebhook(webhook["id"], peer=webhook["peer"])
         if resp.get("status", 500) < 300:
-            zen.logMsg("Webhook subscription removed")
+            zen.logMsg("webhook subscription removed")
             zen.dropJson("%s-webhook.json" % username)
             zen.dropJson("%s.json" % username)
             if input("Remove %s data ?[Y/n] " % username) in "yY":
@@ -338,7 +338,7 @@ def waitForPeer(peer):
             peer=peer, timeout=2
         ).get("status", False) != 200:
             time.sleep(2)
-            zen.logMsg("Wating for peer %s..." % peer)
+            zen.logMsg("wating for peer %s..." % peer)
         return True
     except KeyboardInterrupt:
         return False
@@ -380,9 +380,20 @@ def pushBackKeys():
         zen.logMsg("%s secrets pushed back" % username)
 
 
+def getUsernameKeys(username):
+    module = sys.modules[__name__]
+    H1 = module.__dict__.get("_%s_#1" % username, None)
+    H2 = module.__dict__.get("_%s_#2" % username, None)
+    return (
+        H1 if H1 is None else dposlib.core.crypto.getKeys(H1),
+        H2 if H2 is None else dposlib.core.crypto.getKeys(H2)
+    )
+
+
 ###########################
 # BLOCKCHAIN INTERACTIONS #
 ###########################
+
 def askPrivateKey(msg, puk):
     keys = dposlib.core.crypto.getKeys("01")
     while keys["publicKey"] != puk:
@@ -401,16 +412,6 @@ def getPublicKeyFromUsername(username):
 def getUsernameFromPublicKey(publicKey):
     req = dposlib.rest.GET.api.delegates(publicKey)
     return req.get("data", {}).get("username", False)
-
-
-def getUsernameKeys(username):
-    module = sys.modules[__name__]
-    H1 = module.__dict__.get("_%s_#1" % username, None)
-    H2 = module.__dict__.get("_%s_#2" % username, None)
-    return (
-        H1 if H1 is None else dposlib.core.crypto.getKeys(H1),
-        H2 if H2 is None else dposlib.core.crypto.getKeys(H2)
-    )
 
 
 def transactionApplied(id):
@@ -458,11 +459,11 @@ def setDelegate(uname_or_puk, peer=None):
             webhook = setWebhook(config["publicKey"])
             webhook["peer"] = peer
             if "token" in webhook:
-                zen.logMsg("Webhook subscription succeded")
+                zen.logMsg("webhook subscription succeded")
                 zen.dumpJson(webhook, "%s-webhook.json" % username)
             else:
                 zen.logMsg(
-                    "An error occured with webhook subscription:\n%s" %
+                    "an error occured with webhook subscription:\n%s" %
                     webhook
                 )
 
