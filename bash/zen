@@ -14,23 +14,24 @@ Usage:
     zen deploy-srv [--ip-address <ip-address> -p <port>]
     zen (restart-srv | stop-srv | log-zen | log-bg)
     zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
-    zen configure-task <task> [reset]
+    zen configure-task <task> [-0]
 
 Options:
-    -b --block-delay=<block-delay>    : block amount to wait beetween payroll
-    -e --excludes=<excludes>          : coma-separated or file address list to exclude from payroll
-    -w --wallet=<wallet>              : delegate funds wallet
-    -f --fee-level=<fee-level>        : set the fee level for the delegate
-    -h --webhook-peer=<webhook-peer>  : define the webhook peer to use
-    -s --share=<share>                : delegate share rate (0.0<=share<=1.0)
-    -t --threshold=<threshold>        : minimum amount for a payment
-    -n --name-list=<name-list>        : *.tbw coma-separated name list
-    -m --minimum-vote=<minimum-vote>  : set a minimum vote level
-    -M --maximum-vote=<maximum-vote>  : set a maximum vote level
-    -p --port=<port>                  : port to use for zen server        [default: 5000]
-    --ip-address=<ip-address>         : ip address to use for zen server  [default: 127.0.0.1]
-    --chunk-size=<chunk-size>         : max transaction per multitransfer [default: 30]
-    --fee-coverage                    : delegate covers transaction fees (flag)
+    -b --block-delay=<block-delay>    block amount to wait beetween payroll
+    -e --excludes=<excludes>          coma-separated or file address list to exclude from payroll
+    -w --wallet=<wallet>              delegate funds wallet
+    -f --fee-level=<fee-level>        set the fee level for the delegate    [default: avgFee]
+    -h --webhook-peer=<webhook-peer>  define the webhook peer to use
+    -s --share=<share>                delegate share rate (0.0<=share<=1.0) [default: 0.]
+    -t --threshold=<threshold>        minimum amount for a payment          [default: 0.1]
+    -n --name-list=<name-list>        *.tbw coma-separated name list
+    -m --minimum-vote=<minimum-vote>  set a minimum vote level              [default: 1.0]
+    -M --maximum-vote=<maximum-vote>  set a maximum vote level
+    -p --port=<port>                  port to use for zen server            [default: 5000]
+    --ip-address=<ip-address>         ip address to use for zen server      [default: 127.0.0.1]
+    --chunk-size=<chunk-size>         max transaction per multitransfer     [default: 30]
+    -0 --reset                        background task options to defaults   (flag)
+    --fee-coverage                    delegate covers transaction fees      (flag)
 
 Subcommands:
     reset               initialization starting from ark-core config folder
@@ -51,7 +52,7 @@ Subcommands:
     remove-custom-peer  remove one or more custom peer from a selection list
     enable-tasks        enable available background tasks
     disable-tasks       disable available background tasks
-    configure-task      edit tak options if any
+    configure-task      edit task options if any
 """
 
 import io
@@ -140,22 +141,29 @@ def configure_task(args={}, **options):
     if callable(func) and func.__doc__ is not None:
         taskname = args["<task>"]
         config = zen.loadJson("root.json")
-        task_config = config["tasks-enabled"].get(taskname, {})
+        task_config = config.get("tasks-enabled", {}).get(taskname, {})
         analyse = docopt.docopt(
             func.__doc__, argv=sys.argv[sys.argv.index(taskname)+1:]
         )
-        if analyse.get("reset", False):
+        if args.get("--reset", False):
             for key in [k for k in analyse if k[2:] in task_config]:
                 task_config.pop(key[2:], False)
         else:
-            analyse.pop("reset", False)
-            for key, value in analyse.items():
-                value = _ask_task_option(
-                    key, value, task_config.get(key[2:], None)
-                )
-                if value is not None:
-                    task_config[key[2:]] = value
-        config["tasks-enabled"].update({taskname: task_config})
+            analyse.pop("-0", False)
+            analyse.pop("--reset", False)
+            try:
+                for key, value in analyse.items():
+                    value = _ask_task_option(
+                        key, value, task_config.get(key[2:], None)
+                    )
+                    if value is not None:
+                        task_config[key[2:]] = value
+            except KeyboardInterrupt:
+                return
+        config["tasks-enabled"] = dict(
+            config.get("tasks-enabled", {}),
+            **{taskname: task_config}
+        )
         zen.dumpJson(config, "root.json")
     else:
         zen.logMsg("'%s' unknown or no option available" % args["<task>"])
@@ -353,8 +361,8 @@ if __name__ == "__main__":
         "--name-list": lambda value: _split(value),
         "--fee-level": lambda value: _fee(value),
         "--chunk-size": lambda value: int(value),
-        "--minimum-vote": lambda value: int(value),
-        "--maximum-vote": lambda value: int(value),
+        "--minimum-vote": lambda value: float(value),
+        "--maximum-vote": lambda value: float(value),
         "--port": lambda value: int(value),
     }
 

@@ -266,27 +266,27 @@ def checkNode():
 # must be done as bellow because of docstring formating
 backupData.__doc__ = f"""
 Usage:
-    backupData [(-f <folder> -n <number> -t <type>) | reset]
+    backupData [-f <folder> -n <number> -t <type>] [-0]
 
 Options:
-    -t --backup-type=<type>      tar extension [Default: .tar.bz2]
-    -n --backup-number=<number>  backup number to keep [Default: int|5]
-    -f --backup-folder=<folder>  backup folder [Default: {zen.__path__[0]}]
+    -t --backup-type=<type>      tar extension [default: .tar.bz2]
+    -n --backup-number=<number>  backup number [default: int|5]
+    -f --backup-folder=<folder>  backup folder [default: {zen.__path__[0]}]
 """
 checkIfForging.__doc__ = f"""
 Usage:
-    checkIfForging [(-p <peer> -d <delay>) | reset]
+    checkIfForging [-p <peer> -d <delay>] [-0]
 
 Options:
-    -p --monitored-peer=<peer>       monitored peer [Default: {zen.API_PEER}]
-    -d --notification-delay=<delay>  minimum delay [Default: int|600]
+    -p --monitored-peer=<peer>       monitored peer [default: {zen.API_PEER}]
+    -d --notification-delay=<delay>  minimum delay  [default: int|600]
 """
 checkNode.__doc__ = f"""
 Usage:
-    checkNode [(-s <seed> -p <peer> -d <delay>) | reset]
+    checkNode [-s <seed> -p <peer> -d <delay>] [-0]
 
 Options:
     -s --seed-peer=<peer>            reference peer
-    -p --monitored-peer=<peer>       monitored peer [Default: {zen.API_PEER}]
-    -d --notification-delay=<delay>  minimum delay [Default: int|300]
+    -p --monitored-peer=<peer>       monitored peer [default: {zen.API_PEER}]
+    -d --notification-delay=<delay>  minimum delay  [default: int|300]
 """
