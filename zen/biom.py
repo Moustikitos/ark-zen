@@ -149,7 +149,7 @@ def setup(clear=False):
         root.clear()
         root["config-folder"] = ""
     # first configuration if no config-folder, it is set to "" because None is
-    # used if zen is not running on a blockchain node
+    # used when zen is not running on a blockchain node
     if root.get("config-folder", "") == "":
         # if ark config directory found
         if os.path.isdir(os.path.expanduser("~/.config/ark-core")):
@@ -201,7 +201,7 @@ def setup(clear=False):
             zen.ENV["CORE_WEBHOOKS_PORT"] = "4004"
             dumpEnv(zen.ENV, root["env"])
             if input(
-                "webhooks now enabled, relay have to be restarted :[Y/n] "
+                "webhooks are now enabled, restart relay ?[Y/n] "
             ) in "yY":
                 start_pm2_app("relay")
     # if zen is not running on a blockchain node
@@ -226,18 +226,20 @@ def setup(clear=False):
             zen.logMsg("\nconfiguration aborted...")
             return
         root["api"] = root["api"]
+
     # final check
     if root.get("blockchain", "") not in dir(dposlib.net):
         root["blockchain"] = zen.chooseItem(
             "Select blockchain running on node:",
             *[name for name in dir(dposlib.net) if not name.startswith("_")]
         )
+
     if not root["blockchain"]:
         zen.logMsg("blockchain can not be determined...")
         return
-
-    zen.logMsg("configuration done")
-    zen.dumpJson(root, "root.json")
+    else:
+        zen.logMsg("configuration done")
+        zen.dumpJson(root, "root.json")
 
 
 def load():
