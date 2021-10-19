@@ -13,9 +13,11 @@
 
 ## Supported blockchain
 
- * [x] Ark
+ * [x] Ark and forks
 
 ## Install
+
+Install command will configure a virtual environement based on `python 3.x` or `pypy` and create `unit` files used by `systemctl` to run a web server and a task manager.
 
 ### Last release
 
@@ -29,7 +31,7 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh)
 ```
 
-### First launch
+## Deploy
 
 ```bash
 cd ~
@@ -37,6 +39,8 @@ ark-zen/bash/activate
 ./zen initialize
 ./zen deploy-srv
 ```
+
+## Configure
 
 ## `zen` command
 
@@ -53,23 +57,24 @@ Usage:
     zen deploy-srv [--ip-address <ip-address> -p <port>]
     zen (restart-srv | stop-srv | log-zen | log-bg)
     zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
-    zen configure-task <task> [reset]
+    zen configure-task <task> [-0]
 
 Options:
-    -b --block-delay=<block-delay>    : block amount to wait beetween payroll
-    -e --excludes=<excludes>          : coma-separated or file address list to exclude from payroll
-    -w --wallet=<wallet>              : delegate funds wallet
-    -f --fee-level=<fee-level>        : set the fee level for the delegate
-    -h --webhook-peer=<webhook-peer>  : define the webhook peer to use
-    -s --share=<share>                : delegate share rate (0.0<=share<=1.0)
-    -t --threshold=<threshold>        : minimum amount for a payment
-    -n --name-list=<name-list>        : *.tbw coma-separated name list
-    -m --minimum-vote=<minimum-vote>  : set a minimum vote level
-    -M --maximum-vote=<maximum-vote>  : set a maximum vote level
-    -p --port=<port>                  : port to use for zen server        [default: 5000]
-    --ip-address=<ip-address>         : ip address to use for zen server  [default: 127.0.0.1]
-    --chunk-size=<chunk-size>         : max transaction per multitransfer [default: 30]
-    --fee-coverage                    : delegate covers transaction fees (flag)
+    -b --block-delay=<block-delay>    block amount to wait beetween payroll
+    -e --excludes=<excludes>          coma-separated or file address list to exclude from payroll
+    -w --wallet=<wallet>              delegate funds wallet
+    -f --fee-level=<fee-level>        set the fee level for the delegate
+    -h --webhook-peer=<webhook-peer>  define the webhook peer to use
+    -s --share=<share>                delegate share rate (0.0<=share<=1.0)
+    -t --threshold=<threshold>        minimum amount for a payment
+    -n --name-list=<name-list>        *.tbw coma-separated name list
+    -m --minimum-vote=<minimum-vote>  set a minimum vote level
+    -M --maximum-vote=<maximum-vote>  set a maximum vote level
+    -p --port=<port>                  port to use for zen server          [default: 5000]
+    --ip-address=<ip-address>         ip address to use for zen server    [default: 127.0.0.1]
+    --chunk-size=<chunk-size>         max transaction per multitransfer   [default: 30]
+    -0 --reset                        background task options to defaults (flag)
+    --fee-coverage                    delegate covers transaction fees    (flag)
 
 Subcommands:
     reset               initialization starting from ark-core config folder
@@ -90,7 +95,7 @@ Subcommands:
     remove-custom-peer  remove one or more custom peer from a selection list
     enable-tasks        enable available background tasks
     disable-tasks       disable available background tasks
-    configure-task      edit tak options if any
+    configure-task      edit task options if any
 ```
 
 ## Notification system
