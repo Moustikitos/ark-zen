@@ -281,16 +281,7 @@ def load():
 
 
 def configure(**kwargs):
-    if not len(kwargs):
-        root = zen.loadJson("root.json")
-        if "env" in root:
-            delegates = zen.loadJson(
-                "delegates.json", os.path.dirname(root["env"])
-            )
-            for secret in delegates["secrets"]:
-                setDelegate(dposlib.core.crypto.getKeys(secret)["publicKey"])
-
-    elif "username" in kwargs:
+    if "username" in kwargs:
         username = kwargs.pop("username")
         if getPublicKeyFromUsername(username):
             if not os.path.exists(
@@ -300,14 +291,25 @@ def configure(**kwargs):
                     username, peer=kwargs.get("webhook_peer", None)
                 ):
                     return
-            # load update and save in a row
-            zen.dumpJson(
-                dict(zen.loadJson("%s.json" % username), **kwargs),
-                "%s.json" % username
-            )
-            zen.logMsg("%s delegate set" % username)
+                # load update and save in a row
+                zen.dumpJson(
+                    dict(zen.loadJson("%s.json" % username), **kwargs),
+                    "%s.json" % username
+                )
+                zen.logMsg("%s delegate set" % username)
+            else:
+                zen.logMsg("%s delegate already set" % username)
         else:
             zen.logMsg("can not find delegate %s" % username)
+
+    elif not len(kwargs):
+        root = zen.loadJson("root.json")
+        if "env" in root:
+            delegates = zen.loadJson(
+                "delegates.json", os.path.dirname(root["env"])
+            )
+            for secret in delegates["secrets"]:
+                setDelegate(dposlib.core.crypto.getKeys(secret)["publicKey"])
 
 
 def removeDelegate(username):
@@ -316,20 +318,20 @@ def removeDelegate(username):
         resp = deleteWebhook(webhook["id"], peer=webhook["peer"])
         if resp.get("status", 500) < 300:
             zen.logMsg("webhook subscription removed")
-            zen.dropJson("%s-webhook.json" % username)
+        if input("Remove %s data ?[Y/n] " % username) in "yY":
             zen.dropJson("%s.json" % username)
-            if input("Remove %s data ?[Y/n] " % username) in "yY":
-                shutil.rmtree(
-                    os.path.join(zen.DATA, username), ignore_errors=True
-                )
-                shutil.rmtree(
-                    os.path.join(zen.TBW, username), ignore_errors=True
-                )
-                try:
-                    os.remove(os.path.join(zen.ROOT, "%s.db" % username))
-                except Exception:
-                    pass
-        zen.logMsg("%s removed" % username)
+            zen.dropJson("%s-webhook.json" % username)
+            shutil.rmtree(
+                os.path.join(zen.DATA, username), ignore_errors=True
+            )
+            shutil.rmtree(
+                os.path.join(zen.TBW, username), ignore_errors=True
+            )
+            try:
+                os.remove(os.path.join(zen.ROOT, "%s.db" % username))
+            except Exception:
+                pass
+            zen.logMsg("%s data removed" % username)
     else:
         zen.logMsg("%s not found" % username)
 
@@ -442,12 +444,19 @@ def setDelegate(uname_or_puk, peer=None):
 
         if "#1" not in config:
             config["#1"] = askPrivateKey(
-                "Enter first secret: ", config["publicKey"]
+                "enter first secret: ", config["publicKey"]
             )
+            if not config.get("#1", False):
+                zen.logMsg("\ndelegate identification failed")
+                return False
+
         if "secondPublicKey" in attributes:
             config["#2"] = askPrivateKey(
-                "Enter second secret: ", attributes["secondPublicKey"]
+                "enter second secret: ", attributes["secondPublicKey"]
             )
+            if not config.get("#2", False):
+                zen.logMsg("\ndelegate identification failed")
+                return False
 
         overwrite = input("Overwrite previous webhoook?[Y/n] ") \
             if os.path.exists(
@@ -459,8 +468,8 @@ def setDelegate(uname_or_puk, peer=None):
                 zen.logMsg("%s peer unreachable" % peer)
                 return False
             webhook = setWebhook(config["publicKey"])
-            webhook["peer"] = peer
             if "token" in webhook:
+                webhook["peer"] = peer
                 zen.logMsg("webhook subscription succeded")
                 zen.dumpJson(webhook, "%s-webhook.json" % username)
             else:
@@ -493,7 +502,13 @@ def setWebhook(publicKey):
             "value": publicKey
         }]
     )
-    return data.get("data", data)
+    data = data.get("data", {})
+    if data != {}:
+        data["hash"] = hashlib.sha256(
+            data.get("token", "").encode("utf-8")
+        ).hexdigest()
+        data["token"] = data["token"][32:]
+    return data
 
 
 def deleteWebhook(id, peer):
