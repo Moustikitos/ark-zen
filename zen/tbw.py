@@ -4,6 +4,7 @@ import math
 import time
 import json
 import queue
+import hashlib
 import sqlite3
 import datetime
 import threading
@@ -234,7 +235,7 @@ def dumpRegistry(username, chunk_size=50):
                 dict.__setitem__(transaction, "nonce", nonce)
                 transaction.senderId = wallet["address"]
                 transaction.timestamp = timestamp
-                transaction.fee = config.get("feeLevel", None)
+                transaction.fee = config.get("fee_level", None)
                 transaction.signature = \
                     dposlib.core.crypto.getSignatureFromBytes(
                         dposlib.core.crypto.getBytes(transaction),
@@ -270,7 +271,7 @@ def dumpRegistry(username, chunk_size=50):
                 dict.__setitem__(transaction0, "nonce", nonce)
                 transaction0.senderId = wallet["address"]
                 transaction0.timestamp = timestamp
-                transaction0.fee = config.get("feeLevel", None)
+                transaction0.fee = config.get("fee_level", None)
                 transaction0.feeIncluded = True
                 transaction0.signature = \
                     dposlib.core.crypto.getSignatureFromBytes(
@@ -506,28 +507,34 @@ def checkApplied(username):
             )
 
 
-def computeDelegateBlock(username, generatorPublicKey, block):
-    # Because sometime network is not in good health, the spread function
-    # can exit with exception.
+def computeDelegateBlock(username, block):
+    # get reward and fee fome the given block
     rewards = float(block["reward"])/100000000.
     fees = float(block["totalFee"])/100000000.
     blocks = 1
     logMsg(
-        "getting rewards and fees from forged block %s: %.8f|%.8f"
+        "getting rewards and fees from forged block %s: %r|%r"
         % (block["id"], rewards, fees)
     )
+
     # Compare the ids of last forged blocks
     # to compute rewards and fees...
+    publicKey = block["generatorPublicKey"]
     filename = "%s.last.block" % username
     folder = os.path.join(zen.DATA, username)
     last_block = loadJson(filename, folder=folder)
     # if there is a <username>.last.block
     if last_block.get("id", False):
         logMsg("last known forged: %s" % last_block["id"])
-        # get last forged blocks from blockchain
-        # TODO : get all blocks till the last forged (not the 100 last ones)
-        req = rest.GET.api.delegates(generatorPublicKey, "blocks")
-        last_blocks = req.get("data", [])
+        # get all blocks till the last forged
+        req, last_blocks, page = {}, [], 1
+        last_height = last_block["height"]
+        while req.get("data", [{}])[-1].get(
+            "height", last_height + 1
+        ) > last_height:
+            req = rest.GET.api.delegates(publicKey, "blocks", page=page)
+            last_blocks.extend(req.get("data", []))
+            page += 1
         # raise Exceptions if issues with API call
         if not len(last_blocks):
             raise Exception("No block found in peer response")
@@ -549,7 +556,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
                     reward = float(blk["forged"]["reward"])/100000000.
                     fee = float(blk["forged"]["fee"])/100000000.
                     logMsg(
-                        "    getting rewards and fees from block %s: %.8f|%.8f"
+                        "    getting rewards and fees from block %s: %r|%r"
                         % (_id, reward, fee)
                     )
                     rewards += reward
@@ -561,11 +568,12 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     else:
         dumpJson(block, filename, folder=folder)
         raise Exception("First iteration for %s" % username)
-    # find forger information using username
+
+    # find forger information using username and compute the reward
+    # distribution excluding delegate
     forger = loadJson("%s.json" % username)
     forgery = loadJson("%s.forgery" % username, folder=folder)
-    # compute the reward distribution excluding delegate
-    address = dposlib.core.crypto.getAddress(generatorPublicKey)
+    address = dposlib.core.crypto.getAddress(publicKey)
     excludes = forger.get("excludes", [address])
     if address not in excludes:
         excludes.append(address)
@@ -597,6 +605,7 @@ def computeDelegateBlock(username, generatorPublicKey, block):
     )
     # dump current forged block as <username>.last.block
     dumpJson(block, filename, folder=folder)
+
     # notify vote movements
     msg = "\n".join(
         [
@@ -636,7 +645,20 @@ class TaskExecutioner(threading.Thread):
         # controled infinite loop
         while not TaskExecutioner.STOP.is_set():
             try:
-                # compute new block when it comes
-                computeDelegateBlock(*TaskExecutioner.JOB.get())
+                auth, block = TaskExecutioner.JOB.get()
+                if not block:
+                    raise Exception("Error: can not read data")
+                else:
+                    publicKey = block["generatorPublicKey"]
+                username = zen.biom.getUsernameFromPublicKey(publicKey)
+                if not username:
+                    raise Exception("Error: can not reach username")
+                # check autorization and exit if bad one
+                webhook = zen.loadJson("%s-webhook.json" % username)
+                if webhook.get("hash", "") != hashlib.sha256(
+                    (auth + webhook["token"]).encode("utf-8")
+                ).hexdigest():
+                    raise Exception("Not autorized here")
+                computeDelegateBlock(username, block)
             except Exception as error:
                 logMsg("%r" % error)
