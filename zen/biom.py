@@ -291,14 +291,14 @@ def configure(**kwargs):
                     username, peer=kwargs.get("webhook_peer", None)
                 ):
                     return
+                zen.logMsg("%s delegate webhook set" % username)
+            else:
                 # load update and save in a row
                 zen.dumpJson(
                     dict(zen.loadJson("%s.json" % username), **kwargs),
                     "%s.json" % username
                 )
                 zen.logMsg("%s delegate set" % username)
-            else:
-                zen.logMsg("%s delegate already set" % username)
         else:
             zen.logMsg("can not find delegate %s" % username)
 

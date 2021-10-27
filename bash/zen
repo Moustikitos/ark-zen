@@ -20,16 +20,16 @@ Options:
     -b --block-delay=<block-delay>    block amount to wait beetween payroll
     -e --excludes=<excludes>          coma-separated or file address list to exclude from payroll
     -w --wallet=<wallet>              delegate funds wallet
-    -f --fee-level=<fee-level>        set the fee level for the delegate    [default: avgFee]
+    -f --fee-level=<fee-level>        set the fee level for the delegate
     -h --webhook-peer=<webhook-peer>  define the webhook peer to use
-    -s --share=<share>                delegate share rate (0.0<=share<=1.0) [default: 0.]
-    -t --threshold=<threshold>        minimum amount for a payment          [default: 0.1]
+    -s --share=<share>                delegate share rate (0.0<=share<=1.0)
+    -t --threshold=<threshold>        minimum amount for a payment
     -n --name-list=<name-list>        *.tbw coma-separated name list
-    -m --minimum-vote=<minimum-vote>  set a minimum vote level              [default: 1.0]
+    -m --minimum-vote=<minimum-vote>  set a minimum vote level
     -M --maximum-vote=<maximum-vote>  set a maximum vote level
-    -p --port=<port>                  port to use for zen server            [default: 5000]
-    --ip-address=<ip-address>         ip address to use for zen server      [default: 127.0.0.1]
-    --chunk-size=<chunk-size>         max transaction per multitransfer     [default: 30]
+    -p --port=<port>                  port to use for zen server
+    --ip-address=<ip-address>         ip address to use for zen server
+    --chunk-size=<chunk-size>         max transaction per multitransfer
     -0 --reset                        background task options to defaults   (flag)
     --fee-coverage                    delegate covers transaction fees      (flag)
 
