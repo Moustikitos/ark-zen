@@ -22,7 +22,7 @@ app.config.update(
     SECRET_KEY=os.urandom(24),
     # JS can't access cookies
     SESSION_COOKIE_HTTPONLY=True,
-    # bi use of https
+    # if use of https
     SESSION_COOKIE_SECURE=False,
     # update cookies on each request
     # cookie are outdated after PERMANENT_SESSION_LIFETIME seconds of idle
@@ -35,21 +35,10 @@ app.config.update(
 @app.route("/block/forged", methods=["POST", "GET"])
 def spread():
     if flask.request.method == "POST":
-        block = json.loads(flask.request.data).get("data", False)
-        if not block:
-            raise Exception("Error: can not read data")
-        else:
-            generatorPublicKey = block["generatorPublicKey"]
-        username = zen.biom.getUsernameFromPublicKey(generatorPublicKey)
-        if not username:
-            raise Exception("Error: can not reach username")
-        # check autorization and exit if bad one
-        webhook = zen.loadJson("%s-webhook.json" % username)
-        if not webhook["token"].startswith(
-            flask.request.headers["Authorization"]
-        ):
-            raise Exception("Not autorized here")
-        zen.tbw.TaskExecutioner.JOB.put([username, generatorPublicKey, block])
+        zen.tbw.TaskExecutioner.JOB.put([
+            flask.request.headers["Authorization"],
+            json.loads(flask.request.data).get("data", False)
+        ])
     return json.dumps({"zen-tbw::block/forged": True})
 
 
@@ -104,4 +93,3 @@ def dated_url_for(endpoint, **values):
                 pass
     return flask.url_for(endpoint, **values)
 ########################
-
