@@ -72,7 +72,7 @@ import zen.task
 
 
 def _fee(value):
-    if value in ["minFee", "avgFee", "maxFee"]:
+    if value in ["minFee", "avgFee", "maxFee", "min", "avg", "max"]:
         return value
     else:
         try:
