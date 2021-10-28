@@ -76,7 +76,7 @@ def _fee(value):
         return value
     else:
         try:
-            return int(value)
+            return "%d" % int(value)
         except Exception:
             return False
 
