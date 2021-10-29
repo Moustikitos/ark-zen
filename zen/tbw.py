@@ -338,7 +338,6 @@ def broadcast(username, chunk_size=30):
     config = loadJson("root.json")
     chunk_size = max(5, config.get("chunk_size", chunk_size))
     folder = os.path.join(zen.DATA, username)
-    delegate_is_forging = biom.delegateIsForging(username)
 
     # proceed all registry file found in username folder
     for name in [n for n in os.listdir(folder) if n.endswith(".registry")]:
@@ -351,13 +350,12 @@ def broadcast(username, chunk_size=30):
             for x in range(0, len(transactions), chunk_size)
         ):
             response = rest.POST.api.transactions(
-                transactions=chunk, **(
-                    {"peer": zen.API_PEER} if delegate_is_forging else {}
-                )
+                transactions=chunk, peer=zen.API_PEER
             )
             logMsg(
-                "broadcasting chunk of transactions...\n%s" %
-                json.dumps(response, indent=2)
+                "chunk of transactions broadcasted to %s...\n%s" % (
+                    zen.API_PEER, json.dumps(response, indent=2)
+                )
             )
         misc.notify(
             "New payroll started : %d transactions sent to delegate node..." %
