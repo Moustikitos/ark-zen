@@ -428,8 +428,8 @@ def transactionApplied(id):
 
 def delegateIsForging(username):
     dlgt = dposlib.rest.GET.api.delegates(username).get("data", {})
-    rank = dlgt.get("rank", dlgt.get("attributes", {}).get("rank", -1))
-    return rank != -1 and rank <= dposlib.rest.cfg.activeDelegates
+    rank = dlgt.get("rank", dposlib.rest.cfg.activeDelegates + 1)
+    return rank <= dposlib.rest.cfg.activeDelegates
 
 
 def setDelegate(uname_or_puk, peer=None):
