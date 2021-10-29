@@ -14,6 +14,9 @@ from dposlib.ark.v2 import mixin
 
 _GET = zen.biom.dposlib.rest.GET
 
+for path in zen.__path__:
+    pass
+
 
 def _tasks():
     mod = sys.modules[__name__]
@@ -62,14 +65,16 @@ def checkRegistries():
                 (username, blocks, block_delay)
             )
             zen.tbw.extract(username)
-            zen.tbw.dumpRegistry(username)
-            zen.tbw.broadcast(username)
         else:
             zen.tbw.checkApplied(username)
             zen.logMsg(
                 "%s registry checked : %s [< %s]" %
                 (username, blocks, block_delay)
             )
+
+        if zen.tbw.dumpRegistry(username):
+            zen.tbw.broadcast(username)
+            zen.logMsg("%s registry dumped and broadcasted" % username)
 
 
 def backupData():

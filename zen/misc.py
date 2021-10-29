@@ -23,7 +23,7 @@ def urlWallet(address):
 
 
 def loadPages(
-    endpoint, pages=None, quiet=True, nb_tries=10, peer=None, condition=[]
+    endpoint, pages=None, quiet=True, nb_tries=10, peer=None, conditions=[]
 ):
     if not isinstance(endpoint, uio_req.EndPoint):
         raise Exception("Invalid endpoint class")
@@ -275,7 +275,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
 
             vote_weights = [
                 float(v["balance"]) for v in zen.misc.loadPages(
-                    zen.biom.dposlib.rest.GET.api.delegates.__getattr__(username).voters
+                    _get.api.delegates.__getattr__(username).voters
                 )
             ]
             real_votes = sum(vote_weights) / 100000000
