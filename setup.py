@@ -34,7 +34,7 @@ kw = {
     "dependency_links": [
         "https://github.com/Moustikitos/elliptic-curve#egg=pySecp256k1",
         "https://github.com/Moustikitos/micro-server#egg=usrv",
-        "https://github.com/Moustikitos/dpos@master#egg=dposlib"
+        "https://github.com/Moustikitos/dpos@0.3.5#egg=dposlib"
     ],
     "license": "Cpyright 2016-2019 Toons",
     "classifiers": [
