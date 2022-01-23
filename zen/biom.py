@@ -231,7 +231,11 @@ def setup(clear=False):
     if root.get("blockchain", "") not in dir(dposlib.net):
         root["blockchain"] = zen.chooseItem(
             "Select blockchain running on node:",
-            *[name for name in dir(dposlib.net) if not name.startswith("_")]
+            *[
+                name for name in dir(dposlib.net)
+                if not name.startswith("_") and
+                getattr(dposlib.net, name, {}).get("familly", None) == "ark"
+            ]
         )
 
     if not root["blockchain"]:
