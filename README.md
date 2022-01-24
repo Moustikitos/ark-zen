@@ -23,12 +23,6 @@
 
 Install command will configure a virtual environement based on `python 3.x` or `pypy` and setup all requirements to run `ark-zen`.
 
-Once installation finished, `zen` app is available in home directory. It has to be used in its virtual environment. This virtual environment is activated with the command lines:
-
-```bash
-~/ark-zen/bash/activate
-```
-
 **Install development version**
 
 ```bash
@@ -39,6 +33,22 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 3.1.0
+```
+
+Once installation finished, `zen` app is available in home directory. It has to be used in its virtual environment. This virtual environment is activated with the command lines:
+
+```bash
+~/ark-zen/bash/activate
+```
+
+## Initialize
+
+Basic configuration have to be set first.
+
+```bash
+cd ~
+./zen initialize
+./zen add-delegate <username>
 ```
 
 ## Deploy
@@ -192,6 +202,7 @@ Subcommands:
 ### Normae - 4.0.0 [current work]
   * [x] packaging improvement
   * [X] security improvment
+  * [X] added `solar-swipe` network
   * [X] background task management improvment
   * [X] `SIGUSR1` and `SIGTERM` handlers for bg tasks
   * [X] more secure webhook management
