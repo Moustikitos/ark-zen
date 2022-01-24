@@ -11,6 +11,7 @@ import socket
 import shutil
 import getpass
 import hashlib
+import subprocess
 
 import dposlib
 import dposlib.rest
@@ -54,7 +55,7 @@ WantedBy=multi-user.target
             "bin": os.path.dirname(executable),
         })
 
-    if not os.system("%s -m pip show gunicorn" % executable):
+    if os.system("%s -m pip show gunicorn" % executable) != "0":
         os.system("%s -m pip install gunicorn" % executable)
     os.system("chmod +x ./zen.service")
     os.system("sudo cp %s %s" % (gunicorn_conf, normpath(sys.prefix)))
@@ -64,26 +65,35 @@ WantedBy=multi-user.target
         os.system("sudo systemctl start zen")
 
 
+def identify_app():
+    appnames = {}
+    for name in subprocess.check_output(
+        "pm2 ls -m|grep +---|grep -oE '[^ ]+$'", shell=True
+    ).decode("utf-8").split():
+        if "core" in name:
+            appnames["relay"] = appnames["forger"] = name
+        else:
+            if "relay" in name:
+                appnames["relay"] = name
+            if "forger" in name:
+                appnames["forger"] = name
+    return appnames
+
+
 def start_pm2_app(appname):
-    return os.system(r'''
-if echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    yarn exec ark %(appname)s:start
-else
-    echo "(re)starting %(appname)s..."
-    pm2 restart %(appname)s -s
-fi
-''' % {"appname": appname}
-    )
+    return os.system(f'''
+if ! echo "$(pm2 id {appname} | tail -n 1)" | grep -qE "\\[\\]"; then
+    echo "restarting {appname}..."
+    pm2 restart {appname} -s
+fi''')
 
 
 def stop_pm2_app(appname):
-    return os.system(r'''
-if ! echo "$(pm2 id %(appname)s | tail -n 1)" | grep -qE "\[\]"; then
-    echo stoping %(appname)s...
-    pm2 stop %(appname)s -s
-fi
-''' % {"appname": appname}
-    )
+    return os.system(f'''
+if ! echo "$(pm2 id {appname} | tail -n 1)" | grep -qE "\\[\\]"; then
+    echo stoping {appname}...
+    pm2 stop {appname} -s
+fi''')
 
 
 def send_signal(signal, pid):
@@ -144,6 +154,8 @@ def dumpEnv(env, pathname):
 def setup(clear=False):
     # load root.json file. If not exists, root is empty dict
     root = zen.loadJson("root.json")
+    if "appnames" not in root:
+        root["appnames"] = identify_app()
     # delete all keys from root dict if asked
     if clear:
         root.clear()
@@ -203,7 +215,7 @@ def setup(clear=False):
             if input(
                 "webhooks are now enabled, restart relay ?[Y/n] "
             ) in "yY":
-                start_pm2_app("relay")
+                start_pm2_app(identify_app().get("relay"))
     # if zen is not running on a blockchain node
     else:
         # get webhook subscription peer address

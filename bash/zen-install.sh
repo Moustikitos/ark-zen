@@ -15,9 +15,11 @@ echo "github branch to use : $B"
 echo
 echo installing system dependencies
 echo ==============================
+sudo apt-get update -y
 sudo apt-get -qq install libudev-dev libusb-1.0.0-dev
 sudo apt-get -qq install python3 python3-dev python3-setuptools python3-pip
 sudo apt-get -qq install pypy
+sudo apt-get -qq install libgmp3-dev
 sudo apt-get -qq install virtualenv
 sudo apt-get -qq install nginx
 echo "done"

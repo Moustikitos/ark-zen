@@ -72,7 +72,7 @@ def distributeRewards(rewards, uname, minvote=0, maxvote=None, excludes=[]):
         v["address"] not in excludes and
         float(v["balance"]) >= minvote
     )
-    total_balance = sum(voters.values())
+    total_balance = max(1, sum(voters.values()))
     # ARK Vote Dilution
     dilution_value = 100000000.0 / total_balance
     sqlite = initDb(uname)

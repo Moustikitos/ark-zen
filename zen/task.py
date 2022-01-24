@@ -10,7 +10,7 @@ import zen
 import zen.biom
 import zen.misc
 
-from dposlib.ark.v2 import mixin
+from dposlib.ark import mixin
 
 _GET = zen.biom.dposlib.rest.GET
 
