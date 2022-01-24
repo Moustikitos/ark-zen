@@ -55,7 +55,7 @@
 			</thead>
 			<tbody>
 			{%- for key,value in forgery["contributions"].items() %}
-				<tr style="color:{{ 'grey' if value*share < config['threshold'] else 'black' }}">
+				<tr style="color:{{ 'grey' if value*share < config.get('threshold', 0) else 'black' }}">
 					<th>{{ loop.index }}</th>
 					<td>{{ _address(key) }}</td>
 					<td style="text-align:center;">{{ ("%.3f&nbsp;%%" % (100*value/total) if total > 0 else "&#9877;") | safe }}</td>
