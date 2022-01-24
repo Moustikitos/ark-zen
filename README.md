@@ -90,12 +90,6 @@ TODO
 
 TODO
 
-## Configure
-
-```bash
-~/zen initialize
-```
-
 ## Notification system
 
 4 notification types are available. Notification service is activated if a json configuration file is present in `.json` folder.
