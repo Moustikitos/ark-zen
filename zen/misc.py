@@ -181,11 +181,11 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
     _get = zen.biom.dposlib.rest.GET
     blocktime = info.blocktime if not blocktime else blocktime
 
-    delegates = _get.api.delegates()["data"][:51]
+    delegates = _get.api.delegates()["data"][:info.activeDelegates]
     min_vote, max_vote = [
         int(d["votes"])/100000000.
         for d in sorted(
-            delegates[:info.activeDelegates][::info.activeDelegates-1],
+            delegates[::info.activeDelegates-1],
             key=lambda d: d["votes"],
             reverse=True
         )
