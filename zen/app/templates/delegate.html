@@ -41,7 +41,7 @@
 		<hr/>
 		{%- if "block_delay" in config %}
 		<div class="badge badge-info">
-			next payroll in about {{ _dhm(config["block_delay"]-forgery["blocks"]) }}
+			next payroll in about {{ _dhm(config["block_delay"]-(forgery["blocks"] % config["block_delay"])) }}
 		</div>
 		{%- endif %}
 		<table class="table table-sm table-primary table-striped table-hover table-responsive">

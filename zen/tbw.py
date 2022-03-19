@@ -214,6 +214,12 @@ def dumpRegistry(username, chunk_size=50):
             )
             nonce = int(wallet["nonce"]) + 1
 
+            if len(weights) < 3:
+                zen.logMsg(
+                    "Not enough voters (min is 3, got %d)" % len(weights)
+                )
+                return
+
             while len(weights) % chunk_size <= 3:
                 chunk_size -= 1
 
@@ -552,7 +558,10 @@ def computeDelegateBlock(username, block):
             else:
                 if blk["timestamp"]["epoch"] > last_block["timestamp"]:
                     reward = float(blk["forged"]["reward"])/100000000.
-                    fee = float(blk["forged"]["fee"])/100000000.
+                    fee = (
+                        float(blk["forged"]["fee"]) -
+                        float(blk["forged"].get("burnedFee", 0))
+                    )/100000000.
                     logMsg(
                         "    getting rewards and fees from block %s: %r|%r"
                         % (_id, reward, fee)

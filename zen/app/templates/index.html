@@ -61,8 +61,8 @@
 		{%- endif %}
 	</table>
 </div>
-<div class="container" id="chart_{{ username }}">
-	<embed type="image/svg+xml" src="{{ url_for('static', filename='ctd_%s.svg' % username) }}" width="100%"/>
-</div>
+<!-- <div class="container" id="chart_{{ username }}">
+	<embed type="image/svg+xml" src="{{ url_for('static', filename='ctd_%s.svg' % username) }}" width="30%"/>
+</div> -->
 {%- endfor %}
 {%- endblock body %}
