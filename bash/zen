@@ -3,6 +3,8 @@
 
 """
 Usage:
+    zen reset [--extern]
+    zen initialize [--extern]
     zen configure [--chunk-size <chubk-size> --fee-coverage]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
@@ -13,7 +15,7 @@ Usage:
     zen append-custom-peer <peer-list>
     zen deploy-srv [--ip-address <ip-address> -p <port>]
     zen (restart-srv | stop-srv | log-zen | log-bg)
-    zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
+    zen (remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
     zen configure-task <task> [-0]
 
 Options:
@@ -30,8 +32,9 @@ Options:
     -p --port=<port>                  port to use for zen server
     --ip-address=<ip-address>         ip address to use for zen server
     --chunk-size=<chunk-size>         max transaction per multitransfer
-    -0 --reset                        background task options to defaults   (flag)
-    --fee-coverage                    delegate covers transaction fees      (flag)
+    -x --extern                       use extern relay                     (flag)
+    -0 --reset                        background task options to defaults  (flag)
+    -c --fee-coverage                 delegate covers transaction fees     (flag)
 
 Subcommands:
     reset               initialization starting from ark-core config folder
@@ -213,6 +216,8 @@ def set_secrets(args={}, **options):
                 (username, zen.biom.dposlib.rest.cfg.network)
             )
 
+    zen.biom.pullKeys()
+
 
 def enable_tasks(args={}, **options):
     tasks = zen.loadJson("root.json").get("tasks-enabled", {})
@@ -269,11 +274,11 @@ def log_zen(args={}, **options):
 
 
 def reset(args={}, **options):
-    zen.biom.setup(clear=True)
+    zen.biom.setup(clear=True, extern=options.get("extern", False))
 
 
 def initialize(args={}, **options):
-    zen.biom.setup()
+    zen.biom.setup(extern=options.get("extern", False))
 
 
 def configure(args={}, **options):
@@ -288,7 +293,7 @@ add_delegate = configure
 
 
 def launch_payroll(args={}, **options):
-    set_secrets(args={}, **options)
+    set_secrets(args, **options)
     username = args["<username>"]
     zen.tbw.extract(username)
     zen.tbw.dumpRegistry(username)
@@ -300,7 +305,7 @@ def resume_payroll(args={}, **options):
 
 
 def retry_payroll(args={}, **options):
-    set_secrets(args={}, **options)
+    set_secrets(args, **options)
     username = args["<username>"]
     zen.tbw.updateRegistryNonces(username)
     zen.tbw.broadcast(username)
