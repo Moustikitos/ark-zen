@@ -151,7 +151,7 @@ def dumpEnv(env, pathname):
             environ.write(line.encode("utf-8"))
 
 
-def setup(clear=False):
+def setup(clear=False, extern=False):
     # load root.json file. If not exists, root is empty dict
     root = zen.loadJson("root.json")
     if "appnames" not in root:
@@ -159,7 +159,7 @@ def setup(clear=False):
     # delete all keys from root dict if asked
     if clear:
         root.clear()
-        root["config-folder"] = ""
+        root["config-folder"] = None if extern else ""
     # first configuration if no config-folder, it is set to "" because None is
     # used when zen is not running on a blockchain node
     if root.get("config-folder", "") == "":
@@ -220,6 +220,7 @@ def setup(clear=False):
     else:
         # get webhook subscription peer address
         try:
+            root["webhook"] = input("Peer address for webhook submition: ")
             while dposlib.rest.GET.api.webhooks(
                 peer=root.get("webhook", "http://127.0.0.1:4004"), timeout=2
             ).get("status", False) != 200:
@@ -230,6 +231,7 @@ def setup(clear=False):
         root["webhook"] = root["webhook"]
         # get monitored node api address
         try:
+            root["api"] = input("Peer address for API requests: ")
             while "data" not in dposlib.rest.GET.api.blockchain(
                 peer=root.get("api", "http://127.0.0.1:4003"), timeout=2
             ):
@@ -457,6 +459,7 @@ def setDelegate(uname_or_puk, peer=None):
         username = attributes["delegate"]["username"]
         config = zen.loadJson("%s.json" % username)
         config["publicKey"] = account["publicKey"]
+        zen.logMsg("%s configuration:" % username)
 
         if "#1" not in config:
             config["#1"] = askPrivateKey(
