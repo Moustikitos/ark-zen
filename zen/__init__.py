@@ -17,6 +17,7 @@ ENV = None
 API_PEER = None
 WEBHOOK_PEER = None
 PUBLIC_IP = None
+PORT = 5000
 
 
 def loadJson(name, folder=None):

@@ -34,14 +34,14 @@
 		<strong>&#9874;&nbsp;Forgery details</strong>
 		<p>
 		voters:&nbsp;{{ forgery["contributions"] | length }}<br/>
-		blocks:&nbsp;{{ forgery["blocks"] }}<br/>
+		blocks:&nbsp;{{ forgery.get("blocks", 0) }}<br/>
 		rewards:&nbsp;{{ _currency(total) }}<br/>
-		fees:&nbsp;{{ _currency(forgery["fees"]) }}<br/>
+		fees:&nbsp;{{ _currency(forgery.get("fees", 0)) }}<br/>
 		</p>
 		<hr/>
 		{%- if "block_delay" in config %}
 		<div class="badge badge-info">
-			next payroll in about {{ _dhm(config["block_delay"]-(forgery["blocks"] % config["block_delay"])) }}
+			next payroll in about {{ _dhm(config["block_delay"]-(forgery.get("blocks", 0) % config["block_delay"])) }}
 		</div>
 		{%- endif %}
 		<table class="table table-sm table-primary table-striped table-hover table-responsive">

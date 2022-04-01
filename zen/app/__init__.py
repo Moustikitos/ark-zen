@@ -132,7 +132,7 @@ def delegate_index(username):
     )
     forgery["contributions"] = OrderedDict(
         sorted(
-            [item for item in forgery["contributions"].items()],
+            [item for item in forgery.get("contributions", {}).items()],
             key=lambda i: i[-1],
             reverse=True
         )

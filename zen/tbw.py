@@ -514,7 +514,7 @@ def checkApplied(username):
 def computeDelegateBlock(username, block):
     # get reward and fee fome the given block
     rewards = float(block["reward"])/100000000.
-    fees = float(block["totalFee"])/100000000.
+    fees = (float(block["totalFee"]) - float(block.get("burnedFee", 0)))/100000000.
     blocks = 1
     logMsg(
         "getting rewards and fees from forged block %s: %r|%r"
@@ -536,7 +536,9 @@ def computeDelegateBlock(username, block):
         while req.get("data", [{}])[-1].get(
             "height", last_height + 1
         ) > last_height:
-            req = rest.GET.api.delegates(publicKey, "blocks", page=page)
+            req = rest.GET.api.delegates(
+                publicKey, "blocks", orderBy="height:desc", page=page
+            )
             last_blocks.extend(req.get("data", []))
             page += 1
         # raise Exceptions if issues with API call

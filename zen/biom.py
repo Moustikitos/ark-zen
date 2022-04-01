@@ -22,7 +22,11 @@ import dposlib.net
 # OS INTERACTIONS #
 ###################
 
-def deploy(host="0.0.0.0", port=5000):
+def deploy(host="127.0.0.1", port=5000):
+    root = zen.loadJson("root.json")
+    root["port"] = port
+    root["host"] = host
+    zen.dumpJson(root, "root.json")
     normpath = os.path.normpath
     executable = normpath(sys.executable)
     gunicorn_conf = os.path.normpath(
@@ -154,12 +158,17 @@ def dumpEnv(env, pathname):
 def setup(clear=False, extern=False):
     # load root.json file. If not exists, root is empty dict
     root = zen.loadJson("root.json")
-    if "appnames" not in root:
-        root["appnames"] = identify_app()
     # delete all keys from root dict if asked
     if clear:
         root.clear()
-        root["config-folder"] = None if extern else ""
+    #
+    if extern:
+        root["config-folder"] = None
+    elif "appnames" not in root:
+        try:
+            root["appnames"] = identify_app()
+        except Exception:
+            pass
     # first configuration if no config-folder, it is set to "" because None is
     # used when zen is not running on a blockchain node
     if root.get("config-folder", "") == "":
@@ -267,6 +276,7 @@ def load():
     zen.API_PEER = None
 
     root = zen.loadJson("root.json")
+    zen.PORT = root.get("port", 5000)
     if "env" in root:
         zen.ENV = loadEnv(root["env"])
         zen.PUBLIC_IP = '127.0.0.1'
@@ -510,11 +520,14 @@ def setDelegate(uname_or_puk, peer=None):
 
 
 def setWebhook(publicKey):
+    root = zen.loadJson("root.json")
     data = dposlib.rest.POST.api.webhooks(
         peer=zen.WEBHOOK_PEER,
         event="block.forged" if zen.PUBLIC_IP == "127.0.0.1" else
               "block.applied",
-        target="http://%s:5000/block/forged" % zen.PUBLIC_IP,
+        target="http://%s:%s/block/forged" % (
+            zen.PUBLIC_IP, root.get("port", 5000)
+        ),
         conditions=[{
             "key": "generatorPublicKey",
             "condition": "eq",
