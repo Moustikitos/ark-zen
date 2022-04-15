@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+
 import os
 import math
 import time
@@ -196,6 +197,7 @@ def dumpRegistry(username, chunk_size=50):
     wallet = rest.GET.api.wallets(username).get("data", {})
 
     if KEYS01 and len(wallet):
+        nonce = int(wallet.get("nonce", 0)) + 1
         config = loadJson("%s.json" % username)
         dposlib.core.Transaction.useDynamicFee(
             config.get("fee_level", None)
@@ -208,60 +210,84 @@ def dumpRegistry(username, chunk_size=50):
             totalFees = 0
             registry = OrderedDict()
             timestamp = slots.getTime()
+            vendorField = config.get("vendorField", "%s reward" % username)
 
             weights = sorted(
                 data["weight"].items(), key=lambda e: e[-1], reverse=True
             )
-            nonce = int(wallet["nonce"]) + 1
 
             if len(weights) < 3:
-                zen.logMsg(
-                    "Not enough voters (min is 3, got %d)" % len(weights)
-                )
-                return
-
-            while len(weights) % chunk_size <= 3:
-                chunk_size -= 1
-
-            for chunk in [
-                weights[i:i+chunk_size]
-                for i in range(0, len(weights), chunk_size)
-            ]:
-                transaction = dposlib.core.multiPayment(
-                    *[[round(amount * wght, 8), addr] for addr, wght in chunk],
-                    vendorField=config.get(
-                        "vendorField", "%s reward" % username
+                for addr, wght in weights:
+                    tx = dposlib.core.transfer(
+                        round(amount * wght, 8), addr, vendorField
                     )
-                )
-                if "vendorFieldHex" in config:
-                    transaction.vendorFieldHex = config["vendorFieldHex"]
-                dict.__setitem__(
-                    transaction, "senderPublicKey", wallet["publicKey"]
-                )
-                dict.__setitem__(transaction, "nonce", nonce)
-                transaction.senderId = wallet["address"]
-                transaction.timestamp = timestamp
-                transaction.fee = config.get("fee_level", None)
-                transaction.signature = \
-                    dposlib.core.crypto.getSignatureFromBytes(
-                        dposlib.core.crypto.getBytes(transaction),
-                        KEYS01["privateKey"]
+                    if "vendorFieldHex" in config:
+                        tx.vendorFieldHex = config["vendorFieldHex"]
+                    dict.__setitem__(tx, "senderPublicKey", wallet["publicKey"])
+                    dict.__setitem__(tx, "nonce", nonce)
+                    tx.senderId = wallet["address"]
+                    tx.timestamp = timestamp
+                    tx.fee = config.get("fee_level", None)
+                    tx.feeIncluded = True
+                    tx.signature = \
+                        dposlib.core.crypto.getSignatureFromBytes(
+                            dposlib.core.crypto.getBytes(tx),
+                            KEYS01["privateKey"]
+                        )
+                    if KEYS02 is not None:
+                        tx.signSignature = \
+                            dposlib.core.crypto.getSignatureFromBytes(
+                                dposlib.core.crypto.getBytes(tx),
+                                KEYS02["privateKey"]
+                            )
+                    tx.id = \
+                        dposlib.core.crypto.getIdFromBytes(
+                            dposlib.core.crypto.getBytes(
+                                tx, exclude_multi_sig=False
+                            )
+                        )
+                    registry[tx["id"]] = tx
+                    totalFees += tx["fee"]
+                    nonce += 1
+
+            else:
+                for chunk in [
+                    weights[i:i+chunk_size]
+                    for i in range(0, len(weights), chunk_size)
+                ]:
+                    transaction = dposlib.core.multiPayment(
+                        *[[round(amount * wght, 8), addr] for addr, wght in chunk],
+                        vendorField=vendorField
                     )
-                if KEYS02 is not None:
-                    transaction.signSignature = \
+                    if "vendorFieldHex" in config:
+                        transaction.vendorFieldHex = config["vendorFieldHex"]
+                    dict.__setitem__(
+                        transaction, "senderPublicKey", wallet["publicKey"]
+                    )
+                    dict.__setitem__(transaction, "nonce", nonce)
+                    transaction.senderId = wallet["address"]
+                    transaction.timestamp = timestamp
+                    transaction.fee = config.get("fee_level", None)
+                    transaction.signature = \
                         dposlib.core.crypto.getSignatureFromBytes(
                             dposlib.core.crypto.getBytes(transaction),
-                            KEYS02["privateKey"]
+                            KEYS01["privateKey"]
                         )
-                transaction.id = \
-                    dposlib.core.crypto.getIdFromBytes(
-                        dposlib.core.crypto.getBytes(
-                            transaction, exclude_multi_sig=False
+                    if KEYS02 is not None:
+                        transaction.signSignature = \
+                            dposlib.core.crypto.getSignatureFromBytes(
+                                dposlib.core.crypto.getBytes(transaction),
+                                KEYS02["privateKey"]
+                            )
+                    transaction.id = \
+                        dposlib.core.crypto.getIdFromBytes(
+                            dposlib.core.crypto.getBytes(
+                                transaction, exclude_multi_sig=False
+                            )
                         )
-                    )
-                registry[transaction["id"]] = transaction
-                totalFees += transaction["fee"]
-                nonce += 1
+                    registry[transaction["id"]] = transaction
+                    totalFees += transaction["fee"]
+                    nonce += 1
 
             totalFees /= 100000000.0
             if config.get("wallet", False):
@@ -469,6 +495,18 @@ def checkApplied(username):
                                 tx["id"]
                             )
                         )
+                else:
+                    cursor.execute(
+                        "INSERT OR REPLACE INTO transactions("
+                        "filename, timestamp, amount, address, id"
+                        ") VALUES(?,?,?,?,?);", (
+                            os.path.splitext(name)[0],
+                            tx["timestamp"],
+                            int(tx["amount"])/100000000.,
+                            tx["recipientId"],
+                            tx["id"]
+                        )
+                    )
             # set a milestone every 5 seconds
             if (time.time() - start) > 5.:
                 sqlite.commit()
@@ -514,7 +552,7 @@ def checkApplied(username):
 def computeDelegateBlock(username, block):
     # get reward and fee fome the given block
     rewards = float(block["reward"])/100000000.
-    fees = (float(block["totalFee"]) - float(block.get("burnedFee", 0)))/100000000.
+    fees = (float(block["totalFee"]) - float(block["burnedFee"]))/100000000.
     blocks = 1
     logMsg(
         "getting rewards and fees from forged block %s: %r|%r"
@@ -536,9 +574,7 @@ def computeDelegateBlock(username, block):
         while req.get("data", [{}])[-1].get(
             "height", last_height + 1
         ) > last_height:
-            req = rest.GET.api.delegates(
-                publicKey, "blocks", orderBy="height:desc", page=page
-            )
+            req = rest.GET.api.delegates(publicKey, "blocks", page=page)
             last_blocks.extend(req.get("data", []))
             page += 1
         # raise Exceptions if issues with API call
