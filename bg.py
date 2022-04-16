@@ -77,7 +77,7 @@ def _launcher(func):
     try:
         REPORT[name] = func()
     except Exception as error:
-        zen.logMsg(
+        zen.LOG.error(
             "%s exception:\n%r\n%s" %
             (func.__name__, error, traceback.format_exc())
         )
@@ -87,17 +87,14 @@ def _launcher(func):
 def start():
     info = zen.loadJson("root.json")
     tasks = info.get("tasks-enabled", {})
-    sleep_time = info.get(
-        "sleep-time",
-        zen.tbw.rest.cfg.blocktime * zen.tbw.rest.cfg.activeDelegates
-    )
+    sleep_time = info.get("sleep-time", 60*5)
 
     daemons = []
     for task, params in tasks.items():
         func = getattr(zen.task, task)
         if callable(func):
             daemons.append(setInterval(params["interval"])(_launcher)(func))
-            zen.logMsg(
+            zen.LOG.info(
                 "%s daemon set: interval=%ss" % (task, params["interval"])
             )
             importlib.reload(zen.task)
@@ -105,7 +102,7 @@ def start():
     RELEASE.clear()
     while not RELEASE.is_set():
         RELEASE.wait(timeout=float(sleep_time))
-        zen.logMsg(
+        zen.LOG.info(
             "Sleep time finished :\n%s" % json.dumps(REPORT, indent=2)
         )
 
@@ -118,8 +115,8 @@ if __name__ == "__main__":
 
     def exit_handler(*args, **kwargs):
         RELEASE.set()
-        zen.biom.pushBackKeys()
-        zen.logMsg("Background tasks stopped !")
+        zen.biom.push_keys()
+        zen.LOG.info("Background tasks stopped !")
         zen.misc.notify("Background tasks stopped !")
 
     def show_hidden(*args, **kwargs):
@@ -127,21 +124,21 @@ if __name__ == "__main__":
         for key, value in [
             (k, v) for k, v in zen.biom.__dict__.items() if "#" in k
         ]:
-            username, num = key.replace("_", "").split("#")
+            uname_mrk, num = key.replace("_", "").split("#")
             if value is not None:
-                report[username] = report.get(username, []) + ["puk#" + num]
+                report[uname_mrk] = report.get(uname_mrk, []) + ["puk#" + num]
         msg = "Loaded private keys = %s" % json.dumps(report)
-        zen.logMsg(msg)
+        zen.LOG.info(msg)
         zen.misc.notify(msg)
 
     signal.signal(signal.SIGTERM, exit_handler)
     if "win" not in sys.platform:
         signal.signal(signal.SIGUSR1, show_hidden)
 
-    zen.logMsg("Background tasks started !")
+    zen.LOG.info("Background tasks started !")
     zen.misc.notify("Background tasks started !")
     try:
-        zen.biom.pullKeys()
+        zen.biom.pull_keys()
         start()
     except KeyboardInterrupt:
         exit_handler()
