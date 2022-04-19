@@ -251,6 +251,9 @@ def dumpRegistry(username, chunk_size=50):
                     nonce += 1
 
             else:
+                while len(weights) % chunk_size <= 3:
+                    chunk_size -= 1
+
                 for chunk in [
                     weights[i:i+chunk_size]
                     for i in range(0, len(weights), chunk_size)
@@ -662,12 +665,97 @@ def computeDelegateBlock(username, block):
             for wallet in [w for w in contributions if w not in _ctrb]
         ]
     )
+    registry = execute_payroll(
+        username, *[
+            [wallet, _ctrb[wallet]]
+            for wallet in [w for w in _ctrb if w not in contributions]
+        ],
+        vendorField=f"{username} residual share"
+    )
+    dumpJson(registry, f"{block['height']}.downvote.milestone", folder=folder)
     logMsg(
         "checking vote changes..." +
         (" nothing hapened !" if msg == "" else ("\n%s" % msg))
     )
     if msg != "":
         misc.notify(msg)
+
+
+def execute_payroll(username, *pairs, **kwargs):
+    KEYS01, KEYS02 = biom.getUsernameKeys(username)
+    wallet = rest.GET.api.wallets(username).get("data", {})
+    vendorField = kwargs.get("vendorField", f"{username} share")
+    vendorFieldHex = kwargs.get("vendorFieldHex", None)
+    nonce = int(wallet["nonce"]) + 1
+    dlgt_puk = wallet["publicKey"]
+    dlgt_addr = wallet["address"]
+    registry = {}
+    assert KEYS01["publicKey"] == dlgt_puk
+
+    if len(pairs) < 3:
+        for addr, amount in pairs:
+            tx = dposlib.core.transfer(round(amount, 8), addr, vendorField)
+            dict.__setitem__(tx, "senderPublicKey", dlgt_puk)
+            dict.__setitem__(tx, "nonce", nonce)
+            if vendorFieldHex is not None:
+                tx.vendorFieldHex = vendorFieldHex
+            tx.senderId = dlgt_addr
+            tx.fee = "minFee"
+            tx.feeIncluded = True
+            tx.signature = dposlib.core.crypto.getSignatureFromBytes(
+                dposlib.core.crypto.getBytes(tx),
+                KEYS01["privateKey"]
+            )
+            if KEYS02 is not None:
+                tx.signSignature = dposlib.core.crypto.getSignatureFromBytes(
+                    dposlib.core.crypto.getBytes(tx),
+                    KEYS02["privateKey"]
+                )
+            tx.id = dposlib.core.crypto.getIdFromBytes(
+                dposlib.core.crypto.getBytes(
+                    tx, exclude_multi_sig=False
+                )
+            )
+            registry[tx["id"]] = tx
+            nonce += 1
+
+    else:
+        chunk_size = 50
+        while len(pairs) % chunk_size <= 3:
+            chunk_size -= 1
+
+        for chunk in [
+            pairs[i:i+chunk_size]
+            for i in range(0, len(pairs), chunk_size)
+        ]:
+            tx = dposlib.core.multiPayment(
+                *[[round(amount, 8), addr] for addr, amount in chunk],
+                vendorField=vendorField
+            )
+            dict.__setitem__(tx, "senderPublicKey", wallet["publicKey"])
+            dict.__setitem__(tx, "nonce", nonce)
+            if vendorFieldHex is not None:
+                tx.vendorFieldHex = vendorFieldHex
+            tx.senderId = wallet["address"]
+            tx.fee = "minFee"
+            tx.signature = dposlib.core.crypto.getSignatureFromBytes(
+                dposlib.core.crypto.getBytes(tx),
+                KEYS01["privateKey"]
+            )
+            if KEYS02 is not None:
+                tx.signSignature = dposlib.core.crypto.getSignatureFromBytes(
+                    dposlib.core.crypto.getBytes(tx),
+                    KEYS02["privateKey"]
+                )
+            tx.id = dposlib.core.crypto.getIdFromBytes(
+                dposlib.core.crypto.getBytes(
+                    tx, exclude_multi_sig=False
+                )
+            )
+            registry[tx["id"]] = tx
+            nonce += 1
+
+    return registry
 
 
 class TaskExecutioner(threading.Thread):
