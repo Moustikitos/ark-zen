@@ -67,7 +67,7 @@ def freemobile_sendmsg(title, body):
         freemobile["msg"] = title + ":\n" + body
         return zen.biom.dposlib.rest.POST.sendmsg(
             peer="https://smsapi.free-mobile.fr",
-            jsonify=freemobile
+            _jsonify=freemobile
         )
 
 
@@ -89,7 +89,7 @@ def pushover_messages(title, body):
         return zen.biom.dposlib.rest.POST(
             "1", "messages.json",
             peer="https://api.pushover.net",
-            urlencode=dict(
+            _urlencode=dict(
                 message=body,
                 title=title,
                 **pushover
@@ -106,7 +106,7 @@ def twilio_messages(title, body):
         return zen.biom.dposlib.rest.POST(
             "2010-04-01", "Accounts", twilio["sid"], "Messages.json",
             peer="https://api.twilio.com",
-            urlencode={
+            _urlencode={
                 "From": twilio["sender"],
                 "To": twilio["receiver"],
                 "Body": body,
