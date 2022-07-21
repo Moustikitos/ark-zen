@@ -32,7 +32,7 @@ bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash
 **Install last release**
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 3.1.0
+bash <(curl -s https://raw.githubusercontent.com/Moustikitos/ark-zen/master/bash/zen-install.sh) 3.2.0
 ```
 
 Once installation finished, `zen` app is available in home directory. It has to be used in its virtual environment. This virtual environment is activated with the command lines:
