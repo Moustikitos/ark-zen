@@ -10,10 +10,10 @@ import sqlite3
 import datetime
 import threading
 
+from datetime import timezone
 from collections import OrderedDict
 
 import zen
-import pytz
 import dposlib
 
 from dposlib import rest
@@ -131,7 +131,7 @@ def adjust(username, value):
 
 
 def extract(username):
-    now = datetime.datetime.now(tz=pytz.UTC)
+    now = datetime.datetime.now(tz=timezone.utc)
 
     if biom.getPublicKeyFromUsername(username):
         param = loadJson("%s.json" % username)
