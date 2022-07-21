@@ -2,6 +2,6 @@ wheel
 docopt
 flask
 pygal
-git+https://github.com/Moustikitos/fast-curve#egg=cSecp256k1
+git+https://github.com/Moustikitos/fast-curve@1.1.1#egg=cSecp256k1
 git+https://github.com/Moustikitos/micro-server#egg=usrv
-git+https://github.com/Moustikitos/dpos#egg=dposlib
+git+https://github.com/Moustikitos/dpos@1.0.0#egg=dposlib
