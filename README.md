@@ -139,6 +139,8 @@ Copy your API token in `pushbullet.json` file&nbsp;:
 
 ```
 Usage:
+    zen reset [--extern]
+    zen initialize [--extern]
     zen configure [--chunk-size <chubk-size> --fee-coverage]
     zen add-delegate <username> [-h <webhook-peer>]
     zen configure <username> [-s <share> -w <wallet> -e <excludes> -b <block-delay> -f <fee-level>]
@@ -149,7 +151,7 @@ Usage:
     zen append-custom-peer <peer-list>
     zen deploy-srv [--ip-address <ip-address> -p <port>]
     zen (restart-srv | stop-srv | log-zen | log-bg)
-    zen (reset | initialize | remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
+    zen (remove-custom-peer | check-secrets | enable-tasks | disable-tasks)
     zen configure-task <task> [-0]
 
 Options:
@@ -166,8 +168,9 @@ Options:
     -p --port=<port>                  port to use for zen server
     --ip-address=<ip-address>         ip address to use for zen server
     --chunk-size=<chunk-size>         max transaction per multitransfer
+    -x --extern                       use extern relay                     (flag)
     -0 --reset                        background task options to defaults  (flag)
-    --fee-coverage                    delegate covers transaction fees     (flag)
+    -c --fee-coverage                 delegate covers transaction fees     (flag)
 
 Subcommands:
     reset               initialization starting from ark-core config folder
@@ -188,20 +191,21 @@ Subcommands:
     remove-custom-peer  remove one or more custom peer from a selection list
     enable-tasks        enable available background tasks
     disable-tasks       disable available background tasks
-    configure-task      edit <task> options when possible
+    configure-task      edit task options if any
 ```
 
 ## Releases
 
 ### Normae - 4.0.0 [current work]
   * [x] packaging improvement
+
+### Monoceros [last]
+#### 3.2.0
   * [X] security improvment
   * [X] added `solar-swipe` network
   * [X] background task management improvment
   * [X] `SIGUSR1` and `SIGTERM` handlers for bg tasks
   * [X] more secure webhook management
-
-### Monoceros [last]
 #### 3.1.0
   * [X] Ark core 3.0 compliancy
 #### 3.0.0
