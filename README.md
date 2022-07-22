@@ -200,6 +200,9 @@ Subcommands:
   * [x] packaging improvement
 
 ### Monoceros [last]
+#### 3.2.1
+  * [X] notification bugfix
+  * [X] requirements versioning
 #### 3.2.0
   * [X] security improvment
   * [X] added `solar-swipe` network
