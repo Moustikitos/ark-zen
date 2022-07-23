@@ -665,14 +665,15 @@ def computeDelegateBlock(username, block):
             for wallet in [w for w in contributions if w not in _ctrb]
         ]
     )
-    registry = execute_payroll(
-        username, *[
-            [wallet, _ctrb[wallet]]
-            for wallet in [w for w in _ctrb if w not in contributions]
-        ],
-        vendorField=f"{username} residual share"
-    )
-    dumpJson(registry, f"{block['height']}.downvote.milestone", folder=folder)
+    if forger.get("refund_downvoters", False):
+        registry = execute_payroll(
+            username, *[
+                [wallet, _ctrb[wallet]]
+                for wallet in [w for w in _ctrb if w not in contributions]
+            ],
+            vendorField=f"{username} residual share"
+        )
+        dumpJson(registry, f"{block['height']}.downvote.milestone", folder=folder)
     logMsg(
         "checking vote changes..." +
         (" nothing hapened !" if msg == "" else ("\n%s" % msg))
