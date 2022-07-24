@@ -65,7 +65,7 @@ def freemobile_sendmsg(title, body):
     freemobile = zen.loadJson("freemobile.json")
     if freemobile != {}:
         freemobile["msg"] = title + ":\n" + body
-        return zen.biom.dposlib.rest.POST.sendmsg(
+        return uio_req.POST.sendmsg(
             peer="https://smsapi.free-mobile.fr",
             _jsonify=freemobile
         )
@@ -74,7 +74,7 @@ def freemobile_sendmsg(title, body):
 def pushbullet_pushes(title, body):
     pushbullet = zen.loadJson("pushbullet.json")
     if pushbullet != {}:
-        return zen.biom.dposlib.rest.POST.v2.pushes(
+        return uio_req.POST.v2.pushes(
             peer="https://api.pushbullet.com",
             body=body, title=title, type="note",
             headers={
@@ -86,7 +86,7 @@ def pushbullet_pushes(title, body):
 def pushover_messages(title, body):
     pushover = zen.loadJson("pushover.json")
     if pushover != {}:
-        return zen.biom.dposlib.rest.POST(
+        return uio_req.rest.POST(
             "1", "messages.json",
             peer="https://api.pushover.net",
             _urlencode=dict(
@@ -103,7 +103,7 @@ def twilio_messages(title, body):
         authentication = base64.b64encode(
             ("%s:%s" % (twilio["sid"], twilio["auth"])).encode('utf-8')
         )
-        return zen.biom.dposlib.rest.POST(
+        return uio_req.POST(
             "2010-04-01", "Accounts", twilio["sid"], "Messages.json",
             peer="https://api.twilio.com",
             _urlencode={
