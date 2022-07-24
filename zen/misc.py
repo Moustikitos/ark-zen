@@ -2,7 +2,6 @@
 
 import os
 import time
-import base64
 import datetime
 
 import zen
@@ -11,7 +10,9 @@ import zen.biom
 import pygal
 import pygal.style
 
-from dposlib.rest import req as uio_req
+from usrv import notify as usrv_notify
+from usrv import req as usrv_req
+from dposlib.rest import cfg
 
 
 def shorten(address, chunk=5):
@@ -19,13 +20,13 @@ def shorten(address, chunk=5):
 
 
 def urlWallet(address):
-    return zen.biom.dposlib.rest.cfg.explorer+"/wallets/"+address
+    return cfg.explorer+"/wallets/"+address
 
 
 def loadPages(
     endpoint, pages=None, quiet=True, nb_tries=10, peer=None, conditions=[]
 ):
-    if not isinstance(endpoint, uio_req.EndPoint):
+    if not isinstance(endpoint, usrv_req.EndPoint):
         raise Exception("Invalid endpoint class")
     count, pageCount, data = 0, 1, []
     while count < pageCount:
@@ -33,7 +34,7 @@ def loadPages(
         if req.get("error", False):
             nb_tries -= 1
             if not quiet:
-                zen.logMsg("Api error occured... [%d tries left]" % nb_tries)
+                zen.LOG.info("Api error occured... [%d tries left]" % nb_tries)
             if nb_tries <= 0:
                 raise Exception("Api error occured: %r" % req)
         else:
@@ -41,14 +42,14 @@ def loadPages(
             if isinstance(pages, int):
                 pageCount = min(pages, pageCount)
             if not quiet:
-                zen.logMsg("reading page %s over %s" % (count+1, pageCount))
+                zen.LOG.info("reading page %s over %s" % (count+1, pageCount))
             data.extend(req.get("data", []))
             count += 1
     return data
 
 
 def loadCryptoCompareYearData(year, reference, interest):
-    req = zen.biom.dposlib.rest.GET.data.histoday(
+    req = usrv_req.GET.data.histoday(
         peer="https://min-api.cryptocompare.com",
         fsym=reference,
         tsym=interest,
@@ -61,75 +62,19 @@ def loadCryptoCompareYearData(year, reference, interest):
         raise Exception("can not reach data")
 
 
-def freemobile_sendmsg(title, body):
-    freemobile = zen.loadJson("freemobile.json")
-    if freemobile != {}:
-        freemobile["msg"] = title + ":\n" + body
-        return zen.biom.dposlib.rest.POST.sendmsg(
-            peer="https://smsapi.free-mobile.fr",
-            jsonify=freemobile
-        )
-
-
-def pushbullet_pushes(title, body):
-    pushbullet = zen.loadJson("pushbullet.json")
-    if pushbullet != {}:
-        return zen.biom.dposlib.rest.POST.v2.pushes(
-            peer="https://api.pushbullet.com",
-            body=body, title=title, type="note",
-            headers={
-                'Access-Token': pushbullet["token"],
-            }
-        )
-
-
-def pushover_messages(title, body):
-    pushover = zen.loadJson("pushover.json")
-    if pushover != {}:
-        return zen.biom.dposlib.rest.POST(
-            "1", "messages.json",
-            peer="https://api.pushover.net",
-            urlencode=dict(
-                message=body,
-                title=title,
-                **pushover
-            )
-        )
-
-
-def twilio_messages(title, body):
-    twilio = zen.loadJson("twilio.json")
-    if twilio != {}:
-        authentication = base64.b64encode(
-            ("%s:%s" % (twilio["sid"], twilio["auth"])).encode('utf-8')
-        )
-        return zen.biom.dposlib.rest.POST(
-            "2010-04-01", "Accounts", twilio["sid"], "Messages.json",
-            peer="https://api.twilio.com",
-            urlencode={
-                "From": twilio["sender"],
-                "To": twilio["receiver"],
-                "Body": body,
-            },
-            headers={
-                "Authorization": "Basic %s" % authentication.decode('ascii')
-            }
-        )
-
-
 def notify(body):
-    title = "zen@%s" % zen.biom.dposlib.core.cfg.network
+    title = "zen@%s" % cfg.network
     body = body.decode("utf-8") if isinstance(body, bytes) else body
 
-    for func in [
-        freemobile_sendmsg,
-        pushbullet_pushes,
-        pushover_messages,
-        twilio_messages
+    for func, data in [
+        (usrv_notify.freemobile_sendmsg, zen.loadJson("freemobile.json")),
+        (usrv_notify.pushbullet_pushes, zen.loadJson("pushbullet.json")),
+        (usrv_notify.pushover_messages, zen.loadJson("pushover.json")),
+        (usrv_notify.twilio_messages, zen.loadJson("twilio.json"))
     ]:
-        response = func(title, body)
+        response = func(title, body, **data)
         if isinstance(response, dict):
-            zen.logMsg(
+            zen.LOG.info(
                 "%s: notification response:\n%s" % (func.__name__, response)
             )
             if response.get("status", 1000) < 300:
@@ -177,22 +122,21 @@ def chartTimedData(data, username=""):
 
 
 def chartAir(share, nb_points=100, username="", blocktime=None):
-    info = zen.biom.dposlib.rest.cfg
-    _get = zen.biom.dposlib.rest.GET
-    blocktime = info.blocktime if not blocktime else blocktime
+    _get = usrv_req.GET
+    blocktime = cfg.blocktime if not blocktime else blocktime
 
-    delegates = _get.api.delegates()["data"][:info.activeDelegates]
+    delegates = _get.api.delegates()["data"][:cfg.activeDelegates]
     min_vote, max_vote = [
         int(d["votes"])/100000000.
         for d in sorted(
-            delegates[::info.activeDelegates-1],
+            delegates[::cfg.activeDelegates-1],
             key=lambda d: d["votes"],
             reverse=True
         )
     ]
 
     yearly_share = \
-        365 * 24 * info.blockreward * 3600./(info.activeDelegates * blocktime)
+        365 * 24 * cfg.blockreward * 3600./(cfg.activeDelegates * blocktime)
 
     chart = pygal.XY(
         title=u'Public delegates Annual Interest Rate (AIR)',
@@ -200,7 +144,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
         show_legend=False,
         show_x_labels=True,
         show_y_labels=True,
-        x_value_formatter=lambda x: "%.2f m%s" % (x/1000000, info.symbol),
+        x_value_formatter=lambda x: "%.2f m%s" % (x/1000000, cfg.symbol),
         y_value_formatter=lambda y: "%d%%" % y,
         x_label_rotation=20,
         x_title="Delegate vote power",
@@ -229,7 +173,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
         }
     )
 
-    if zen.biom.dposlib.rest.cfg.network == "ark":
+    if cfg.network == "ark":
         try:
             arkdelegates = _get.api.delegates(
                 peer="https://arkdelegates.live", limit=51
@@ -259,7 +203,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
                     show_legend=False
                 )
         except Exception as e:
-            zen.logMsg('error occured using arkdelegates.io API : %r' % e)
+            zen.LOG.info('error occured using arkdelegates.io API : %r' % e)
 
     if username not in ["", None]:
         forger = zen.loadJson("%s.json" % username)
@@ -299,7 +243,7 @@ def chartAir(share, nb_points=100, username="", blocktime=None):
                 fill=True,
             )
         except Exception as e:
-            zen.logMsg('error occured trying to put delegate details : %r' % e)
+            zen.LOG.info('error occured trying to put delegate details : %r' % e)
 
     chart.render_to_file(
         os.path.join(zen.ROOT, "app", "static", "air_%s.svg" % username)
