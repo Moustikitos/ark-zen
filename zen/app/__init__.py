@@ -49,25 +49,37 @@ def download_backup():
         elif challenge.get("value", "") != value:
             return "", 403
         else:
-            return flask.send_file(
-                os.path.abspath(
-                    os.path.join(zen.__path__[0], "data-bkp.tar.bz2")
-                ),
-                as_attachment=True
+            backup_folder = os.path.abspath(
+                zen.loadJson("root.json").get("tasks-enabled", {}).get(
+                    "backupData", {}
+                ).get(
+                    "backup-folder", zen.__path__[0]
+                )
             )
+            backups = [
+                os.path.join(backup_folder, name)
+                for name in os.listdir(backup_folder) if ".tar" in name
+            ]
+            if not len(backups):
+                return "", 404
+            backups.sort(key=lambda p: os.stat(p).st_mtime)
+            return flask.send_file(backups[-1], as_attachment=True)
 
-    challenge = "%s" % int(
-        hashlib.sha256(
-            binascii.hexlify(os.urandom(32))
-        ).hexdigest()[:5],
-        16
-    )
-    zen.dumpJson(
-        {"value": challenge, "expiration": time.time()+60},
-        "challenge.json"
-    )
-    zen.misc.notify("Your challenge code is:\n%s" % challenge)
-    return flask.render_template("backup.html")
+    elif flask.request.method == "GET":
+        last_chalenge = zen.loadJson("challenge.json")
+        if time.time() > last_chalenge.get("expiration", 0):
+            challenge = "%s" % int(
+                hashlib.sha256(
+                    binascii.hexlify(os.urandom(32))
+                ).hexdigest()[:5],
+                16
+            )
+            zen.dumpJson(
+                {"value": challenge, "expiration": time.time() + 60},
+                "challenge.json"
+            )
+            zen.misc.notify("Your challenge code is:\n%s" % challenge)
+        return flask.render_template("backup.html")
 
 
 @app.route("/faq")
